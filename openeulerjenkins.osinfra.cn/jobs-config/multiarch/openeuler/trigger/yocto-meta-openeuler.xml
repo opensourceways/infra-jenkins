@@ -242,7 +242,7 @@ commentid=${commentID}</properties>
               <textParamValueOnNewLine>false</textParamValueOnNewLine>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>multiarch/openeuler/aarch64/yotco-meta-openeuler(qemu-image-standard),multiarch/openeuler/aarch64/yocto-meta-openeuler(qemu-image-tiny),multiarch/openeuler/arm/yocto-meta-openeuler(qemu-image-standard)</projects>
+          <projects>multiarch/openeuler/aarch64/yocto-meta-openeuler(qemu-image-tiny),multiarch/openeuler/arm/yocto-meta-openeuler(qemu-image-standard),multiarch/openeuler/aarch64/yocto-meta-openeuler(qemu-image-standard)</projects>
           <condition>FAILED_OR_BETTER</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
           <triggerFromChildProjects>false</triggerFromChildProjects>

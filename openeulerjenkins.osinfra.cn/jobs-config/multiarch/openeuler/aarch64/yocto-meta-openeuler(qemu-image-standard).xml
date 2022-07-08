@@ -388,7 +388,7 @@ for one_suite in ${run_suitecase[@]}; do
     &quot;&gt;&gt; ${run_test_dir}/tmp_test_run_${one_suite}.sh
     sh -x ${run_test_dir}/tmp_test_run_${one_suite}.sh
     # 拷贝测试套执行结果
-    cp -Rrf ${run_test_dir}/mugen/results/${one_suite} ${results_path}/
+    cp -Rrf ${run_test_dir}/mugen/results/${one_suite} ${results_path}/ || exit 0
     rm -rf ${run_test_dir}/tmp_test_run_${one_suite}.sh
 done
 

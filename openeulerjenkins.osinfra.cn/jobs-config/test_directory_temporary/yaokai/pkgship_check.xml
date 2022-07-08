@@ -58,14 +58,35 @@ cmd2
       <command>sudo su - root &lt;&lt;FEOF
 echo &quot;nameserver 114.114.114.114&quot; &gt;&gt; /etc/resolv.conf
 
-#yum install python3-pip -y --repo OS
-#pip3 install pexpect -i https://pypi.tuna.tsinghua.edu.cn/simple
+#yum remove openEuler-rpm-config -y
+#yum install openEuler-rpm-config -y
 
-yum install pkgship -y
-
-exit
+#dnf repoquery --whatrequires dpdk
+dnf repoquery --whatdepends dpdk
 
 FEOF
+exit
+
+#echo &quot;finish install pkgship&quot;
+
+#cd /etc/pkgship/
+#/bin/bash auto_install_pkgship_requires.sh elasticsearch
+#echo &quot;finish install elasticsearch&quot;
+
+
+
+# dnf repoquery --whatqequires zip
+
+cat /etc/pkgship/package.ini
+
+
+
+if &quot;1&quot;;then
+	exit 0
+fi
+
+FEOF
+
 
 : &apos;
 
