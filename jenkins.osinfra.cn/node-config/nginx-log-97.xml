@@ -1,0 +1,23 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<slave>
+  <name>nginx-log-97</name>
+  <description></description>
+  <remoteFS>/var/lib/jenkins</remoteFS>
+  <numExecutors>4</numExecutors>
+  <mode>EXCLUSIVE</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.31.2">
+    <host>10.0.1.97</host>
+    <port>22</port>
+    <credentialsId>bd31164c-2cf7-4e57-a59d-06f31d7d9823</credentialsId>
+    <javaPath>/opt/client/JDK/jdk/bin/java</javaPath>
+    <launchTimeoutSeconds>60</launchTimeoutSeconds>
+    <maxNumRetries>10</maxNumRetries>
+    <retryWaitTime>15</retryWaitTime>
+    <sshHostKeyVerificationStrategy class="hudson.plugins.sshslaves.verifiers.NonVerifyingKeyVerificationStrategy"/>
+    <tcpNoDelay>true</tcpNoDelay>
+    <workDir>/home/jenkins</workDir>
+  </launcher>
+  <label>97</label>
+  <nodeProperties/>
+</slave>

@@ -1,0 +1,68 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>this project is for test gitee login</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/liuyanglinux/webhook_test.git</url>
+        <credentialsId>95032b54-6787-45c5-9058-48977d8e9249</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>docker</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>set -e
+GITEE_EMAIL=&quot;yang_liu0418@163.com&quot;
+cd $WORKSPACE
+
+git config --global user.email $GITEE_EMAIL
+git config --global user.name $GITEE_USER
+git clone https://$GITEE_USER:$GITEE_PASSWD@gitee.com/liuyanglinux/nsd
+cd nsd 
+echo &quot;test01&quot; &gt; ./file.txt
+git add .
+git commit -am &quot;test&quot;
+git push origin --all
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>95032b54-6787-45c5-9058-48977d8e9249</credentialsId>
+          <usernameVariable>GITEE_USER</usernameVariable>
+          <passwordVariable>GITEE_PASSWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

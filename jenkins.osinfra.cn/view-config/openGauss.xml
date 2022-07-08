@@ -1,0 +1,33 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>openGauss</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>index-tool</string>
+    <string>openEuler_APPs/openeuler-doc-search</string>
+    <string>opengauss moocstudio backend</string>
+    <string>opengauss moocstudio frontend</string>
+    <string>opengauss tryme backend</string>
+    <string>opengauss-ccs</string>
+    <string>opengauss-meetingserver-pipeline</string>
+    <string>opengauss-tryme-website-production-environment</string>
+    <string>opengauss-tryme-website-test</string>
+    <string>openGauss-webclient</string>
+    <string>openGauss-webclient-tryme</string>
+    <string>opengauss-website-test-program-publish</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

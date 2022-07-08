@@ -1,0 +1,22 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<slave>
+  <name>docker-arm-alave</name>
+  <description></description>
+  <remoteFS>/var/jenkins_home</remoteFS>
+  <numExecutors>4</numExecutors>
+  <mode>EXCLUSIVE</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.31.2">
+    <host>192.168.1.81</host>
+    <port>22</port>
+    <credentialsId>49af30cb-cd15-4fd3-8f69-1f8a90a0fced</credentialsId>
+    <javaPath>/usr/bin/java</javaPath>
+    <launchTimeoutSeconds>60</launchTimeoutSeconds>
+    <maxNumRetries>10</maxNumRetries>
+    <retryWaitTime>15</retryWaitTime>
+    <sshHostKeyVerificationStrategy class="hudson.plugins.sshslaves.verifiers.NonVerifyingKeyVerificationStrategy"/>
+    <tcpNoDelay>true</tcpNoDelay>
+  </launcher>
+  <label>arm</label>
+  <nodeProperties/>
+</slave>

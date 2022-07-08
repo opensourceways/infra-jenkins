@@ -1,0 +1,49 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>250</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -l
+
+#to recover data from obs with specify date,the last two parameters is vhostname and es&apos;s indexname,if not assignment,it will use the resource/conf.properties parameters in the jar
+month=$(date -d &quot;-1 day&quot; &quot;+%m&quot;)
+day=$(date -d &quot;-1 day&quot; &quot;+%d&quot;)
+pw=${ES_PASS}
+
+NODE_TLS_REJECT_UNAUTHORIZED=0 /usr/local/bin/elasticdump  --input=https://admin:$pw@119.8.111.61:9200 --input-index=logstash-2022.$month.$day --output=/mnt/mount_path/logstash-mindspore-2022.$month.$day-hk-app.json  --searchBody &apos;{&quot;query&quot;:{&quot;terms&quot;:{&quot;vhost&quot;: [&quot;download.mindspore.cn&quot;]}}}&apos; --type=data --maxSockets=4 --timeout=60000 --retryAttempts=10 --retryDelay=30000 --limit=1000
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <EnvInjectPasswordWrapper plugin="envinject@2.4.0">
+      <injectGlobalPasswords>false</injectGlobalPasswords>
+      <maskPasswordParameters>true</maskPasswordParameters>
+      <passwordEntries>
+        <EnvInjectPasswordEntry>
+          <name>ES_PASS</name>
+          <value>{AQAAABAAAAAQlJONGQAGzw5GN6Tf9wiyj60JEixNfZRR7vpiAQH2MDI=}</value>
+        </EnvInjectPasswordEntry>
+      </passwordEntries>
+    </EnvInjectPasswordWrapper>
+  </buildWrappers>
+</project>

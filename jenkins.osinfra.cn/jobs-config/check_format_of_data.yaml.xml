@@ -1,0 +1,94 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This project used to publish om-data-format-check</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection></giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>REPO_OWNER</name>
+          <description>community name</description>
+          <defaultValue>openlookeng</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>REPO_NAME</name>
+          <description>repository name</description>
+          <defaultValue>community</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PULL_NUMBER</name>
+          <description>PR NUMBER</description>
+          <defaultValue>15</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PROW_JOB_ID</name>
+          <description>JOB ID</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>jenkins</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>1152ca7bf1e13bbcfadcd8fbbc1e28b888</authToken>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+
+if [ -d &quot;${REPO_NAME}&quot; ]; then
+    rm -rf &quot;${REPO_NAME}&quot;
+fi
+
+git clone https://gitee.com/${REPO_OWNER}/${REPO_NAME}.git
+cd ${REPO_NAME}
+git fetch origin pull/${PULL_NUMBER}/head:master-${PULL_NUMBER}
+git checkout master-${PULL_NUMBER}
+
+
+
+cd ..
+if [ -d &quot;om-data&quot; ]; then
+    rm -rf &quot;om-data&quot;
+fi
+git clone https://gitee.com/opensourceway/om-data.git
+cd om-data/src
+python3 check_yaml.py  -p ../../${REPO_NAME}/om-data/data.yaml
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>huaweicloud-swr-token</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>tommylike_github_token</credentialsId>
+          <usernameVariable>GIT_USER</usernameVariable>
+          <passwordVariable>GIT_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

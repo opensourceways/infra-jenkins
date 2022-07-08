@@ -1,0 +1,22 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<slave>
+  <name>playground-jenkins-slave-0</name>
+  <description>build playground image in mindspore-hk slave node</description>
+  <remoteFS>/var/jenkins_home</remoteFS>
+  <numExecutors>4</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.31.2">
+    <host>192.168.1.58</host>
+    <port>22</port>
+    <credentialsId>79e551cb-49e1-4176-a97b-8c8706a85408</credentialsId>
+    <javaPath>/usr/bin/java</javaPath>
+    <launchTimeoutSeconds>60</launchTimeoutSeconds>
+    <maxNumRetries>10</maxNumRetries>
+    <retryWaitTime>15</retryWaitTime>
+    <sshHostKeyVerificationStrategy class="hudson.plugins.sshslaves.verifiers.NonVerifyingKeyVerificationStrategy"/>
+    <tcpNoDelay>true</tcpNoDelay>
+  </launcher>
+  <label>playground-jenkins-x86</label>
+  <nodeProperties/>
+</slave>

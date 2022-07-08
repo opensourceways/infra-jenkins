@@ -1,0 +1,79 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>check out community website pr</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>PULL_NUMBER</name>
+          <description>4  pr_number</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>REPO_OWNER</name>
+          <description>nicliuqi</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>REPO_NAME</name>
+          <description>daily</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>JOB_SPEC</name>
+          <description>PROW PARAMETER</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PROW_JOB_ID</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>jenkins,moderation</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>1152ca7bf1e13bbcfadcd8fbbc1e28b888</authToken>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+cd /home/jenkins
+echo &quot;${JOB_SPEC}&quot;
+if [ -d &quot;${REPO_NAME}&quot; ]; then
+    rm -rf &quot;${REPO_NAME}&quot;
+fi
+
+if hash git 2&gt;/dev/null; then
+	git clone https://gitee.com/${REPO_OWNER}/${REPO_NAME}.git
+else
+	echo &quot;git not installed.&quot;
+    exit
+fi
+
+cd ${REPO_NAME}
+
+git fetch origin pull/${PULL_NUMBER}/head:pull_${PULL_NUMBER}
+
+git checkout pull_${PULL_NUMBER}
+cd ..
+
+
+python moderation.py -o ${REPO_OWNER} -r ${REPO_NAME} -n ${PULL_NUMBER}</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

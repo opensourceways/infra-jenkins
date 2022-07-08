@@ -1,0 +1,7 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.MyView>
+  <name>cla</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+</hudson.model.MyView>

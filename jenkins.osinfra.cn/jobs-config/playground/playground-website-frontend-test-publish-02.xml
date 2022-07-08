@@ -1,0 +1,115 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This project used to publish playground-website-frontend-test ;【2021-11-30  created】</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>INPUT</name>
+          <description>use default value for $INPUT before project;</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>docker-x86-slaves</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+
+GIT_EMAIL=&quot;tommylike@gmail.com&quot;
+IMAGE_VERSION=${INPUT}
+PROJECT_NAME=&quot;playground-website-frontend-test&quot;
+
+
+cd $WORKSPACE
+if [ -d &quot;infra-common&quot; ]; then
+    rm -rf &quot;infra-common&quot;
+fi
+
+if hash git 2&gt;/dev/null; then
+    git config --global user.email $GIT_EMAIL
+    git config --global user.name $GIT_USER
+    git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-common
+    cd infra-common/common-applications/test-environment/playground-webiste-frontend-test
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+if hash kustomize 2&gt;/dev/null; then
+	kustomize edit set image swr.cn-north-4.myhuaweicloud.com/opensourceway/playground/playground-app-test:$IMAGE_VERSION
+else
+    echo &quot;use kustomize to replace old playground manager image.&quot;
+fi
+
+if hash git 2&gt;/dev/null; then
+    git add .
+    git commit -am &quot;Update playground-app-test-image:$IMAGE_VERSION&quot;
+    git push origin --all
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+ARGOCD_TOKEN=`curl -X POST -s -d &apos;{&quot;password&quot;:&quot;&apos;${ARGOCD_PASS}&apos;&quot;,&quot;username&quot;:&quot;&apos;${ARGOCD_USER}&apos;&quot;}&apos; &quot;https://build.osinfra.cn/api/v1/session&quot;|tail -1 |awk -F &apos;[&quot;&quot;]&apos; &apos;{print $4}&apos;`&gt;/dev/null
+curl -X POST -s -o /dev/null --cookie &quot;argocd.token=${ARGOCD_TOKEN}&quot; &quot;https://build.osinfra.cn/api/v1/applications/${PROJECT_NAME}/sync&quot;&gt;/dev/null
+
+if [ $? -eq 0 ];then
+    echo &quot;sync file content to argocd completed!&quot;
+else
+    echo &quot;sync file content to argocd failed!&quot;
+fi
+
+
+
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.ws__cleanup.WsCleanup plugin="ws-cleanup@0.39">
+      <patterns class="empty-list"/>
+      <deleteDirs>false</deleteDirs>
+      <skipWhenFailed>false</skipWhenFailed>
+      <cleanWhenSuccess>true</cleanWhenSuccess>
+      <cleanWhenUnstable>true</cleanWhenUnstable>
+      <cleanWhenFailure>true</cleanWhenFailure>
+      <cleanWhenNotBuilt>true</cleanWhenNotBuilt>
+      <cleanWhenAborted>true</cleanWhenAborted>
+      <notFailBuild>false</notFailBuild>
+      <cleanupMatrixParent>false</cleanupMatrixParent>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.WsCleanup>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>tommylike_github_token</credentialsId>
+          <usernameVariable>GIT_USER</usernameVariable>
+          <passwordVariable>GIT_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>00441642-0437-4b00-9be4-ec0bb484d5c1</credentialsId>
+          <usernameVariable>ARGOCD_USER</usernameVariable>
+          <passwordVariable>ARGOCD_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

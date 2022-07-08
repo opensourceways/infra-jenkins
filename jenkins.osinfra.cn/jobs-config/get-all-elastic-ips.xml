@@ -1,0 +1,120 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>获取所有社区所有公网ip地址；&#xd;
+存放位置：openeuler账号 obs://obs-for-openeuler-developer/elastic-ips/；&#xd;
+当前使用zhaochunjiang账号aksk，若账号失效后，请使用新账号aksk替换当前aksk；</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.PasswordParameterDefinition>
+          <name>AK</name>
+          <description>AK value</description>
+          <defaultValue>{AQAAABAAAAAgP2ZpHsmE7gCbjqgFTZ5XM/G+K514nQkGSqOmH7ySpKzkdtpMnmox0vByEqwCb97k}</defaultValue>
+        </hudson.model.PasswordParameterDefinition>
+        <hudson.model.PasswordParameterDefinition>
+          <name>SK</name>
+          <description>SK value</description>
+          <defaultValue>{AQAAABAAAAAw63vYCQArKFKfEThUP2akMCa2zFoEoilBLifmryqW9dSFWu54EOnC6FrENJRyfwV7b/bEVXb5hHsiVZbWJMinyg==}</defaultValue>
+        </hudson.model.PasswordParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>EP</name>
+          <description>北京4 endpoint</description>
+          <defaultValue>obs.cn-north-4.myhuaweicloud.com</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>docker-x86-openeuler-slaves</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+echo `id`
+str=`date +%Y%m%d`
+if ! hash obsutil 2&gt;/dev/null;then
+	wget https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz
+	tar -xzvf obsutil_linux_amd64.tar.gz &amp;&amp; chmod 755 ./obsutil_linux_amd64_5.3.4/obsutil &amp;&amp; mv ./obsutil_linux_amd64_5.3.4/obsutil /usr/bin/obsutil
+    rm -rf ./obsutil*
+fi
+
+# get excel
+packages=(
+  huaweicloudsdkeip
+  huaweicloudsdknat
+  huaweicloudsdkelb
+  huaweicloudsdkbms
+  huaweicloudsdkecs
+  huaweicloudsdkrds
+  huaweicloudsdkvpc
+  openpyxl
+  PyYAML
+)
+for ((i=0;i&lt;${#packages[*]};i++))
+do
+  # temp=`pip3 list |grep ${packages[i]}`
+  temp=`pip list |grep ${packages[i]}`
+  if [[ -z $temp ]]; then
+    # pip3 install ${packages[i]}
+      pip install --ignore-installed  ${packages[i]}
+  fi
+done
+
+while :
+do
+	if [ ! -e collect_elastic_public_ip_by_yaml.py ];then
+		wget https://github.com/Open-Infra-Ops/huaweicloud-tools/raw/main/elastic_public_ip/collect_elastic_public_ip_by_yaml.py
+    else
+    	break
+    fi
+done
+
+# download obs file
+obsutil cp obs://obs-for-openeuler-developer/secret-files/collect_elastic_public_ip.yaml ./collect_elastic_public_ip.yaml -i=${AK} -k=${SK} -e=${EP}
+
+# build
+python3 collect_elastic_public_ip_by_yaml.py  -config_path ./collect_elastic_public_ip.yaml
+mv 公网IP统计表.xlsx elastic-ips-${str}.xlsx
+
+# upload xlsx file
+obsutil cp ./elastic-ips-${str}.xlsx obs://obs-for-openeuler-developer/elastic-ips/elastic-ips-${str}.xlsx  -i=${AK} -k=${SK} -e=${EP}
+
+# rm fils
+# rm -f collect_elastic_public_ip.yaml collect_elastic_public_ip_by_yaml.py elastic-ips-${str}.xlsx
+ </command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.ws__cleanup.WsCleanup plugin="ws-cleanup@0.39">
+      <patterns class="empty-list"/>
+      <deleteDirs>false</deleteDirs>
+      <skipWhenFailed>false</skipWhenFailed>
+      <cleanWhenSuccess>true</cleanWhenSuccess>
+      <cleanWhenUnstable>true</cleanWhenUnstable>
+      <cleanWhenFailure>true</cleanWhenFailure>
+      <cleanWhenNotBuilt>true</cleanWhenNotBuilt>
+      <cleanWhenAborted>true</cleanWhenAborted>
+      <notFailBuild>false</notFailBuild>
+      <cleanupMatrixParent>false</cleanupMatrixParent>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.WsCleanup>
+  </publishers>
+  <buildWrappers/>
+</project>

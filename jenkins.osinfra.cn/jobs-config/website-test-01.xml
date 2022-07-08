@@ -1,0 +1,78 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>临时测试，勿删除 【2022-01-22】</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>docker</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+# Created by 2022-01-15;用于获取指定JOB最后一次成功构建时的Git Version;
+
+cd $WORKSPACE
+JOB_NAME=&quot;website-test-02&quot;
+curl https://jenkins.osinfra.cn/job/$JOB_NAME/lastBuild/api/xml -o ./lastBuild.xml
+NUM=`xmllint --format ./lastBuild.xml | grep &quot;&lt;buildNumber&gt;&quot; | tr -cd &quot;[0-9]&quot;` 
+STRING=`curl https://jenkins.osinfra.cn/view/MindSpore/job/website-test-02/$NUM/ | grep &quot;Revision&quot;`
+GIT_VERSION=${STRING##*:}
+echo &quot;VALUE=${GIT_VERSION}&quot; &gt; ./gitVersion.txt
+sed -i &apos;s/ //g&apos; ./gitVersion.txt
+if hash xmllint 2&gt;/dev/null; then
+    apt-get install -y libxml2 &gt; /dev/null
+else
+	yum install -y libxml2 &gt; /dev/null
+fi
+xmllint --format ./lastBuild.xml &gt; ./test.txt
+grep -i &quot;SUCCESS&quot; ./test.txt &gt; /dev/null
+if [ $? -eq 0 ];then
+    echo &quot;STATUS_NUM=0&quot; &gt;&gt; ./gitVersion.txt
+else
+	echo &quot;STATUS_NUM=1&quot; &gt;&gt; ./gitVersion.txt
+fi
+rm -f ./test.txt ./lastBuild.xml
+cat ./gitVersion.txt
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.4.0">
+      <info>
+        <propertiesFilePath>gitVersion.txt</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+  </builders>
+  <publishers>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.41">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>VALUE=${VALUE}
+STATUS_NUM=${STATUS_NUM}</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <projects>website-test-02</projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <triggerFromChildProjects>false</triggerFromChildProjects>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+  </publishers>
+  <buildWrappers/>
+</project>

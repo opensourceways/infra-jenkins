@@ -1,0 +1,108 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This project used to build community website ci check environment</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/openeuler/infrastructure</url>
+        <credentialsId>tommylike_gitee_username_password</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>docker</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+GIT_EMAIL=&quot;tommylike@gmail.com&quot;
+IMAGE_VERSION=&quot;v0.0.1&quot;
+
+
+if hash git 2&gt;/dev/null; then
+ #   IMAGE_VERSION=$(git rev-parse HEAD)
+ IMAGE_VERSION=$(date +%s)
+fi
+
+if hash docker 2&gt;/dev/null; then
+    docker login -u cn-north-4@$DOCKER_USER -p $DOCKER_PASS swr.cn-north-4.myhuaweicloud.com
+else
+	echo &quot;docker not installed.&quot;
+    exit
+fi
+cd $WORKSPACE/ci/dockerfile/moderation-slave
+
+echo &quot;building content_moderation&quot;
+sed -i &apos;s|/java-8-openjdk-amd64/jre|/java-11-openjdk-amd64|g&apos; Dockerfile
+docker build -t swr.cn-north-4.myhuaweicloud.com/opensourceway/common/content_moderation:$IMAGE_VERSION .
+docker push swr.cn-north-4.myhuaweicloud.com/opensourceway/common/content_moderation:$IMAGE_VERSION
+docker rmi swr.cn-north-4.myhuaweicloud.com/opensourceway/common/content_moderation:$IMAGE_VERSION
+
+if [ -d &quot;infra-common&quot; ]; then
+    rm -rf &quot;infra-common&quot;
+fi
+
+if hash git 2&gt;/dev/null; then
+    git config --global user.email $GIT_EMAIL
+    git config --global user.name $GIT_USER
+    git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-common
+    cd infra-common/common-applications/control/jenkins-slave
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+if hash kustomize 2&gt;/dev/null; then
+    kustomize edit set image swr.cn-north-4.myhuaweicloud.com/opensourceway/common/content_moderation:$IMAGE_VERSION
+else
+    echo &quot;use replace to set image.&quot;
+fi
+
+if hash git 2&gt;/dev/null; then   
+    git add .
+    git commit -am &quot;update image to content_moderation:$IMAGE_VERSION&quot;
+    git push origin --all
+else
+    echo &quot;git is not existing.&quot;
+fi</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>huaweicloud-swr-token</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>tommylike_github_token</credentialsId>
+          <usernameVariable>GIT_USER</usernameVariable>
+          <passwordVariable>GIT_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

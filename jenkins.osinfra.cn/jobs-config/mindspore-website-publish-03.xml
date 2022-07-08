@@ -1,0 +1,131 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This project used to publish mindspore website code to website; &#xd;
+     This is 2th step;&#xd;
+     The 1th stepâ€˜s program  is mindspore-website-publish-02 in Mindspore;</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>INPUT</name>
+          <description>Get a previous  job  variable-value-of-&quot;IMAGE_VERSION&quot;,Value is in ${INPUT};
+Default Value do not set;</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>STATUS_CODE</name>
+          <description>Check pre program whether is normally built!
+        &quot;0&quot; is  repogistry not change;
+        &quot;1&quot; is  had changed!</description>
+          <defaultValue>0</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>docker</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+
+
+GIT_EMAIL=&quot;tommylike@gmail.com&quot;
+IMAGE_VERSION=${INPUT}
+STATUS=${STATUS_CODE}
+PROJECT_NAME=&quot;mindspore-website-publish-03&quot;
+
+
+cd $WORKSPACE
+if [ ${STATUS} == &quot;1&quot; ];then
+	echo &quot;Nothing to commit,Working tree clean and exit!&quot;
+    exit 0
+fi
+
+if [ -d &quot;infra-mindspore&quot; ]; then
+    rm -rf &quot;infra-mindspore&quot;
+fi
+
+#if hash git 2&gt; /dev/null; then
+#	git clone git@github.com:opensourceways/infra-mindspore.git
+#   cd infra-mindspore/applications/website
+#else
+#	echo &quot;git is not existing&quot;
+#fi
+
+if hash git 2&gt;/dev/null; then
+    git config --global user.email $GIT_EMAIL
+    git config --global user.name $GIT_USER
+    git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-mindspore
+    cd infra-mindspore/applications/website
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+if hash kustomize 2&gt;/dev/null; then
+	kustomize edit set image swr.cn-north-4.myhuaweicloud.com/opensourceway/mindspore/mindspore-website=swr.cn-north-4.myhuaweicloud.com/opensourceway/mindspore-website:$IMAGE_VERSION
+else
+    echo &quot;use replace to set image.&quot;
+fi
+
+if hash git 2&gt;/dev/null; then
+    git add .
+    git commit -am &quot;update mindspore-website image to mindspore-website:$IMAGE_VERSION&quot;
+    git push origin --all
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+ARGOCD_TOKEN=`curl -X POST -s -d &apos;{&quot;password&quot;:&quot;&apos;${ARGOCD_PASS}&apos;&quot;,&quot;username&quot;:&quot;&apos;${ARGOCD_USER}&apos;&quot;}&apos; &quot;https://build.osinfra.cn/api/v1/session&quot;|tail -1 |awk -F &apos;[&quot;&quot;]&apos; &apos;{print$4}&apos;`&gt;/dev/null
+curl -X POST -s -o /dev/null --cookie &quot;argocd.token=${ARGOCD_TOKEN}&quot; &quot;https://build.osinfra.cn/api/v1/applications/${PROJECT_NAME}/sync&quot;&gt;/dev/null
+if [ $? -eq 0 ];then
+    echo &quot;complete!&quot;
+else
+    echo &quot;failed!&quot;
+fi
+
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@408.vd726a_1130320">
+      <recipients>hanshize@huawei.com kathy.wangting@huawei.com yuanyan10@huawei.com guowenfeng1@huawei.com</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>true</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>00441642-0437-4b00-9be4-ec0bb484d5c1</credentialsId>
+          <usernameVariable>ARGOCD_USER</usernameVariable>
+          <passwordVariable>ARGOCD_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>tommylike_github_token</credentialsId>
+          <usernameVariable>GIT_USER</usernameVariable>
+          <passwordVariable>GIT_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

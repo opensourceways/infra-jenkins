@@ -1,0 +1,84 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>openGauss-webclient安装包构建，在添加tag时触发tryme分支的自动构建，构建时首先执行make test，然后执行make release</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec> +refs/heads/*:refs/remotes/origin/* +refs/pull/*/MERGE:refs/pull/*/MERGE</refspec>
+        <url>https://gitee.com/opengauss/openGauss-webclient.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/tryme</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>docker-x86-slaves</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.1.14">
+      <spec></spec>
+      <triggerOnPush>true</triggerOnPush>
+      <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+      <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+      <triggerOnAcceptedPullRequest>true</triggerOnAcceptedPullRequest>
+      <triggerOnUpdatePullRequest>0</triggerOnUpdatePullRequest>
+      <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+      <triggerOnApprovedPullRequest>true</triggerOnApprovedPullRequest>
+      <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+      <triggerOnNoteRequest>false</triggerOnNoteRequest>
+      <noteRegex>Retry build</noteRegex>
+      <ciSkip>true</ciSkip>
+      <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+      <ciSkipFroTestNotRequired>true</ciSkipFroTestNotRequired>
+      <skipLastCommitHasBeenBuild>true</skipLastCommitHasBeenBuild>
+      <setBuildDescription>true</setBuildDescription>
+      <branchFilterType>All</branchFilterType>
+      <includeBranchesSpec></includeBranchesSpec>
+      <excludeBranchesSpec></excludeBranchesSpec>
+      <targetBranchRegex></targetBranchRegex>
+      <secretToken>{AQAAABAAAAAwt5w+tE1p6LNSP/t/SlLdjB2rcN2qNQxXB9aapjBFfeoF1ev4HxTUq/rOcjDKGeyfWRTdlkM6z1yQB+COIG1WRg==}</secretToken>
+      <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+    </com.gitee.jenkins.trigger.GiteePushTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+make setup
+make release</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>bin/openGauss-webclient_linux_amd64,bin/openGauss-webclient_linux_amd64.zip</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
+      <followSymlinks>false</followSymlinks>
+    </hudson.tasks.ArtifactArchiver>
+  </publishers>
+  <buildWrappers/>
+</project>

@@ -1,0 +1,140 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This project used to building playground-lxc-launcher-manager-x86-hk-product-image and publish ;【2021-12-20  Created】</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/opensourceways/lxc-launcher.git</url>
+        <credentialsId>tommylike_github_token</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/main</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>docker</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+
+GIT_EMAIL=&quot;tommylike@gmail.com&quot;
+IMAGE_VERSION=&quot;v0.0.1&quot;
+TIME=$(date +%Y%m%d)
+PROJECT_NAME=&quot;playground-manager-x86-hk&quot;
+if hash git 2&gt;/dev/null; then
+    IMAGE_VERSION=$(git rev-parse HEAD)
+fi
+
+if hash docker 2&gt;/dev/null; then
+    docker login -u cn-north-4@$DOCKER_USER -p $DOCKER_PASS swr.cn-north-4.myhuaweicloud.com
+else
+	echo &quot;docker not installed.&quot;
+    exit
+fi
+
+cd $WORKSPACE
+# judge git rev_parse value whether change
+if [ ! -e ./git_rev.txt ];then
+	touch ./git_rev
+fi
+if [ -z `cat ./git_rev.txt` ];then
+	echo $IMAGE_VERSION &gt; ./git_rev.txt
+elif [ &quot;`cat ./git_rev.txt`&quot; = &quot;$IMAGE_VERSION&quot; ];then
+	echo &quot;gitee-repo files not change anything ,shell exit&quot;
+    exit
+else
+	echo $IMAGE_VERSION &gt; ./git_rev.txt
+fi
+
+echo &quot;building playground lxc launcher&quot;
+docker build -t swr.cn-north-4.myhuaweicloud.com/opensourceway/playground/lxc-launcher:$IMAGE_VERSION .
+docker push     swr.cn-north-4.myhuaweicloud.com/opensourceway/playground/lxc-launcher:$IMAGE_VERSION
+docker rmi      swr.cn-north-4.myhuaweicloud.com/opensourceway/playground/lxc-launcher:$IMAGE_VERSION
+
+if [ -d &quot;infra-common&quot; ]; then
+    rm -rf &quot;infra-common&quot;
+fi
+
+# k8s daemonset service
+if hash git 2&gt;/dev/null; then
+    git config --global user.email $GIT_EMAIL
+    git config --global user.name $GIT_USER
+    git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-common
+    cd  infra-common/common-applications/playground/manage-x86-hk
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+if hash kustomize 2&gt;/dev/null; then
+	kustomize edit set image swr.cn-north-4.myhuaweicloud.com/opensourceway/playground/lxc-launcher:$IMAGE_VERSION
+else
+    echo &quot;use kustomize to replace old playground lxc launcher image.&quot;
+fi
+
+if hash git 2&gt;/dev/null; then
+    git add .
+    git commit -am &quot;Update playground-app-image:$IMAGE_VERSION&quot;
+    git push origin --all
+    
+    if [ $? -eq 0 ];then
+    	echo &quot;$TIME ------&gt;&gt;&gt; commit lxc-launcher tag:$IMAGE_VERSION&quot; &gt;&gt; $WORKSPACE/commit-image-tag.txt
+    fi
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+ARGOCD_TOKEN=`curl -X POST -s -d &apos;{&quot;password&quot;:&quot;&apos;${ARGOCD_PASS}&apos;&quot;,&quot;username&quot;:&quot;&apos;${ARGOCD_USER}&apos;&quot;}&apos; &quot;https://build.osinfra.cn/api/v1/session&quot;|tail -1 |awk -F &apos;[&quot;&quot;]&apos; &apos;{print $4}&apos;`&gt;/dev/null
+curl -X POST -s -o /dev/null --cookie &quot;argocd.token=${ARGOCD_TOKEN}&quot; &quot;https://build.osinfra.cn/api/v1/applications/${PROJECT_NAME}/sync&quot;&gt;/dev/null
+
+if [ $? -eq 0 ];then
+    echo &quot;sync file content to argocd completed!&quot;
+else
+    echo &quot;sync file content to argocd failed!&quot;
+fi
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>huaweicloud-swr-token</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>tommylike_github_token</credentialsId>
+          <usernameVariable>GIT_USER</usernameVariable>
+          <passwordVariable>GIT_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>00441642-0437-4b00-9be4-ec0bb484d5c1</credentialsId>
+          <usernameVariable>ARGOCD_USER</usernameVariable>
+          <passwordVariable>ARGOCD_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,74 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection></giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.3.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/opensourceway/om-collections.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>/home/lxl/package/om-collections/</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+    </extensions>
+  </scm>
+  <assignedNode>250</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.1.14">
+      <spec></spec>
+      <triggerOnPush>false</triggerOnPush>
+      <triggerOnOpenPullRequest>false</triggerOnOpenPullRequest>
+      <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+      <triggerOnAcceptedPullRequest>true</triggerOnAcceptedPullRequest>
+      <triggerOnUpdatePullRequest>0</triggerOnUpdatePullRequest>
+      <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+      <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+      <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+      <triggerOnNoteRequest>false</triggerOnNoteRequest>
+      <noteRegex>Retry build</noteRegex>
+      <ciSkip>false</ciSkip>
+      <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+      <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+      <skipLastCommitHasBeenBuild>false</skipLastCommitHasBeenBuild>
+      <setBuildDescription>true</setBuildDescription>
+      <branchFilterType>NameBasedFilter</branchFilterType>
+      <includeBranchesSpec>master</includeBranchesSpec>
+      <excludeBranchesSpec></excludeBranchesSpec>
+      <targetBranchRegex></targetBranchRegex>
+      <secretToken>{AQAAABAAAAAwWDK8qpHn1udjqvACMV/Fbfb1jyZfBEkjLAHeTgnhbnpUyr11ztTMeVtR4zu20+i59REMuSdgZQ7JWposwiAyLQ==}</secretToken>
+      <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+    </com.gitee.jenkins.trigger.GiteePushTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/sh -l
+
+cd /home/lxl/package
+./package.sh</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

@@ -1,0 +1,95 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This project used to publish mindspore website code to website; this is 2th step;1th stepâ€˜s program  is mindspore-website-publish-02 in Mindspore;</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>INPUT</name>
+          <description>get  previous job value of IMAGE_VERSION</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>git@github.com:dakangsiji/infra-mindspore.git</url>
+        <credentialsId>ae2bee97-3f47-4e93-bb62-ccbd1ebc4f30</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>docker</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+
+GIT_EMAIL=&quot;dakang_siji@189.cn&quot;
+IMAGE_VERSION=${INPUT}
+PROJECT_NAME=&quot;mindspore-website-publish-git-push-code&quot;
+
+
+cd $WORKSPACE
+
+if [ -d &quot;infra-mindspore&quot; ]; then
+    rm -rf &quot;infra-mindspore&quot;
+fi
+
+if hash git 2&gt; /dev/null; then
+	git clone git@github.com:dakangsiji/infra-mindspore.git
+    cd infra-mindspore/applications/website
+else
+	echo &quot;git is not existing&quot;
+fi
+
+if hash kustomize 2&gt;/dev/null; then
+	kustomize edit set image swr.cn-north-4.myhuaweicloud.com/opensourceway/mindspore/mindspore-website=swr.cn-north-4.myhuaweicloud.com/opensourceway/mindspore/mindspore-website:$IMAGE_VERSION
+else
+    echo &quot;use replace to set image.&quot;
+fi
+
+cd ../../
+
+git add .
+git commit -m &quot;update mindspore-website image to mindspore-website:$IMAGE_VERSION&quot;
+git push origin --all
+echo &quot;commit all&quot;
+
+
+
+
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings class="empty-list"/>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,125 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>临时测试，勿删除 【2022-01-22】</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>VALUE</name>
+          <description>Get a previous  job  variable-value-of : &quot;VALUE&quot;,Value is in ${VALUE};  Do not set default value;</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>STATUS_NUM</name>
+          <description>Get a previous  job  variable-value-of : &quot;STATUS_NUM&quot;,Value is in ${STATUS_NUM};  Do not set default value;</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/mindspore/mindspore.github.io</url>
+        <credentialsId>tommylike_gitee_username_password</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>docker</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+
+GIT_EMAIL=&quot;tommylike@gmail.com&quot;
+IMAGE_VERSION=$(git rev-parse HEAD)
+PROJECT_NAME=&quot;mindspore-test-website&quot;
+
+cd $WORKSPACE
+if [ ! -e ./success.txt ]
+then
+    touch ./value.txt
+fi
+if [ ! -e ./faild.txt ]
+then
+    touch ./faild.txt
+fi
+if [ -z `cat ./success.txt` ]
+then
+    echo &quot;0&quot; &gt; ./success.txt
+fi
+if [ -z `cat ./faild.txt` ]
+then
+    echo &quot;1&quot; &gt; ./falid.txt
+fi
+if [ &quot;$STATUS_NUM&quot; = &quot;0&quot; ]
+then
+    echo $VALUE &gt; ./success.txt
+fi
+if [ &quot;$STATUS_NUM&quot; = &quot;1&quot; ]
+then
+    echo $VALUE &gt; ./faild.txt
+fi
+if [ ${IMAGE_VERSION} = `cat ./success.txt` ]
+then
+	echo &quot;#############################################&quot;
+	echo &quot;gitee registry files not change-01,excuted exit&quot;
+    echo &quot;#############################################&quot;
+    exit 1
+fi
+if [ `cat ./faild.txt` = `cat ./success.txt` ] &amp;&amp; [ ${IMAGE_VERSION} = `cat ./faild.txt` ] 
+then
+	echo &quot;#############################################&quot;
+	echo &quot;gitee registry files not change-02,excuted exit&quot;
+    echo &quot;#############################################&quot;
+    exit 1
+fi
+
+echo &quot;正在执行任务构建.................................&quot;
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>huaweicloud-swr-token</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>tommylike_github_token</credentialsId>
+          <usernameVariable>GIT_USER</usernameVariable>
+          <passwordVariable>GIT_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>00441642-0437-4b00-9be4-ec0bb484d5c1</credentialsId>
+          <usernameVariable>ARGOCD_USER</usernameVariable>
+          <passwordVariable>ARGOCD_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

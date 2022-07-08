@@ -1,0 +1,79 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>it is the build of exim4, and output docker image.</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/opensourceways/app-mailman</url>
+        <credentialsId>zhudong-gitee-account</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>docker</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+IMAGE_VERSION=&quot;v0.0.1&quot;
+
+if hash docker 2&gt;/dev/null; then
+    docker login -u cn-north-4@$DOCKER_USER -p $DOCKER_PASS swr.cn-north-4.myhuaweicloud.com
+else
+    echo &quot;docker not installed.&quot;
+    exit
+fi
+
+if hash git 2&gt;/dev/null; then
+    DOCS_VERSION=$(git rev-parse HEAD)
+    IMAGE_VERSION=${DOCS_VERSION}$(date +%s)
+fi
+
+
+echo &quot;#######################start to product docker image#######################&quot;
+echo &quot;current path:&quot;`pwd`
+echo &quot;current image version:&quot;${IMAGE_VERSION}
+cd mailman-exim
+docker build -t swr.cn-north-4.myhuaweicloud.com/opensourceway/app-mailman/mailman-exim4-build:latest .
+docker push swr.cn-north-4.myhuaweicloud.com/opensourceway/app-mailman/mailman-exim4-build:latest
+docker rmi swr.cn-north-4.myhuaweicloud.com/opensourceway/app-mailman/mailman-exim4-build:latest</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>huaweicloud-swr-token</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

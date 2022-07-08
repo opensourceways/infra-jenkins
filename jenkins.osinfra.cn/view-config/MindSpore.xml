@@ -1,0 +1,46 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>MindSpore</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>1234</string>
+    <string>api-test</string>
+    <string>mindspore-ci-tools</string>
+    <string>Mindspore-internship</string>
+    <string>mindspore-jenkins-slave-images</string>
+    <string>mindspore-jenkins-slave-images-arm</string>
+    <string>mindspore-meetingserver-pipline</string>
+    <string>mindspore-meetingserver-rasp-test</string>
+    <string>mindspore-prow-publish</string>
+    <string>mindspore-web-sync-environment</string>
+    <string>mindspore-website-publish</string>
+    <string>mindspore-website-publish-02</string>
+    <string>mindspore-website-publish-03</string>
+    <string>mindspore-website-publish-git-push-code</string>
+    <string>mindspore-xihe-docs-production-environment</string>
+    <string>sunmao</string>
+    <string>test-environment</string>
+    <string>update-es</string>
+    <string>website</string>
+    <string>website-test-01</string>
+    <string>website-test-02</string>
+    <string>website_sync_for_master</string>
+    <string>website_sync_for_tutorials-develop</string>
+    <string>website_test_for_tutorials-develop</string>
+    <string>website_test_rasp</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

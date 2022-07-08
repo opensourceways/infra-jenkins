@@ -1,0 +1,22 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<slave>
+  <name>docker-x86-openeuler-slaves</name>
+  <description>build image in openeuler beijing4 slaves node</description>
+  <remoteFS>/var/jenkins_home</remoteFS>
+  <numExecutors>4</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.31.2">
+    <host>120.46.157.191</host>
+    <port>22</port>
+    <credentialsId>openeuler-jenkins-slaves-password-new</credentialsId>
+    <javaPath>/usr/bin/java</javaPath>
+    <launchTimeoutSeconds>60</launchTimeoutSeconds>
+    <maxNumRetries>10</maxNumRetries>
+    <retryWaitTime>15</retryWaitTime>
+    <sshHostKeyVerificationStrategy class="hudson.plugins.sshslaves.verifiers.NonVerifyingKeyVerificationStrategy"/>
+    <tcpNoDelay>false</tcpNoDelay>
+  </launcher>
+  <label>openeuler-docker-x86</label>
+  <nodeProperties/>
+</slave>

@@ -1,0 +1,162 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>NOTE:&#xd;
+    The github source  used dakangsiji,not opensourceways; only for test project;&#xd;
+  【2022-03-05  Created】</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>BUILD_ARCH_NAME</name>
+          <description>input building arch type ,You can enter one of the list: [ x86,  aarch64 ];</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>x86</string>
+              <string>aarch64</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>BASE_IMAGE_NAME</name>
+          <description>Input base image name ,You can enter one of the list: [ openeuler20.03-lts-sp1,  openeuler20.03-lts-sp2, openeuler20.03-lts-sp3 ... ];
+Search the base image name in website: &quot;https://github.com/opensourceways/playground-images/tree/main/openeuler/lxd&quot;; 
+Note:
+    The image name must be under the LXD directory；
+    The list content will be constantly updated;
+</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>git101-openeuler20.03-lts-sp3</string>
+              <string>makepackage-openeuler20.03-lts-sp3</string>
+              <string>opengauss3.0.0-openeuler20.03-lts-sp3</string>
+              <string>openeuler20.03-lts-sp2</string>
+              <string>openeuler20.03-lts-sp3</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/opensourceways/playground-images.git</url>
+        <credentialsId>tommylike_github_token</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/main</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.WipeWorkspace/>
+    </extensions>
+  </scm>
+  <assignedNode>playground-jenkins-slave-0</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+IMAGE_VERSION=&quot;latest&quot;
+BUILD_IMAGE_PATH=&quot;ContainerImages/$BASE_IMAGE_NAME&quot;
+TIME=$(date +%Y-%m-%d)
+
+###############################################################
+cd $WORKSPACE
+
+if [ ! -e distrobuilder ];then
+	wget https://github.com/opensourceways/distrobuilder/releases/download/distrobuilder-1.0/distrobuilder
+    chmod u+x distrobuilder &amp;&amp; ./distrobuilder --version 
+fi
+
+if [ -e dirname.txt -o -e filename.txt ];then
+	rm -f dirname.txt filename.txt
+fi
+
+for i in $(ls -l ./openeuler/lxd/ |awk &apos;/^d/ {print $NF}&apos;)
+do
+	echo $i &gt;&gt; dirname.txt
+done
+
+if [ -z `grep &quot;$BASE_IMAGE_NAME&quot; dirname.txt` ];then
+    echo &quot;base_image_name is not exist&quot;
+    exit
+fi
+
+for i in `ls ./openeuler/lxd/$BASE_IMAGE_NAME/`
+do
+	echo ${i%.*} &gt;&gt; filename.txt
+done
+
+if [ -z `grep &quot;$BUILD_ARCH_NAME&quot; filename.txt` ];then
+    echo &quot;build_arch_name is not exist&quot;
+    exit
+fi
+
+mkdir -p ./$BUILD_IMAGE_PATH/container
+cp -rf ./openeuler/lxd/$BASE_IMAGE_NAME/$BUILD_ARCH_NAME.yaml ./$BUILD_IMAGE_PATH/container
+sed -i &quot;s|opensourceways|qinsheng99|g&quot; ./$BUILD_IMAGE_PATH/container/$BUILD_ARCH_NAME.yaml
+
+###############################################################
+cd ./$BUILD_IMAGE_PATH/container
+$WORKSPACE/distrobuilder build-lxd $BUILD_ARCH_NAME.yaml
+if [ ! -f lxd.tar.xz ] || [ ! -f rootfs.squashfs ];then
+    echo &quot;Building container files absence&quot;
+    exit
+fi
+cat &gt; Dockerfile &lt;&lt;EOF
+FROM  scratch
+COPY  lxd.tar.xz /
+COPY  rootfs.squashfs /
+CMD  [&quot;/fake-command&quot;]
+EOF
+docker build -t swr.ap-southeast-1.myhuaweicloud.com/opensourceway/playground-images/$BASE_IMAGE_NAME-container-test-$BUILD_ARCH_NAME:$IMAGE_VERSION .
+rm -f ./* 
+
+###############################################################
+if hash docker 2&gt;/dev/null; then
+    docker login -u ap-southeast-1@$DOCKER_USER -p $DOCKER_PASS swr.ap-southeast-1.myhuaweicloud.com
+else 
+    echo &quot;docker is not installed.&quot;
+fi
+
+docker push swr.ap-southeast-1.myhuaweicloud.com/opensourceway/playground-images/$BASE_IMAGE_NAME-container-test-$BUILD_ARCH_NAME:$IMAGE_VERSION
+docker rmi  swr.ap-southeast-1.myhuaweicloud.com/opensourceway/playground-images/$BASE_IMAGE_NAME-container-test-$BUILD_ARCH_NAME:$IMAGE_VERSION
+rm -f ./* 
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>huaweicloud-swr-token</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

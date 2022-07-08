@@ -1,0 +1,47 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>big-data</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>AuthingUserActions</string>
+    <string>gitee-metirces-Pipleline</string>
+    <string>isoORrpmDownload</string>
+    <string>JenkinsLogFetch</string>
+    <string>mailweb</string>
+    <string>MindSporeDownloadCollect</string>
+    <string>MindSporeDownloadInternalPath</string>
+    <string>MindSporeDownloadParse</string>
+    <string>MindSporeDownloadPipeLine</string>
+    <string>MirrorsLogCollect</string>
+    <string>MirrorsLogParseAndPushToEs</string>
+    <string>MirrorsLogPipeline</string>
+    <string>NginxLogParseAndPushToEs</string>
+    <string>NginxLogPipeline</string>
+    <string>NginxLogSyncToOBS</string>
+    <string>OpenLookengDownloadCollect</string>
+    <string>OpenLookengDownloadInternalPath</string>
+    <string>OpenLookengDownloadParse</string>
+    <string>OpenLookengDownloadPipeLine</string>
+    <string>packageOmCollection</string>
+    <string>packageOmKafka</string>
+    <string>packageOmWebserver</string>
+    <string>PlaygroundLogParse</string>
+    <string>repoVersion</string>
+    <string>updateisinternalpath</string>
+    <string>weibo</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

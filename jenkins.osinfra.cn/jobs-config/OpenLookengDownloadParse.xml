@@ -1,0 +1,35 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>97</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/sh -l
+
+month=$(date -d &quot;-1 days&quot; &quot;+%m&quot;)
+day=$(date -d &quot;-1 days&quot; &quot;+%d&quot;)
+spark-submit --class com.om.opensourway.AnalysisForBatch --num-executors 4 --executor-cores 4 --master yarn /root/lxl/test/om-bigdata-1.0-SNAPSHOT-jar-with-dependencies.jar GJK7VGQW4KI5MBSMOE2Q Dim9rM3uivK1gFv7gBGT80G7oLWpOt2JTPTjBFeY 100 obs://om-collect/openlookeng-download-2022.$month.$day-hk-app.json download.openlookeng.io - $month-$day-nginxlog com.om.Module.openeuler.logstash_repo_openeuler_org 10
+echo $month $day have done</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

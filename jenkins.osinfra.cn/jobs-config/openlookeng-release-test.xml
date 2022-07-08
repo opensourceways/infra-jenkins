@@ -1,0 +1,128 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>sync website doc repository</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection></giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.3.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/openlookeng/hetu-core</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>docker</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+GIT_USER=&quot;I-am-a-robot&quot;
+GIT_EMAIL=&quot;huawei_ci_bot@163.com&quot;
+ 
+if [ -d &quot;website&quot; ]; then
+    rm -rf website
+fi
+ 
+replace() {
+    local src=$1
+    local dest=$2
+ 
+    path=$dest/docs
+    if [ ! -d &quot;$path&quot; ]; then
+        echo &quot;$path is not existing, going to create it.&quot;
+        mkdir -p $path
+    fi
+ 
+    menu=$dest/menu
+    if [ ! -d &quot;$menu&quot; ]; then
+        echo &quot;$menu is not existing, going to create it.&quot;
+        mkdir -p $menu
+    fi
+ 
+    rm -r ${path}/*
+    cp -r $src/* ${path}/
+ 
+    mf=${path}/index.md
+    test -f $mf &amp;&amp; mv $mf $menu
+ 
+    find $path -name &quot;*_index.md&quot; | xargs sed -i &apos;s/\(\[[^[]*\](\)\.\.\([^[]*\).png/\1.\2.png/g&apos;
+    find $path -name &quot;*_index.md&quot; | xargs sed -i &apos;s/\(\[[^[]*\](\.\.\)\([^[]*\)\/_index.md/\1\/docs\2.html/g&apos;
+    find $path -name &quot;*_index.md&quot; | xargs sed -i &apos;s/\(\[[^[]*\](\.\.\)\([^[]*\).md/\1\/docs\2.html/g&apos;
+ 
+    find $path -name &quot;*.md&quot; | xargs sed -i &apos;s/\(\[[^[]*\](\.\.[^[]*\)\/_index.md/\1.html/g&apos;
+ 
+    find $path -name &quot;*.md&quot; | xargs sed -i &apos;s/\(\[[^[]*\]([^:[]*\)\.md/\1.html/g&apos;
+}
+ 
+if hash git 2&gt;/dev/null; then
+    git config --global user.email $GIT_EMAIL
+    git config --global user.name $GIT_USER
+ 
+    git clone https://gitee.com/openlookeng/website.git
+    if [ -d &quot;hetu-docs/en&quot; ]; then
+ 
+        replace hetu-docs/en ./website/content/en-us/docs
+ 
+        echo &quot;hetu-docs/en to en-us/docs copyed.&quot;
+    fi
+ 
+    if [ -d &quot;hetu-docs/zh&quot; ]; then
+        replace hetu-docs/zh ./website/content/zh-cn/docs
+ 
+        echo &quot;hetu-docs/zh to zh-cn/docs copyed.&quot;
+    fi
+ 
+    cd website
+ 
+    if hash docker 2&gt;/dev/null; then
+        docker build -t web:v0.0.1 .
+        if [ &quot;$?&quot; -ne &quot;0&quot; ]; then
+            echo &quot;build website error... the process will be exited.&quot; 1&gt;&amp;2
+            exit 1
+        fi
+        docker rmi web:v0.0.1
+    else
+        echo &quot;docker is not installed, don&apos;t do build test.&quot;
+    fi
+ 
+    echo &quot;udpate the product docs successfully&quot;
+else
+    echo &quot;git has not been installed.&quot;
+fi
+ 
+if [ -d &quot;website&quot; ]; then
+    rm -rf website
+fi
+ 
+cd ..
+if [ -d &quot;hetu-core&quot; ]; then
+    rm -rf hetu-core
+fi</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings class="empty-list"/>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

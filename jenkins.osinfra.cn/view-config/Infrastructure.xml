@@ -1,0 +1,41 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>Infrastructure</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>annual-summary</string>
+    <string>cla-prod</string>
+    <string>cla-test</string>
+    <string>cloudsca</string>
+    <string>community-metadata-pipeline</string>
+    <string>community-website-pr-check</string>
+    <string>infra-landscape-publish</string>
+    <string>jenkins-slave-tools-pipline</string>
+    <string>mailman</string>
+    <string>maintenance-server-pipeline</string>
+    <string>nginx-purger-pipeline</string>
+    <string>omni-imager</string>
+    <string>omni-orchestrator</string>
+    <string>openeuler-repo-mirrorbits-publish</string>
+    <string>playground</string>
+    <string>prow_ci</string>
+    <string>repo</string>
+    <string>ssh-tunnel-app</string>
+    <string>summary2021</string>
+    <string>xihe</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

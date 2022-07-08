@@ -1,0 +1,45 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>openEuler</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>cibot-build-pipeline-debug</string>
+    <string>compass-ci-api</string>
+    <string>compass-ci-jumper</string>
+    <string>compass-ci-web</string>
+    <string>docs-bug-web-ui</string>
+    <string>eulerland-game</string>
+    <string>game</string>
+    <string>ingress-default-backend-image</string>
+    <string>omni</string>
+    <string>opendesign-datapertus</string>
+    <string>opendesign-datapertus-test</string>
+    <string>openeuler-2203ltscontribution</string>
+    <string>openeuler-api-cve</string>
+    <string>openeuler-ccs</string>
+    <string>openeuler-docker-image-maker-for-infra</string>
+    <string>openeuler-oqserver</string>
+    <string>openeuler-repo-mirrorbits-publish</string>
+    <string>openeuler-website-debug</string>
+    <string>openeuler-website-docs-publish</string>
+    <string>openEuler-Website-Publish-new</string>
+    <string>openeuler-Website-test</string>
+    <string>openEuler_APPs</string>
+    <string>sync_bot_ci</string>
+    <string>tanggula-ci</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

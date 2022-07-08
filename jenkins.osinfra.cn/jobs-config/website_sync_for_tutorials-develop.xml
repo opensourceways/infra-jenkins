@@ -1,0 +1,138 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.42">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>#### The project is the same as website_sync in build.mindspore.cn; is used to build mindspore website sync environment&#xd;
+note: 为 tutorials-develop 分支应用sync文件；</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>VERSION</name>
+          <description>project version</description>
+          <defaultValue>master</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.TimerTrigger>
+          <spec>TZ=Asia/Shanghai 
+10 5 * * *</spec>
+        </hudson.triggers.TimerTrigger>
+        <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.1.14">
+          <spec></spec>
+          <triggerOnPush>true</triggerOnPush>
+          <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+          <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+          <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+          <triggerOnUpdatePullRequest>1</triggerOnUpdatePullRequest>
+          <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+          <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+          <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+          <triggerOnNoteRequest>true</triggerOnNoteRequest>
+          <noteRegex>/retest</noteRegex>
+          <ciSkip>false</ciSkip>
+          <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+          <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+          <skipLastCommitHasBeenBuild>false</skipLastCommitHasBeenBuild>
+          <setBuildDescription>true</setBuildDescription>
+          <branchFilterType>All</branchFilterType>
+          <includeBranchesSpec></includeBranchesSpec>
+          <excludeBranchesSpec></excludeBranchesSpec>
+          <targetBranchRegex></targetBranchRegex>
+          <secretToken>{AQAAABAAAAAwwU1zsSM66vri0/8trScsKEo+BuYEezhD8SQcHvSSV26VCZA38j+ufRTPTsegQnm8XBrMqu4tddJ7kEaHihMy5A==}</secretToken>
+          <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+        </com.gitee.jenkins.trigger.GiteePushTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
+    <script>pipeline {
+    agent { node { label &apos;website-sync&apos; } }
+    environment {
+        GITEE_TOKEN = credentials(&apos;mindspore_ci_jenkins_token&apos;)
+    }
+    stages {
+        stage(&apos;source code clone&apos;) {
+            steps {
+                sh &apos;git config --global http.postBuffer 1000000000&apos;
+                echo &apos;env.BUILD_NUMBER: ${env.BUILD_NUMBER},env.GITEE_TOKEN: ${env.GITEE_TOKEN}&apos;
+                
+                checkout([$class: &apos;GitSCM&apos;,
+                    branches: [[name: &apos;*/tutorials-develop&apos;]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: &apos;LocalBranch&apos;], [$class: &apos;RelativeTargetDirectory&apos;, relativeTargetDir: &quot;${env.BUILD_NUMBER}/mindspore.github.io&quot;]],
+                    userRemoteConfigs: [[url: &quot;https://mindspore_ci:${env.GITEE_TOKEN}@gitee.com/mindspore/mindspore.github.io&quot;]]
+                ])
+            }   
+        }
+        stage(&apos;update website content&apos;) {
+            steps {
+                sh &apos;&apos;&apos;#!/bin/bash
+                    cd ${WORKSPACE}/${BUILD_NUMBER}/mindspore.github.io/scripts
+                    WORK_DIR=${WORKSPACE}/${BUILD_NUMBER} ./git_update_webapp_content_r1.3.sh ${VERSION}     
+                    cd ${WORKSPACE}/${BUILD_NUMBER}/mindspore.github.io
+                    git config --global user.name mindspore-ci-bot
+                    git config --global user.email tommylike@qq.com
+                    git status
+                    git add -A                   
+                    git commit -m &quot;Update website files generated by mindspore &amp;&amp; docs repo&quot;
+                    if [ $? -eq 0 ];
+                    then
+                        echo &quot;Starting to update remote codes.&quot;
+                        
+                        clone()
+                        {
+                        	git push https://mindspore_ci:${GITEE_TOKEN}@gitee.com/mindspore/mindspore.github.io tutorials-develop 
+                        }
+                        
+                        declare -i renum
+                        renum=1
+                        while ((renum!=0))
+                        do
+                        	res=`clone`
+                        	renum=$?
+                        	echo &quot;renum: &quot;${renum}
+                        	sleep 1
+                        done                
+                    else
+                        echo &quot;nothing to commit or failed to commit change files&quot;
+                    fi                    
+                   &apos;&apos;&apos;
+            }
+        }      
+    }
+
+    post {
+        success {           
+            echo &apos;succeeeded!&apos;
+        }
+
+        failure {            
+            echo &apos;failed :(&apos;
+        }
+        always {
+            sh &apos;&apos;&apos;#!/bin/bash
+                    rm -rf ${WORKSPACE}/${BUILD_NUMBER}                                        
+                &apos;&apos;&apos;
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

@@ -1,0 +1,119 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This project used to publish openeuler ccs server</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>docker</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -v
+set -e
+GIT_EMAIL=&quot;tommylike@gmail.com&quot;
+IMAGE_VERSION=&quot;v0.0.1&quot;
+PROJECT_NAME=&quot;openeuler-ccs&quot;
+VERSION=$(date +%Y%m%d)
+#VERSION=&quot;20211220&quot;
+if hash docker 2&gt;/dev/null; then
+    docker login -u cn-north-4@$DOCKER_USER -p $DOCKER_PASS swr.cn-north-4.myhuaweicloud.com
+else
+	echo &quot;docker not installed.&quot;
+    exit
+fi
+if [ -d &quot;netflix-discovery-server&quot; ]; then
+    rm -rf &quot;netflix-discovery-server&quot; 2&gt;/dev/null
+fi
+if [ -d &quot;netflix-discovery-server.zip&quot; ]; then
+	rm -rf &quot;netflix-discovery-server.zip&quot; 2&gt;/dev/null
+fi
+curl -o netflix-discovery-server.zip -u $CCS_USER:$CCS_PASS http://117.78.18.54:9005/attach/netflix-discovery-server-1.0.0-$VERSION.zip
+
+unzip netflix-discovery-server.zip
+IMAGE_VERSION=$(date +%s)
+cd netflix-discovery-server
+
+#if hash git 2&gt;/dev/null; then
+#	IMAGE_VERSION=$(git rev-parse --short=20 HEAD)
+#fi
+#sed -i &apos;s|openjdk-8-alpine|java:openjdk-8-alpine|g&apos; Dockerfile
+docker build -t swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/ccs-eureka:$IMAGE_VERSION .
+docker push swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/ccs-eureka:$IMAGE_VERSION
+docker rmi swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/ccs-eureka:$IMAGE_VERSION
+
+
+if [ -d &quot;infra-openeuler&quot; ]; then
+    rm -rf &quot;infra-openeuler&quot;
+fi
+
+if hash git 2&gt;/dev/null; then
+    git config --global user.email $GIT_EMAIL
+    git config --global user.name $GIT_USER
+    git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-openeuler
+    cd infra-openeuler/applications/openeuler-ccs
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+if hash kustomize 2&gt;/dev/null; then
+    kustomize edit set image swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/ccs-eureka=swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/ccs-eureka:$IMAGE_VERSION
+   
+else
+    echo &quot;use replace to set image.&quot;
+fi
+
+if hash git 2&gt;/dev/null; then   
+    git add .
+    git commit -am &quot;update image to $IMAGE_VERSION&quot;
+    git push origin --all
+else
+    echo &quot;git is not existing.&quot;
+fi
+ARGOCD_TOKEN=`curl -X POST -s -d &apos;{&quot;password&quot;:&quot;&apos;${ARGOCD_PASS}&apos;&quot;,&quot;username&quot;:&quot;&apos;${ARGOCD_USER}&apos;&quot;}&apos; &quot;https://build.osinfra.cn/api/v1/session&quot;|tail -1 |awk -F &apos;[&quot;&quot;]&apos; &apos;{print$4}&apos;`&gt;/dev/null
+curl -X POST -s -o /dev/null --cookie &quot;argocd.token=${ARGOCD_TOKEN}&quot; &quot;https://build.osinfra.cn/api/v1/applications/${PROJECT_NAME}/sync&quot;&gt;/dev/null
+if [ $? -eq 0 ];then
+    echo &quot;complete!&quot;
+else
+    echo &quot;failed!&quot;
+fi</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>huaweicloud-swr-token</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>tommylike_github_token</credentialsId>
+          <usernameVariable>GIT_USER</usernameVariable>
+          <passwordVariable>GIT_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>00441642-0437-4b00-9be4-ec0bb484d5c1</credentialsId>
+          <usernameVariable>ARGOCD_USER</usernameVariable>
+          <passwordVariable>ARGOCD_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>5b949144-b5ba-441c-8e20-c328f18fea45</credentialsId>
+          <usernameVariable>CCS_USER</usernameVariable>
+          <passwordVariable>CCS_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

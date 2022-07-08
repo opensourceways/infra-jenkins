@@ -1,0 +1,34 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>解析处理清华数据到es</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>97</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -l
+month=`date -d &quot;-1 day&quot; +%m`
+day=`date -d &quot;-1 day&quot; +%d`
+spark-submit --class com.om.opensourway.AnalysisForBatch --num-executors 2 --executor-cores 6 --master yarn /home/xia/om-bigdata-1.0-SNAPSHOT-jar-with-dependencies.jar GJK7VGQW4KI5MBSMOE2Q Dim9rM3uivK1gFv7gBGT80G7oLWpOt2JTPTjBFeY 100 obs://mirrorlog/mirrors.log-2022$month$day openeuler mirrorofopeneuler mirror-$month-$day com.om.Module.openeuler.morrirs_Openeuler_Recoeds
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

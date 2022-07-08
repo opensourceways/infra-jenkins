@@ -1,0 +1,150 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This project used to publish mindspore website imgae to location cn-north-4, this is 1th step build base image for mindspore;&#xd;
+the base image is used for website: &quot;https://github.com/opensourceways/infra-mindspore/tree/master/applications/website&quot;</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/mindspore/mindspore.github.io</url>
+        <credentialsId>tommylike_gitee_username_password</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>docker-x86-openeuler-slaves</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>TZ=Asia/Shanghai
+40 7 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+GIT_EMAIL=&quot;tommylike@gmail.com&quot;
+IMAGE_VERSION=&quot;v-1.0.0&quot;
+STATUS=&quot;0&quot;
+PROJECT_NAME=&quot;mindspore-website-publish-02&quot;
+
+cd $WORKSPACE
+if [ -e variable.txt ]; then
+	rm -f variable.txt
+fi
+
+if hash git 2&gt;/dev/null; then
+    IMAGE_VERSION=$(git rev-parse HEAD)
+	echo &quot;INPUT=$IMAGE_VERSION&quot; &gt; variable.txt
+    echo &quot;STATUS_CODE=$STATUS&quot; &gt;&gt; variable.txt
+fi
+echo &quot;###############################################################################&quot;
+echo &quot;GIT_PREVIOUS_SUCCESSFUL_COMMIT&quot;:${GIT_PREVIOUS_SUCCESSFUL_COMMIT}
+echo &quot;GIT_COMMIT&quot;:${GIT_COMMIT}
+if [ ${GIT_PREVIOUS_SUCCESSFUL_COMMIT} == ${GIT_COMMIT} ];then
+    sed -i &quot;s|STATUS_CODE=0|STATUS_CODE=1|g&quot; ./variable.txt
+    echo &quot;Nothing to commit, Working tree clean and exit.&quot;
+    exit 0
+fi
+echo &quot;###############################################################################&quot;
+
+
+if hash docker 2&gt;/dev/null; then
+	docker login -u cn-north-4@$DOCKER_USER -p $DOCKER_PASS swr.cn-north-4.myhuaweicloud.com
+else
+	echo &quot;docker not installed.&quot;
+    exit
+fi
+
+#sed -i &quot;s|registry.npmmirror.com|repo.huaweicloud.com/repository/npm|&quot; ./Dockerfile
+#sed -i &quot;s|npm install --registry=https://registry.npmmirror.com|npm ci --registry=https://registry.npm.taobao.org|&quot; ./Dockerfile
+#sed -i &quot;s|RUN pnpm install|RUN npm i --registry=https://registry.npmmirror.com|&quot; ./Dockerfile
+
+sed -i &apos;17i RUN npm cache clean -f &amp;&amp; npm i --registry=https://repo.huaweicloud.com/repository/npm/  &amp;&amp;  npm run build&apos; ./Dockerfile
+sed -i &apos;18,19d&apos; ./Dockerfile
+cat -n ./Dockerfile
+
+echo &quot;building website server&quot;
+docker build  -t swr.cn-north-4.myhuaweicloud.com/opensourceway/mindspore-website:$IMAGE_VERSION .
+docker push      swr.cn-north-4.myhuaweicloud.com/opensourceway/mindspore-website:$IMAGE_VERSION
+docker rmi       swr.cn-north-4.myhuaweicloud.com/opensourceway/mindspore-website:$IMAGE_VERSION
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.4.0">
+      <info>
+        <propertiesFilePath>variable.txt</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@408.vd726a_1130320">
+      <recipients>hanshize@huawei.com kathy.wangting@huawei.com yuanyan10@huawei.com guowenfeng1@huawei.com zhaochunjiang1@huawei.com</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>true</sendToIndividuals>
+    </hudson.tasks.Mailer>
+    <com.chikli.hudson.plugin.naginator.NaginatorPublisher plugin="naginator@1.18.1">
+      <regexpForRerun></regexpForRerun>
+      <rerunIfUnstable>true</rerunIfUnstable>
+      <rerunMatrixPart>false</rerunMatrixPart>
+      <checkRegexp>false</checkRegexp>
+      <regexpForMatrixStrategy>TestParent</regexpForMatrixStrategy>
+      <delay class="com.chikli.hudson.plugin.naginator.FixedDelay">
+        <delay>60</delay>
+      </delay>
+      <maxSchedule>2</maxSchedule>
+    </com.chikli.hudson.plugin.naginator.NaginatorPublisher>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.41">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>INPUT=${INPUT}
+STATUS_CODE=${STATUS_CODE}</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <projects>mindspore-website-publish-03</projects>
+          <condition>SUCCESS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <triggerFromChildProjects>false</triggerFromChildProjects>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>huaweicloud-swr-token</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

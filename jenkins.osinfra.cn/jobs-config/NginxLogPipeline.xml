@@ -1,0 +1,84 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.42">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.TimerTrigger>
+          <spec>1 0 * * *</spec>
+        </hudson.triggers.TimerTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
+    <script>pipeline {
+    //agent { node { label &apos;nginx&apos; } }
+    //agent any
+    agent { 
+        node { 
+            label &quot;97 || 250&quot; 
+        } 
+    }
+    stages {
+        stage(&apos;NginxLogSyncToOBS&apos;) {
+            steps {
+                echo &apos;****** NginxLogSyncToOBS Start ******&apos;
+				build &apos;NginxLogSyncToOBS&apos;
+            }
+        }
+        /*stage(&apos;LogMindsporeCollect&apos;) {
+            steps {
+                echo &apos;****** LogMindsporeCollect Start ******&apos;
+				build &apos;LogMindsporeCollect&apos;
+            }
+        }*/
+		stage(&apos;NginxLogParseAndPushToEs&apos;) {
+            steps {
+                echo &apos;****** NginxLogParseAndPushToEs Start ******&apos;
+				build &apos;NginxLogParseAndPushToEs&apos;
+            }
+        }
+        /*stage(&apos;AlaysisForBatchAllData&apos;) {
+            steps {
+                echo &apos;****** AlaysisForBatchAllData Start ******&apos;
+				// build &apos;AlaysisForBatchAllData&apos;
+            }
+        }
+        stage(&apos;AlaysisForBatchForopeneulerorg&apos;) {
+            steps {
+                echo &apos;****** AlaysisForBatchForopeneulerorg Start ******&apos;
+				// build &apos;AlaysisForBatchForopeneulerorg&apos;
+            }
+        }*/
+        stage(&apos;isoORrpmDownload&apos;) {
+            steps {
+                echo &apos;****** isoORrpmDownload Start ******&apos;
+				build &apos;isoORrpmDownload&apos;
+            }
+        }
+        /*stage(&apos;updateisinternalpath&apos;) {
+            steps {
+                echo &apos;****** updateisinternalpath Start ******&apos;
+				build &apos;updateisinternalpath&apos;
+            }
+        }*/
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

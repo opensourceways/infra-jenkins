@@ -1,0 +1,193 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>PACKAGE_URL</name>
+          <defaultValue>https://raw.githubusercontent.com/opensourceways/app-pkgmanage/debug/pkgship-3.0.0-1.oe2203.noarch.rpm</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PACKAGE_PANEL_URL</name>
+          <defaultValue>https://raw.githubusercontent.com/opensourceways/app-pkgmanage/debug/pkgship-panel-3.0.0-1.oe2203.noarch.rpm</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/opensourceways/app-pkgmanage.git</url>
+        <credentialsId>tommylike_github_token</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/debug</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>docker</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>openeuler4321</authToken>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+GIT_EMAIL=&quot;tommylike@gmail.com&quot;
+GIT_VERSION=&quot;v0&quot;
+TIME_VERSION=&quot;1&quot;
+IMAGE_VERSION=&quot;v0.0.1&quot;
+URLPKGFILE=&quot;newpkgship.rpm&quot;
+URLPKGPANELFILE=&quot;newpkgshippanel.rpm&quot;
+PKGFILE=&quot;pkgship-new.rpm&quot;
+PKGPANELFILE=&quot;pkgship-panel-new.rpm&quot;
+PROJECT_NAME=&quot;openeuler-hk-package-manage&quot;
+set -e
+echo $PACKAGE_URL
+echo &apos;lllllllllllllll&apos;
+
+if hash git 2&gt;/dev/null; then
+    GIT_VERSION=$(git rev-parse HEAD)
+fi
+TIME_VERSION=$(date +%s)
+
+IMAGE_VERSION=$GIT_VERSION.$TIME_VERSION
+echo $IMAGE_VERSION
+
+rm -rf *.rpm
+rm -rf *.rpm.1
+
+wget -q -O $URLPKGFILE $PACKAGE_URL
+wget -q -O $URLPKGPANELFILE $PACKAGE_PANEL_URL
+
+echo &apos;after wget&apos;
+ls -al
+
+sleep 5
+
+echo &apos;after sleep&apos;
+ls -al
+
+#if [ -e &quot;$URLPKGPANELFILE&quot; ]  &amp;&amp; [ `du -s $URLPKGPANELFILE | awk &apos;{print $1}&apos;` -gt 1 ]; then
+#    for rpmpanelfile in &apos;pkgship-panel*.rpm&apos;; do	
+#        rm -rf $rpmpanelfile
+#    done
+mv $URLPKGPANELFILE $PKGPANELFILE	    
+#else
+#	echo &quot;Use old pkgship file.&quot;
+#    rm -rf $URLPKGPANELFILE
+#fi
+#echo &apos;after panel&apos;
+#ls
+
+
+#if [ -e &quot;$URLPKGFILE&quot; ]  &amp;&amp; [ `du -s $URLPKGFILE | awk &apos;{print $1}&apos;` -gt 1 ]; then
+#    for rpmfile in &apos;pkgship*.rpm&apos;; do	
+#        rm -rf $rpmfile
+#    done
+mv $URLPKGFILE $PKGFILE	    
+#else
+#	echo &quot;Use old pkgship file.&quot;
+#    rm -rf $URLPKGFILE
+#fi
+#echo &apos;after pkgship&apos;
+#ls
+
+
+if hash docker 2&gt;/dev/null; then
+    docker login -u cn-north-4@$DOCKER_USER -p $DOCKER_PASS swr.cn-north-4.myhuaweicloud.com
+    
+    docker build -t swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/packagemanage:$IMAGE_VERSION .
+    docker push     swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/packagemanage:$IMAGE_VERSION    
+    docker rmi      swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/packagemanage:$IMAGE_VERSION
+    
+    docker build -t swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/dbgetinit:$IMAGE_VERSION ./dbinit
+    docker push     swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/dbgetinit:$IMAGE_VERSION    
+    docker rmi      swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/dbgetinit:$IMAGE_VERSION      
+else 
+    echo &quot;docker is not installed.&quot;
+fi
+
+if [ -d &quot;infra-openeuler&quot; ]; then
+    rm -rf &quot;infra-openeuler&quot;
+fi
+
+if hash git 2&gt;/dev/null; then
+    git config --global user.email $GIT_EMAIL
+    git config --global user.name $GIT_USER
+    git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-openeuler
+    cd infra-openeuler/applications/package-manage/debug
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+if hash kustomize 2&gt;/dev/null; then
+    kustomize edit set image opensourceway/packagemanage=swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/packagemanage:$IMAGE_VERSION
+    kustomize edit set image opensourceway/dbgetinit=swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/dbgetinit:$IMAGE_VERSION
+else
+    echo &quot;use replace to set image.&quot;
+fi
+
+if hash git 2&gt;/dev/null; then   
+    git add .
+    git commit -am &quot;update image to $IMAGE_VERSION&quot;
+    git push origin --all
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+ARGOCD_TOKEN=`curl -X POST -s -d &apos;{&quot;password&quot;:&quot;&apos;${ARGOCD_PASS}&apos;&quot;,&quot;username&quot;:&quot;&apos;${ARGOCD_USER}&apos;&quot;}&apos; &quot;https://build.osinfra.cn/api/v1/session&quot;|tail -1 |awk -F &apos;[&quot;&quot;]&apos; &apos;{print$4}&apos;`&gt;/dev/null
+curl -X POST -s -o /dev/null --cookie &quot;argocd.token=${ARGOCD_TOKEN}&quot; &quot;https://build.osinfra.cn/api/v1/applications/${PROJECT_NAME}/sync&quot;&gt;/dev/null
+if [ $? -eq 0 ];then
+    echo &quot;complete!&quot;
+else
+    echo &quot;failed!&quot;
+fi
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>huaweicloud-swr-token</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>tommylike_github_token</credentialsId>
+          <usernameVariable>GIT_USER</usernameVariable>
+          <passwordVariable>GIT_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>00441642-0437-4b00-9be4-ec0bb484d5c1</credentialsId>
+          <usernameVariable>ARGOCD_USER</usernameVariable>
+          <passwordVariable>ARGOCD_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

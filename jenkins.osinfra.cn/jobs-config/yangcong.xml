@@ -1,0 +1,148 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/heads/master:refs/remotes/origin/master +refs/pull/*/MERGE:refs/pull/*/MERGE</refspec>
+        <url>https://gitee.com/compliance-bot/jenkins-bot.git</url>
+        <credentialsId>fb82559f-f17d-41de-a71a-dae5b74e783d</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/*/MERGE:refs/pull/*/MERGE</refspec>
+        <url>https://gitee.com/openeuler/compliance.git</url>
+        <credentialsId>fb82559f-f17d-41de-a71a-dae5b74e783d</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/*/MERGE:refs/pull/*/MERGE</refspec>
+        <url>https://gitee.com/compliance-bot/iSulad.git</url>
+        <credentialsId>fb82559f-f17d-41de-a71a-dae5b74e783d</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/*/MERGE:refs/pull/*/MERGE</refspec>
+        <url>https://gitee.com/compliance-bot/A-Tune.git</url>
+        <credentialsId>fb82559f-f17d-41de-a71a-dae5b74e783d</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/*/MERGE:refs/pull/*/MERGE</refspec>
+        <url>https://gitee.com/compliance-bot/stratovirt.git</url>
+        <credentialsId>fb82559f-f17d-41de-a71a-dae5b74e783d</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/*/MERGE:refs/pull/*/MERGE</refspec>
+        <url>https://gitee.com/openeuler/stratovirt.git</url>
+        <credentialsId>fb82559f-f17d-41de-a71a-dae5b74e783d</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/*/MERGE:refs/pull/*/MERGE</refspec>
+        <url>https://gitee.com/openeuler/A-Tune.git</url>
+        <credentialsId>fb82559f-f17d-41de-a71a-dae5b74e783d</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/*/MERGE:refs/pull/*/MERGE</refspec>
+        <url>https://gitee.com/openeuler/iSulad.git</url>
+        <credentialsId>fb82559f-f17d-41de-a71a-dae5b74e783d</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/*/MERGE:refs/pull/*/MERGE</refspec>
+        <url>https://gitee.com/openeuler/infrastructure.git</url>
+        <credentialsId>fb82559f-f17d-41de-a71a-dae5b74e783d</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>**</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>compliance-jenkins-slaves-0</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.1.14">
+      <spec></spec>
+      <triggerOnPush>true</triggerOnPush>
+      <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+      <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+      <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+      <triggerOnUpdatePullRequest>1</triggerOnUpdatePullRequest>
+      <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+      <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+      <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+      <triggerOnNoteRequest>true</triggerOnNoteRequest>
+      <noteRegex>/retest</noteRegex>
+      <ciSkip>false</ciSkip>
+      <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+      <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+      <skipLastCommitHasBeenBuild>true</skipLastCommitHasBeenBuild>
+      <setBuildDescription>true</setBuildDescription>
+      <branchFilterType>All</branchFilterType>
+      <includeBranchesSpec></includeBranchesSpec>
+      <excludeBranchesSpec></excludeBranchesSpec>
+      <targetBranchRegex></targetBranchRegex>
+      <secretToken>{AQAAABAAAAAwQhm+gUb4lR6ETRkxoZssBqbrudSA4Lb4RqdnxwLJtWvs+SEfM9/UE8Olmuo2InIvflajPSWKZSoXBeCeitCafQ==}</secretToken>
+      <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+    </com.gitee.jenkins.trigger.GiteePushTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/sh
+
+if [ &quot;${giteePullRequestState}&quot; = &quot;open&quot; ]; then
+     echo &quot;PR states is open, later will begin license canning&quot;
+else
+     exit 0
+fi
+
+
+cd ${GOPATH}
+
+mkdir -p ${GOPATH}/src/gitee.com/compliance-bot/
+cd ${GOPATH}/src/gitee.com/compliance-bot/
+rm -rf jenkins-bot*
+
+git clone ${GIT_URL}
+cd jenkins-bot
+go mod download
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 &amp;&amp; go build check.go
+
+# license check
+./check licenseScan  ${giteePullRequestIid} ${giteeSourceBranch} ${giteeSourceRepoHttpUrl} ${GITEE_OPENEULER_TOKEN} ${giteeTargetNamespace} ${giteeTargetRepoName}</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>gitee_openeuler_token</credentialsId>
+          <variable>GITEE_OPENEULER_TOKEN</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

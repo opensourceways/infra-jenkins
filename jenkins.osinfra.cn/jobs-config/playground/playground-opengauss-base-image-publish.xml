@@ -1,0 +1,106 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>NOTE:&#xd;
+    The github source  used dakangsiji,not opensourceways; only for test project;&#xd;
+  【2022-05-20  Created】</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>OPENGAUSS_SERVER_TYPE</name>
+          <description>opengauss server type</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>opengauss-lite-3.0.0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>ARCH</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>x86</string>
+              <string>arm</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/dakangsiji/playground-images.git</url>
+        <credentialsId>107b4425-33e4-4508-98ea-601549c6dac5</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/main</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.WipeWorkspace/>
+    </extensions>
+  </scm>
+  <assignedNode>playground-jenkins-slave-0</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+IMAGE_VERSION=`date +%Y%m%d%H%M%S`
+
+if hash docker 2&gt;/dev/null; then
+	docker login -u cn-north-4@$DOCKER_USER -p $DOCKER_PASS swr.cn-north-4.myhuaweicloud.com
+else
+	echo &quot;docker not installed.&quot;
+    exit
+fi
+
+echo &quot;GIT_PREVIOUS_SUCCESSFUL_COMMIT&quot;:${GIT_PREVIOUS_SUCCESSFUL_COMMIT}
+echo &quot;GIT_COMMIT&quot;:${GIT_COMMIT}
+if [ ${GIT_PREVIOUS_SUCCESSFUL_COMMIT} = ${GIT_COMMIT} ];then
+    echo &quot;Nothing to commit, Working tree clean and exit.&quot;
+    exit 0
+fi
+
+cd $WORKSPACE/opengauss/dockerfile
+docker build -t swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss/${OPENGAUSS_SERVER_TYPE}-$ARCH:$IMAGE_VERSION .
+docker push     swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss/${OPENGAUSS_SERVER_TYPE}-$ARCH:$IMAGE_VERSION
+docker rmi		swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss/${OPENGAUSS_SERVER_TYPE}-$ARCH:$IMAGE_VERSION
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>huaweicloud-swr-token</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

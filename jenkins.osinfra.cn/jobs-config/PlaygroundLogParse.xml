@@ -1,0 +1,39 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>97</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>2 1 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/sh -l
+
+month=$(date -d &quot;-1 days&quot; &quot;+%m&quot;)
+day=$(date -d &quot;-1 days&quot; &quot;+%d&quot;)
+spark-submit --class com.om.authing.event.AppEventMain --num-executors 4 --executor-cores 4 --master yarn /home/lxl/om-bigdata-1.0-SNAPSHOT-jar-with-dependencies.jar GJK7VGQW4KI5MBSMOE2Q Dim9rM3uivK1gFv7gBGT80G7oLWpOt2JTPTjBFeY 100 obs://pvc-10d6af0d-3475-44c5-b571-b5b6580e4f93/2022-$month-{$day}_playground-manager-statistics.log openeuler_playground_20220418 com.om.authing.event.AppEvent $month-$day-playground
+echo $month $day have done</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

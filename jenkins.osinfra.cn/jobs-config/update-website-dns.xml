@@ -1,0 +1,157 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>检测对象:repo.huaweicloud.com、gitee.com &#xd;
+检测account：openeuler&#xd;
+检测region：北京-北京4&#xd;
+安全组：sg-openeuler-jenkins-for-dns</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.PasswordParameterDefinition>
+          <name>AK</name>
+          <description>AK value</description>
+          <defaultValue>{AQAAABAAAAAgRDBWRc1CSwn2FDhi+Nttvs6yTxA0jsP5slOKS869t/0w3xOGD4xdF/enoRMoicpX}</defaultValue>
+        </hudson.model.PasswordParameterDefinition>
+        <hudson.model.PasswordParameterDefinition>
+          <name>SK</name>
+          <description>SK value</description>
+          <defaultValue>{AQAAABAAAAAwbZ2VSQ2reltH9U+geKLNY/NTszQW4L0dFYy33FJBdMao2u7CpJakJMllddPgAd09FctXkwDLI8dHtbzv0KajfQ==}</defaultValue>
+        </hudson.model.PasswordParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>Project_id</name>
+          <description>北京4: &lt;project-id&gt;</description>
+          <defaultValue>0612bce5650026c12fbcc01710fb0df4</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>End_Point</name>
+          <description>北京4-endpoint : &lt;https://developer.huaweicloud.com/endpoint?VPC&gt;</description>
+          <defaultValue>vpc.cn-north-4.myhuaweicloud.com	</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>docker-x86-openeuler-slaves</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>TZ=Asia/Shanghai
+H */12 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+# 获取REPO&amp;GITEE地址
+repo_ip_add=`nslookup repo.huaweicloud.com | grep  &quot;Address&quot; | grep -v &quot;#&quot; | cut -d &quot; &quot; -f 2`
+gitee_ip_add=`nslookup gitee.com | grep  &quot;Address&quot; | grep -v &quot;#&quot; | cut -d &quot; &quot; -f 2`
+echo $repo_ip_add &gt; ip.txt
+echo $gitee_ip_add &gt;&gt; ip.txt
+cat ip.txt | tr &apos; &apos; &apos;\n&apos; &gt; ip-01.txt &amp;&amp; rm ip.txt &amp;&amp; mv ip-01.txt ip.txt
+tag=&quot;NO&quot;
+
+# 判断地址是否发生变化
+if [ ! -e repo_ip.txt ]
+then
+        echo &quot;&quot; &gt; repo_ip.txt
+fi
+for i in `cat ip.txt`
+do
+        grep $i repo_ip.txt &gt; /dev/null
+        if [ $? -ne 0 ]
+        then
+                sed -i &quot;1i $i&quot; repo_ip.txt
+                tag=&quot;YES&quot;
+        fi
+done
+
+for i in `cat repo_ip.txt`
+do
+        grep $i ip.txt &gt; /dev/null
+        if [  $? -ne 0 ]
+        then
+                sed -i &quot;s/$i//g&quot; repo_ip.txt
+                tag=&quot;YES&quot;
+        fi
+done
+
+sed -i &quot;/^$/d&quot; repo_ip.txt
+sort -u repo_ip.txt &gt; test.txt &amp;&amp; rm -f repo_ip.txt ip.txt &amp;&amp; mv test.txt repo_ip.txt
+
+# 执行脚本，远程调用API执行替换
+if [ $tag = &quot;YES&quot; ];then
+		echo &quot;	▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁&quot;
+        echo &quot;	   Repo And Gitee IP-Address Had Changed                        &quot;
+        echo &quot;	▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔&quot;
+        
+        is_exist_huaweicloudsdkcore=`pip3 list |grep huaweicloudsdkcore`
+		is_exist_huaweicloudsdkecs=`pip3 list |grep huaweicloudsdkecs`
+		is_exist_huaweicloudsdkvpc=`pip3 list |grep huaweicloudsdkvpc`
+        
+		if [[ -z $is_exist_huaweicloudsdkcore ]]; then
+  			pip3 install huaweicloudsdkcore
+		fi
+
+		if [[ -z $is_exist_huaweicloudsdkecs ]]; then
+  			pip3 install huaweicloudsdkecs
+		fi
+		if [[ -z $is_exist_huaweicloudsdkvpc ]]; then
+  			pip3 install huaweicloudsdkvpc
+		fi
+        
+        while :
+        do
+        	if [  ! -e security_group_vpc.py ];then
+				wget https://github.com/Open-Infra-Ops/huaweicloud-tools/raw/main/security_group/security_group_vpc.py
+            else
+            	break
+            fi
+        done
+        
+        sed -i &quot;s/openeuler-community-cce-node-ci-prod/sg-openeuler-jenkins-for-dns/g&quot; security_group_vpc.py
+		python3 ./security_group_vpc.py -ak ${AK} -sk ${SK} -project_id ${Project_id} -end_point ${End_Point}
+        
+        if [ $? -ne 0 ];then
+        	echo &quot;Update DNS faild&quot;
+            rm -f security_group_vpc.py
+            exit 1
+        fi  
+        rm -f security_group_vpc.py
+        # DNS发生变化，执行python脚本；
+        # Script-Registry: &lt;https://github.com/Open-Infra-Ops/huaweicloud-tool.git&gt;
+else
+		echo &quot;	▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁&quot;
+        echo &quot;	   Repo And Gitee IP-Address Not Changed                        &quot;
+        echo &quot;	▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔&quot;
+        # Not Change:表示DNS解析无变化；不做任何处理、不触发调用远程API修改；
+fi
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@408.vd726a_1130320">
+      <recipients>zhaochunjiang1@huawei.com</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
+  <buildWrappers/>
+</project>

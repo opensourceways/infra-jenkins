@@ -1,0 +1,181 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This project used to publish mindspore website test for  tutorilas_developer branch;</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/mindspore/mindspore.github.io</url>
+        <credentialsId>tommylike_gitee_username_password</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/tutorials-develop</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>docker</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>TZ=Asia/Shanghai
+40 7 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+
+GIT_EMAIL=&quot;tommylike@gmail.com&quot;
+IMAGE_VERSION=$(git rev-parse HEAD)
+PROJECT_NAME=&quot;mindspore-test-website&quot;
+GITEE_EMAIL=&quot;yang_liu0418@163.com&quot;
+
+echo &quot;GIT_PREVIOUS_SUCCESSFUL_COMMIT&quot;:${GIT_PREVIOUS_SUCCESSFUL_COMMIT}
+echo &quot;GIT_COMMIT&quot;:${GIT_COMMIT}
+if [ ${GIT_PREVIOUS_SUCCESSFUL_COMMIT} == ${GIT_COMMIT} ];then
+    echo &quot;Nothing to commit, Working tree clean and exit.&quot;
+    exit 0
+fi
+
+if hash docker 2&gt;/dev/null; then
+    docker login -u ap-southeast-1@$DOCKER_USER -p $DOCKER_PASS swr.ap-southeast-1.myhuaweicloud.com
+else
+	echo &quot;docker not installed.&quot;
+    exit
+fi
+
+################################################################################
+# get rasp.tgz/setenv.sh
+if  [ -d &quot;mindspore_rasp_test&quot; ]; then
+    rm -rf &quot;mindspore_rasp_test&quot;
+fi
+
+git config --global user.email $GITEE_EMAIL
+git config --global user.name  liuyanglinux
+
+git clone https://liuyanglinux:Liu19960418@gitee.com/liuyanglinux/mindspore_rasp_test
+cp mindspore_rasp_test/java_rasp/rasp.tgz mindspore_rasp_test/java_rasp/setenv.sh $WORKSPACE
+################################################################################
+
+cd $WORKSPACE
+################################################################################
+#sed -i &apos;s|tomcat:9.0.48-jdk8-openjdk-slim|swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/tomcat:9.0.10-20.03-lts-sp1|g&apos; Dockerfile
+#sed -i &apos;33d&apos; Dockerfile
+#sed -i &apos;32a\RUN yum update &amp;&amp; yum -y install unzip &amp;&amp; rm -rf /var/lib/apt/lists/* &amp;&amp; mkdir -p /mnt/share/website&apos; Dockerfile
+#sed -i &apos;s/local/share/g&apos; Dockerfile
+#sed -i &quot;s|registry.npmmirror.com|repo.huaweicloud.com/repository/npm|&quot; ./Dockerfile
+#sed -i &quot;s|registry.npmmirror.com|repo.huaweicloud.com/repository/npm/|&quot; ./Dockerfile
+#sed -i &quot;s|npm install --registry=https://registry.npmmirror.com|npm ci --registry=https://registry.npm.taobao.org|&quot; ./Dockerfile
+#sed -i &quot;s|RUN npm install --registry=https://registry.npmmirror.com||&quot; ./Dockerfile
+#sed -i &quot;17i RUN npm config set registry https://repo.huaweicloud.com/repository/npm/&quot; ./Dockerfile
+#sed -i &quot;18i RUN npm cache clean -f&quot; ./Dockerfile
+#sed -i &quot;17i RUN npm cache clean --force &amp;&amp; npm install -g npm@8.5.5&quot; ./Dockerfile
+
+# sed npm address
+sed -i &quot;17i RUN npm cache clean --force&quot; ./Dockerfile
+sed -i &quot;s|RUN npm install --registry=https://registry.npmmirror.com|RUN npm i --registry=https://registry.npmmirror.com|&quot; ./Dockerfile
+cat ./Dockerfile
+
+# add to deploy rasp
+sed -i &apos;36a ADD rasp.tgz \/path\/to\/app_home\/&apos; ./Dockerfile
+sed -i &apos;37a COPY setenv.sh /usr/local/tomcat/bin/&apos; ./Dockerfile
+sed -i &apos;38a RUN chown -R root\:root \/path\/to\/app_home\/rasp &amp;&amp; chmod 755 -R \/path\/to\/app_home\/rasp&apos; ./Dockerfile
+sed -i &apos;39a RUN chmod 750 \/usr\/local\/tomcat\/bin\/setenv.sh&apos; ./Dockerfile
+
+docker build -t swr.ap-southeast-1.myhuaweicloud.com/opensourceway/mindspore-website-test:$IMAGE_VERSION .
+docker push     swr.ap-southeast-1.myhuaweicloud.com/opensourceway/mindspore-website-test:$IMAGE_VERSION
+
+if  [ -d &quot;infra-common&quot; ]; then
+    rm -rf &quot;infra-common&quot;
+fi
+
+if  hash git 2&gt;/dev/null; then
+    git config --global user.email $GIT_EMAIL
+    git config --global user.name  $GIT_USER
+    git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-common
+    cd  infra-common/common-applications/test-environment/mindspore-website-test
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+if  hash kustomize 2&gt;/dev/null; then
+    kustomize edit set image swr.ap-southeast-1.myhuaweicloud.com/opensourceway/mindspore-website-test:$IMAGE_VERSION
+else
+    echo &quot;use replace to set image.&quot;
+fi
+
+if  hash git 2&gt;/dev/null; then
+    git add .
+    git commit -am &quot;update mindspore-website-test image to mindspore-website-test:$IMAGE_VERSION&quot;
+    git push origin --all
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+ARGOCD_TOKEN=`curl -X POST -s -d &apos;{&quot;password&quot;:&quot;&apos;${ARGOCD_PASS}&apos;&quot;,&quot;username&quot;:&quot;&apos;${ARGOCD_USER}&apos;&quot;}&apos; &quot;https://build.osinfra.cn/api/v1/session&quot;|tail -1 |awk -F &apos;[&quot;&quot;]&apos; &apos;{print$4}&apos;`&gt;/dev/null
+curl -X POST -s -o /dev/null --cookie &quot;argocd.token=${ARGOCD_TOKEN}&quot; &quot;https://build.osinfra.cn/api/v1/applications/${PROJECT_NAME}/sync&quot;&gt;/dev/null
+
+docker rmi      swr.ap-southeast-1.myhuaweicloud.com/opensourceway/mindspore-website-test:$IMAGE_VERSION</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@408.vd726a_1130320">
+      <recipients>zhaochunjiang1@huawei.com kathy.wangting@huawei.com</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>true</sendToIndividuals>
+    </hudson.tasks.Mailer>
+    <com.chikli.hudson.plugin.naginator.NaginatorPublisher plugin="naginator@1.18.1">
+      <regexpForRerun></regexpForRerun>
+      <rerunIfUnstable>false</rerunIfUnstable>
+      <rerunMatrixPart>false</rerunMatrixPart>
+      <checkRegexp>false</checkRegexp>
+      <regexpForMatrixStrategy>TestParent</regexpForMatrixStrategy>
+      <delay class="com.chikli.hudson.plugin.naginator.FixedDelay">
+        <delay>60</delay>
+      </delay>
+      <maxSchedule>3</maxSchedule>
+    </com.chikli.hudson.plugin.naginator.NaginatorPublisher>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>huaweicloud-swr-token</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>tommylike_github_token</credentialsId>
+          <usernameVariable>GIT_USER</usernameVariable>
+          <passwordVariable>GIT_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>00441642-0437-4b00-9be4-ec0bb484d5c1</credentialsId>
+          <usernameVariable>ARGOCD_USER</usernameVariable>
+          <passwordVariable>ARGOCD_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,43 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection></giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>97</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/sh -l
+
+#to recover data from obs with specify date,the last two parameters is vhostname and es&apos;s indexname,if not assignment,it will use the resource/conf.properties parameters in the jar
+startdate=&quot;20201101&quot;
+enddate=&quot;20201105&quot;
+date1=$(date -d &quot;$startdate&quot; &quot;+%s&quot;)
+date2=$(date -d &quot;$enddate&quot; &quot;+%s&quot;)
+date_count=$(echo &quot;$date2 - $date1&quot;|bc)
+day_m=$(echo &quot;$date_count&quot;/86400|bc)
+for ((sdate=0;sdate&lt;&quot;$day_m&quot;;sdate++))
+do
+        month=$(date -d &quot;$startdate $sdate days&quot; &quot;+%m&quot;)
+        day=$(date -d &quot;$startdate $sdate days&quot; &quot;+%d&quot;)
+        spark-submit --class com.huawei.opensourway.AnalysisForBatch --num-executors 3 --executor-cores 3 --master yarn-cluster /root/lxl/test/om-bigdata-1.0-SNAPSHOT-jar-with-dependencies.jar GJK7VGQW4KI5MBSMOE2Q Dim9rM3uivK1gFv7gBGT80G7oLWpOt2JTPTjBFeY 100 obs://om-collect/logstash-2020.$month.$day-hk-app.json mailweb.openeuler.org testIndex $month-$day-nginxlog-mailweb com.huawei.Module.openeuler.logstash_repo_openeuler_org
+        echo $month $day have done
+
+done</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

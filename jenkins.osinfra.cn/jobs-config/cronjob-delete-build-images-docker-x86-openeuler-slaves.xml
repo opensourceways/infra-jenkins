@@ -1,0 +1,54 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>定时清理镜像构建的中间层</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>docker-x86-openeuler-slaves</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>TZ=Asia/Shanghai
+H 0 * * 7</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>yes|docker container prune
+yes|docker image prune -a
+yes|docker volume prune
+docker builder prune -f --keep-storage=200GB
+df -h|grep /dev/vda|awk &apos;{print$5}&apos;
+
+#apt install curl gnupg -y
+#curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor &gt; bazel.gpg
+#mv bazel.gpg /etc/apt/trusted.gpg.d/
+#echo &quot;deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8&quot; |tee /etc/apt/sources.list.d/bazel.list
+#apt-get update
+#apt install bazel-3.4.1 -y
+#ln -s /usr/bin/bazel-3.4.1 /usr/bin/bazel
+#bazel --version</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@408.vd726a_1130320">
+      <recipients>zhaochunjiang1@huawei.com</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
+  <buildWrappers/>
+</project>

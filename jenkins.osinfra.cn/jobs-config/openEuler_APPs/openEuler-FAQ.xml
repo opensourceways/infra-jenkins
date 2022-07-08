@@ -1,0 +1,144 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection></giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>PACKAGE_URL</name>
+          <description></description>
+          <defaultValue>http://119.3.219.20:82/openEuler:/20.09/standard_aarch64/noarch/pkgship-1.1.0-13.oe1.noarch.rpm</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.3.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/ci-bot/rasa.git</url>
+        <credentialsId>de651252-7736-4aa1-888e-5debd033c9ce</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>openeuler4321</authToken>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+GIT_EMAIL=&quot;tommylike@gmail.com&quot;
+GIT_VERSION=&quot;v0&quot;
+TIME_VERSION=&quot;1&quot;
+IMAGE_VERSION=&quot;v0.0.1&quot;
+URLPKGFILE=&quot;newpkgship.rpm&quot;
+PKGFILE=&quot;pkgship-new.rpm&quot;
+set -e
+echo $PACKAGE_URL
+
+if hash git 2&gt;/dev/null; then
+    GIT_VERSION=$(git rev-parse HEAD)
+fi
+TIME_VERSION=$(date +%s)
+
+IMAGE_VERSION=$GIT_VERSION.$TIME_VERSION
+echo $IMAGE_VERSION
+
+wget -q -O $URLPKGFILE $PACKAGE_URL
+
+
+if [ -e &quot;$URLPKGFILE&quot; ]  &amp;&amp; [ `du -s $URLPKGFILE | awk &apos;{print $1}&apos;` -gt 1 ]; then
+    for rpmfile in &apos;pkgship*.rpm&apos;; do	
+        rm -rf $rpmfile
+    done
+    mv $URLPKGFILE $PKGFILE	    
+else
+	echo &quot;Use old pkgship file.&quot;
+    rm -rf $URLPKGFILE
+fi
+
+ls -l
+cat Dockerfile
+
+if hash docker 2&gt;/dev/null; then
+    docker login --username=$DOCKER_USER --password=$DOCKER_PASS
+    docker build -t packagemanage:$IMAGE_VERSION .
+    docker tag packagemanage:$IMAGE_VERSION opensourceway/packagemanage:$IMAGE_VERSION
+    docker push opensourceway/packagemanage:$IMAGE_VERSION    
+    docker rmi packagemanage:$IMAGE_VERSION opensourceway/packagemanage:$IMAGE_VERSION
+    
+    docker build -t opensourceway/dbgetinit:$IMAGE_VERSION ./dbinit
+    docker push opensourceway/dbgetinit:$IMAGE_VERSION    
+    docker rmi opensourceway/dbgetinit:$IMAGE_VERSION     
+else 
+    echo &quot;docker is not installed.&quot;
+fi
+
+if [ -d &quot;infra-openeuler&quot; ]; then
+    rm -rf &quot;infra-openeuler&quot;
+fi
+
+if hash git 2&gt;/dev/null; then
+    git config --global user.email $GIT_EMAIL
+    git config --global user.name $GIT_USER
+    git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-openeuler
+    cd infra-openeuler/applications/package-manage/release
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+if hash kustomize 2&gt;/dev/null; then
+    kustomize edit set image opensourceway/packagemanage=opensourceway/packagemanage:$IMAGE_VERSION
+    kustomize edit set image opensourceway/dbgetinit=opensourceway/dbgetinit:$IMAGE_VERSION    
+else
+    echo &quot;use replace to set image.&quot;
+fi
+
+if hash git 2&gt;/dev/null; then   
+    git add .
+    git commit -am &quot;update image to $IMAGE_VERSION&quot;
+    git push origin --all
+else
+    echo &quot;git is not existing.&quot;
+fi
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>opensourceway_docker_usename_pwd</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>tommylike_github_token</credentialsId>
+          <usernameVariable>GIT_USER</usernameVariable>
+          <passwordVariable>GIT_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

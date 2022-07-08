@@ -1,0 +1,222 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>NOTE:&#xd;
+    The github source  used dakangsiji,not opensourceways; only for test project;&#xd;
+  【2022-03-05  Created】</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>BUILD_ARCH_NAME</name>
+          <description>input building arch type ,You can enter one of the list: [ x86,  aarch64 ];</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>x86</string>
+              <string>aarch64</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>BASE_IMAGE_NAME</name>
+          <description>Input base image name ,You can enter one of the list: [ openeuler20.03-lts-sp1,  openeuler20.03-lts-sp2, openeuler20.03-lts-sp3 ... ];
+Search the base image name in website: &quot;https://github.com/opensourceways/playground-images/tree/main/openeuler/lxd&quot;; 
+Note:
+    The image name must be under the LXD directory；
+    The list content will be constantly updated;
+</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>git101-openeuler20.03-lts-sp3</string>
+              <string>makepackage-openeuler20.03-lts-sp3</string>
+              <string>opengauss3.0.0-openeuler20.03-lts-sp3</string>
+              <string>openeuler20.03-lts-sp2</string>
+              <string>openeuler20.03-lts-sp3</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/dakangsiji/playground-images.git</url>
+        <credentialsId>107b4425-33e4-4508-98ea-601549c6dac5</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/main</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.WipeWorkspace/>
+    </extensions>
+  </scm>
+  <assignedNode>playground-jenkins-slave-0</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set -e
+IMAGE_VERSION=&quot;latest&quot;
+#IMAGE_VERSION=&quot;v1.0.1&quot;
+BUILD_IMAGE_PATH=&quot;ContainerImages/$BASE_IMAGE_NAME&quot;
+TIME=$(date +%Y-%m-%d)
+
+#echo &quot;GIT_PREVIOUS_SUCCESSFUL_COMMIT&quot;:${GIT_PREVIOUS_SUCCESSFUL_COMMIT}
+#echo &quot;GIT_COMMIT&quot;:${GIT_COMMIT}
+#if [ ${GIT_PREVIOUS_SUCCESSFUL_COMMIT} == ${GIT_COMMIT} ];then
+#    echo &quot;Nothing to commit, Working tree clean and exit.&quot;
+#    exit 0
+#fi
+
+###############################################################
+cd $WORKSPACE
+# apt-get install -y libcurl4-gnutls-dev libcurl4-openssl-dev 
+#if [ -d &quot;playground-images&quot; ]; then
+#    rm -rf &quot;playground-images&quot;
+#fi
+
+#git config --global  --unset https.https://github.com.proxy 
+#git config --global  --unset http.https://github.com.proxy 
+#git clone https://xxx@xxx.github.com/dakangsiji/playground-images.git
+
+if [ ! -e distrobuilder ];then
+	wget https://github.com/opensourceways/distrobuilder/releases/download/distrobuilder-1.0/distrobuilder
+    chmod u+x distrobuilder &amp;&amp; ./distrobuilder --version 
+fi
+
+if [ -e dirname.txt -o -e filename.txt ];then
+	rm -f dirname.txt filename.txt
+fi
+
+for i in $(ls -l ./openeuler/lxd/ |awk &apos;/^d/ {print $NF}&apos;)
+do
+	echo $i &gt;&gt; dirname.txt
+done
+
+if [ -z `grep &quot;$BASE_IMAGE_NAME&quot; dirname.txt` ];then
+    echo &quot;base_image_name is not exist&quot;
+    exit
+fi
+
+for i in `ls ./openeuler/lxd/$BASE_IMAGE_NAME/`
+do
+	echo ${i%.*} &gt;&gt; filename.txt
+done
+
+if [ -z `grep &quot;$BUILD_ARCH_NAME&quot; filename.txt` ];then
+    echo &quot;build_arch_name is not exist&quot;
+    exit
+fi
+
+mkdir -p ./$BUILD_IMAGE_PATH/{container,vm}
+cp -rf ./openeuler/lxd/$BASE_IMAGE_NAME/$BUILD_ARCH_NAME.yaml ./$BUILD_IMAGE_PATH/container
+cp -rf ./openeuler/lxd/$BASE_IMAGE_NAME/$BUILD_ARCH_NAME.yaml ./$BUILD_IMAGE_PATH/vm
+
+ISO_sp3=&quot;/tmp/distrobuilder/openeuler-openeuler-20.03-lts-sp3-x86_64/openEuler-20.03-LTS-SP3-x86_64-dvd.iso&quot;
+if [ ! -f &quot;ISO_sp3&quot; ];then
+	cp /soft/openEuler-20.03-LTS-SP3-x86_64-dvd.iso /tmp/distrobuilder/openeuler-openeuler-20.03-lts-sp3-x86_64/
+fi
+
+###############################################################
+cd ./$BUILD_IMAGE_PATH/container
+$WORKSPACE/distrobuilder build-lxd $BUILD_ARCH_NAME.yaml
+if [ ! -f lxd.tar.xz ] || [ ! -f rootfs.squashfs ];then
+    echo &quot;Building container files absence&quot;
+    exit
+fi
+cat &gt; Dockerfile &lt;&lt;EOF
+FROM  scratch
+COPY  lxd.tar.xz /
+COPY  rootfs.squashfs /
+CMD  [&quot;/fake-command&quot;]
+EOF
+docker build -t swr.ap-southeast-1.myhuaweicloud.com/opensourceway/playground-images/$BASE_IMAGE_NAME-container-$BUILD_ARCH_NAME:$IMAGE_VERSION .
+rm -f ./* 
+
+###############################################################
+cd ../vm
+$WORKSPACE/distrobuilder build-lxd $BUILD_ARCH_NAME.yaml --vm
+if [ ! -f lxd.tar.xz ] || [  ! -f disk.qcow2 ];then
+    echo &quot;Building vm files absence&quot;
+    exit
+fi
+cat &gt; Dockerfile &lt;&lt;EOF
+FROM  scratch
+COPY  lxd.tar.xz /
+COPY  disk.qcow2 /
+CMD  [&quot;/fake-command&quot;]
+EOF
+docker build -t swr.ap-southeast-1.myhuaweicloud.com/opensourceway/playground-images/$BASE_IMAGE_NAME-vm-$BUILD_ARCH_NAME:$IMAGE_VERSION .
+
+###############################################################
+if hash docker 2&gt;/dev/null; then
+    docker login -u ap-southeast-1@$DOCKER_USER -p $DOCKER_PASS swr.ap-southeast-1.myhuaweicloud.com
+else 
+    echo &quot;docker is not installed.&quot;
+fi
+
+#docker push swr.ap-southeast-1.myhuaweicloud.com/opensourceway/playground-images/$BASE_IMAGE_NAME-container-$BUILD_ARCH_NAME:$IMAGE_VERSION
+if [ $? -eq 0 ];then
+	CT_DIGEST=`docker images --digests | grep &quot;$BASE_IMAGE_NAME-container-$BUILD_ARCH_NAME&quot;| awk &apos;{print $3}&apos;`
+	echo &quot;[$TIME]   CT-Digest-info|$BASE_IMAGE_NAME-container-$BUILD_ARCH_NAME|$CT_DIGEST&quot; &gt;&gt; $WORKSPACE/commit-image-digest.txt
+fi
+
+docker push swr.ap-southeast-1.myhuaweicloud.com/opensourceway/playground-images/$BASE_IMAGE_NAME-vm-$BUILD_ARCH_NAME:$IMAGE_VERSION
+if [ $? -eq 0 ];then
+	VM_DIGEST=`docker images --digests | grep &quot;$BASE_IMAGE_NAME-vm-$BUILD_ARCH_NAME&quot;       | awk &apos;{print $3}&apos;`
+	echo &quot;[$TIME]   VM-Digest-info|$BASE_IMAGE_NAME-vm-$BUILD_ARCH_NAME|$VM_DIGEST&quot; &gt;&gt; $WORKSPACE/commit-image-digest.txt
+fi
+
+docker rmi  swr.ap-southeast-1.myhuaweicloud.com/opensourceway/playground-images/$BASE_IMAGE_NAME-container-$BUILD_ARCH_NAME:$IMAGE_VERSION
+docker rmi  swr.ap-southeast-1.myhuaweicloud.com/opensourceway/playground-images/$BASE_IMAGE_NAME-vm-$BUILD_ARCH_NAME:$IMAGE_VERSION
+rm -f ./* 
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <com.chikli.hudson.plugin.naginator.NaginatorPublisher plugin="naginator@1.18.1">
+      <regexpForRerun></regexpForRerun>
+      <rerunIfUnstable>false</rerunIfUnstable>
+      <rerunMatrixPart>false</rerunMatrixPart>
+      <checkRegexp>false</checkRegexp>
+      <regexpForMatrixStrategy>TestParent</regexpForMatrixStrategy>
+      <delay class="com.chikli.hudson.plugin.naginator.FixedDelay">
+        <delay>30</delay>
+      </delay>
+      <maxSchedule>1</maxSchedule>
+    </com.chikli.hudson.plugin.naginator.NaginatorPublisher>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>huaweicloud-swr-token</credentialsId>
+          <usernameVariable>DOCKER_USER</usernameVariable>
+          <passwordVariable>DOCKER_PASS</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>
