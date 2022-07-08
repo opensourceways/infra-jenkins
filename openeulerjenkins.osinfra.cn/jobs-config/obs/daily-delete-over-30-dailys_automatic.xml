@@ -1,0 +1,64 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.42">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.TimerTrigger>
+          <spec>H H/2 * * *</spec>
+        </hudson.triggers.TimerTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
+    <script>pipeline {
+    agent none
+    stages {
+        stage(&quot;iso-delete-over-30-dailys&quot;) {
+            steps {
+                parallel(
+                    &apos;22.03-LTS-Next&apos;: {
+                        build job: &apos;daily-delete-over-30-dailys&apos;, parameters: [string(name: &apos;iso_daily_dir&apos;,value: &apos;/repo/openeuler/dailybuild/openEuler-22.03-LTS-Next&apos;),string(name: &apos;ISO_DAYS&apos;,value:&apos;10&apos;)], propagate: false
+                    },
+                    &apos;22.03-LTS&apos;: {
+                        build job: &apos;daily-delete-over-30-dailys&apos;, parameters: [string(name: &apos;iso_daily_dir&apos;,value: &apos;/repo/openeuler/dailybuild/openEuler-22.03-LTS&apos;),string(name: &apos;ISO_DAYS&apos;,value:&apos;10&apos;)], propagate: false
+                    },
+                    &apos;20.03-LTS-SP3&apos;: {
+                        build job: &apos;daily-delete-over-30-dailys&apos;, parameters: [string(name: &apos;iso_daily_dir&apos;,value: &apos;/repo/openeuler/dailybuild/openEuler-20.03-LTS-SP3&apos;),string(name: &apos;ISO_DAYS&apos;,value:&apos;10&apos;)], propagate: false
+                    },
+                    &apos;mainline&apos;: {
+                        build job: &apos;daily-delete-over-30-dailys&apos;, parameters: [string(name: &apos;iso_daily_dir&apos;,value: &apos;/repo/openeuler/dailybuild/openEuler-Mainline&apos;), string(name: &apos;ISO_DAYS&apos;,value:&apos;10&apos;)], propagate: false
+                    },
+                    &apos;20.03-LTS-SP1&apos;: {
+                        build job: &apos;daily-delete-over-30-dailys&apos;, parameters: [string(name: &apos;iso_daily_dir&apos;,value: &apos;/repo/openeuler/dailybuild/openEuler-20.03-LTS-SP1&apos;),string(name: &apos;ISO_DAYS&apos;,value:&apos;10&apos;)], propagate: false
+                    },
+                )
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

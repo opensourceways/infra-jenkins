@@ -1,0 +1,101 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:chemingdao</permission>
+      <permission>hudson.model.Item.Build:chemingdao</permission>
+      <permission>hudson.model.Item.Cancel:chemingdao</permission>
+      <permission>hudson.model.Item.Configure:chemingdao</permission>
+      <permission>hudson.model.Item.Delete:chemingdao</permission>
+      <permission>hudson.model.Item.Discover:chemingdao</permission>
+      <permission>hudson.model.Item.Move:chemingdao</permission>
+      <permission>hudson.model.Item.Read:chemingdao</permission>
+      <permission>hudson.model.Item.Workspace:chemingdao</permission>
+      <permission>hudson.model.Run.Delete:chemingdao</permission>
+      <permission>hudson.model.Run.Replay:chemingdao</permission>
+      <permission>hudson.model.Run.Update:chemingdao</permission>
+      <permission>hudson.scm.SCM.Tag:chemingdao</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler-20.03-lts-sp2</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>0 9 * * 1</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>job_name=&quot;function-item/release-manager/update_template_jobs/release-create-tools/auto-create&quot;
+
+rm -rf release-tools
+git clone https://gitee.com/gitee-cmd/release-tools.git
+
+init_path=`pwd`
+export PYTHONPATH=$init_path/release-tools/release-assistant/
+
+python3 release-tools/release-assistant/javcra/javcra create --token $GiteeToken</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.3.0">
+      <info/>
+    </EnvInjectBuilder>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>openeuler-ci-bot</credentialsId>
+          <variable>GiteeToken</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <variable>GiteeUserPassword</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>scanoss-api-key</credentialsId>
+          <variable>ScanOSSAPIKey</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>be1d7d09-4ab8-44da-ad52-82b3dcc795b0</credentialsId>
+          <usernameVariable>jenkins_user</usernameVariable>
+          <passwordVariable>jenkins_api_token</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

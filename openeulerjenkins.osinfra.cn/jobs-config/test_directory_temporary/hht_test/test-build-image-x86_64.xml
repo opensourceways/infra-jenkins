@@ -1,0 +1,80 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>构建x86 64 平台镜像</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>cpu框架</description>
+          <defaultValue>x86_64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>build-docker-x86</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+sudo yum install expect -y
+
+pass=harvey
+expect -c &quot;spawn scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null harvey@172.16.5.121:/usr1/openeuler_codegate/docker-images/002/openEuler-rtos-docker.${arch}.tar.xzaa .; expect \&quot;password:\&quot;; send \&quot;${pass}\r\&quot;;expect eof&quot;
+expect -c &quot;spawn scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null harvey@172.16.5.121:/usr1/openeuler_codegate/docker-images/002/openEuler-rtos-docker.${arch}.tar.xzab .; expect \&quot;password:\&quot;; send \&quot;${pass}\r\&quot;;expect eof&quot;
+
+cat openEuler-rtos-docker.${arch}.tar.xz.* &gt; openEuler-rtos-docker.${arch}.tar.xz
+
+if [[ $arch == &quot;x86-64&quot; ]]; then download_arch=&quot;x86_64&quot;; else download_arch=${arch}; fi
+docker load -i openEuler-rtos-docker.${download_arch}.tar.xz
+rm openEuler-rtos-docker.${download_arch}.tar.xz
+
+# lowercase image name
+tag=21.03_001
+version=21.03
+docker tag openeuler-${version}:v003 swr.cn-north-4.myhuaweicloud.com/openeuler/${arch}/rtos:${tag}
+docker push swr.cn-north-4.myhuaweicloud.com/openeuler/${arch}/rtos:${tag}
+docker rmi openeuler-${version}:v003
+docker rmi swr.cn-north-4.myhuaweicloud.com/openeuler/${arch}/rtos:${tag}
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>docker_registry_ci_bot</credentialsId>
+          <usernameVariable>DockerRegistryUserName</usernameVariable>
+          <passwordVariable>DockerRegistryPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

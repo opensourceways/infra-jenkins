@@ -1,0 +1,164 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>根据pckg-mgmt.yaml文件，修改obs_meta代码，并提交代码到obs_meta仓库。（自动操作）</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:dongjie</permission>
+      <permission>hudson.model.Item.Build:dongjie</permission>
+      <permission>hudson.model.Item.Cancel:dongjie</permission>
+      <permission>hudson.model.Item.Configure:dongjie</permission>
+      <permission>hudson.model.Item.Delete:dongjie</permission>
+      <permission>hudson.model.Item.Discover:dongjie</permission>
+      <permission>hudson.model.Item.Move:dongjie</permission>
+      <permission>hudson.model.Item.Read:dongjie</permission>
+      <permission>hudson.model.Item.Workspace:dongjie</permission>
+      <permission>hudson.model.Run.Delete:dongjie</permission>
+      <permission>hudson.model.Run.Update:dongjie</permission>
+      <permission>hudson.scm.SCM.Tag:dongjie</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>50</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>isbuild</name>
+          <description>1 构建 0 不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>if [[ &quot;${isbuild}&quot; != &quot;1&quot; ]];then
+	exit 0
+fi
+git config --global http.sslVerify false
+git config --global http.postBuffer 52428800
+git config --global user.email &quot;17621827400@163.com&quot;
+git config --global user.name &quot;dongjie110&quot;
+git config --global pull.ff only
+
+sudo su - root &lt;&lt;EOF
+if [ -d $WORKSPACE/obs_meta ];then
+	rm -rf $WORKSPACE/obs_meta
+fi
+
+if [ -d $WORKSPACE/release-management ];then
+	rm -rf $WORKSPACE/release-management
+fi
+EOF
+
+if [ ! -d $WORKSPACE/obs_meta ];then
+    cd $WORKSPACE
+    for((i=1;i&lt;=5;i++));
+    do
+    	set +e
+        git clone -b master https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/dong-jie_1/obs_meta
+        #git clone https://gitee.com/dongjie110/obs_meta.git
+        set -e
+        if [ -d obs_meta ];then
+            if [ &quot;`ls -A obs_meta`&quot; != &quot;&quot; ];then 
+        		break
+			else
+            	rm -rf obs_meta
+            fi
+        fi
+    done
+    cd -
+fi
+
+
+if [ ! -d $WORKSPACE/release-management ];then
+    cd $WORKSPACE
+    for((i=1;i&lt;=5;i++));
+    do
+    	set +e
+        git clone -b master https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/dong-jie_1/release-management
+        #git clone https://gitee.com/dongjie110/release-management.git
+        set -e
+        if [ -d release-management ];then
+            if [ &quot;`ls -A release-management`&quot; != &quot;&quot; ];then 
+        		cd release-management &amp;&amp; git reset --hard ${giteePullRequestLastCommit} &amp;&amp; cd -
+                #cd release-management &amp;&amp; git reset --hard 7a1e553d75ead96baeb1b618ca7041e2ab462142 &amp;&amp; cd -
+                break
+			else
+            	rm -rf release-management
+            fi
+        fi
+    done
+    cd -
+fi
+
+
+sudo su - root &lt;&lt;EOF
+
+git config --global http.sslVerify false
+git config --global http.postBuffer 52428800
+git config --global user.email &quot;17621827400@163.com&quot;
+git config --global user.name &quot;dongjie110&quot;
+git config --global pull.ff only
+
+
+cd $WORKSPACE &amp;&amp; rm -rf openeuler_obs-*
+wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.6.2-aarch64.tar.gz
+tar -xvf openeuler_obs-v1.6.2-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v1.6.2-aarch64
+echo &quot;test2&quot;
+./openeuler_obs -o $WORKSPACE/obs_meta -rm $WORKSPACE/release-management -guser ${GiteeCloneUserName} -gpwd ${GiteeClonePassword} --pckg_mgmt true
+#./openeuler_obs -o $WORKSPACE/obs_meta -rm $WORKSPACE/release-management -guser ${GiteeCloneUserName} -gpwd ${GiteeClonePassword} --pckg_mgmt true --sync_code &quot;&quot;
+EOF</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>dongjie_gitee</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,155 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>5</daysToKeep>
+        <numToKeep>10</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#sudo su - root&lt;&lt;EOF
+#pip3 -V || yum install python3-pip -y
+#pack=`pip3 list | grep -E &quot;openpyxl|paramiko&quot;`
+#if [ -z $pack ];then
+#	pip3 install openpyxl paramiko
+#fi
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; FEOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = yaolonggang
+pass = pajk123@
+FEOF
+
+set -ex
+git config --global user.email &quot;yaolonggang3@h-partners.com&quot;
+git config --global user.name &quot;yaolonggang&quot;
+
+
+osc co home:yaolonggang 0630
+
+wget https://files.pythonhosted.org/packages/da/66/45b9d025bcff48c2f9fad8077e82982b1bba367a729b8e62196cefacbff4/diffoscope-154.tar.gz
+cp diffoscope-154.tar.gz home:yaolonggang/0630
+cd home:yaolonggang/0630
+osc addremove
+osc ci -n 
+
+exit 0
+
+cat &gt;obsworkers.list &lt;&lt;END
+172.16.1.17
+172.16.1.57
+172.16.1.12
+172.16.1.96
+172.16.1.27
+172.16.1.51
+172.16.1.68
+172.16.1.99
+172.16.1.243
+172.16.1.162
+172.16.1.192
+172.16.1.222
+172.16.1.159
+172.16.1.86
+172.16.1.142
+172.16.1.227
+172.16.1.237
+172.16.1.134
+172.16.1.8
+172.16.1.6
+172.16.1.230
+172.16.1.153
+172.16.1.201
+172.16.1.71
+172.16.1.220
+172.16.1.228
+172.16.1.221
+172.16.1.249
+172.16.1.45
+172.16.1.48
+172.16.1.21
+172.16.1.252
+172.16.1.217
+172.16.1.106
+172.16.1.138
+172.16.1.69
+172.16.1.176
+172.16.1.246
+172.16.1.46
+172.16.1.47
+172.16.1.140
+172.16.1.87
+172.16.1.58
+172.16.1.92
+172.16.1.212
+172.16.1.79
+172.16.1.14
+172.16.1.7
+172.16.1.5
+172.16.1.33
+172.16.1.80
+172.16.1.182
+172.16.1.72
+172.16.1.197
+172.16.1.213
+172.16.1.240
+172.16.1.94
+172.16.1.204
+END
+
+[ -d code ] &amp;&amp; rm -rf code
+git clone https://${giteeuser}:${giteepasswd}@gitee.com/yaolonggang/code.git
+python3 code/script/obsworker/get_obsworkers_conf.py -f obsworkers.list -p ${obsworkerpasswd}
+EOF</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>71bec57a-6c08-461a-a747-d635d8775b68</credentialsId>
+          <usernameVariable>giteeuser</usernameVariable>
+          <passwordVariable>giteepasswd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>72f187bc-1e74-45fb-8641-f992f63b0f6a</credentialsId>
+          <usernameVariable></usernameVariable>
+          <passwordVariable>obsworkerpasswd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

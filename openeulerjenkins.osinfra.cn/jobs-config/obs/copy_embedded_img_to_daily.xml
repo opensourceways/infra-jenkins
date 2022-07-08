@@ -1,0 +1,128 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>自动同步embedded img到dailybuild服务器openEuler-21.09分支的最新iso目录中</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>hudson.model.Item.Build:rtos</permission>
+      <permission>hudson.model.Item.Configure:rtos</permission>
+      <permission>hudson.model.Item.Read:rtos</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>50</daysToKeep>
+        <numToKeep>150</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>branch</name>
+          <description>版本分支名</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler-22.03-LTS</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>source_user</name>
+          <description>源机器用户名</description>
+          <defaultValue>public</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>source_dir</name>
+          <description>源机器存放img的目录名</description>
+          <defaultValue>/usr1/output/dailybuild</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>dest_ip</name>
+          <description>dailybuild服务器ip</description>
+          <defaultValue>121.36.84.172</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>if [[ ${branch} != &quot;openEuler-22.03-LTS&quot; ]];then
+	echo &quot;该功能当前只限于openEuler-22.03-LTS分支！！！&quot;
+    exit 0
+fi
+
+if [[ ${source_user} == &quot;&quot; ]] || [[ ${source_dir} == &quot;&quot; ]] || [[ ${dest_ip} == &quot;&quot; ]];then
+    echo &quot;请检查参数是否正确！！！&quot;
+    exit 1
+fi
+
+if [ -d $WORKSPACE/openeuler-os-build ];then
+	rm -rf $WORKSPACE/openeuler-os-build
+fi
+
+cd $WORKSPACE
+for((i=1;i&lt;=5;i++));
+do
+	set +e
+    git clone -b master  https://gitee.com/openeuler/openeuler-os-build.git
+    set -e
+    if [ -d openeuler-os-build ];then
+		if [ &quot;`ls -A openeuler-os-build`&quot; != &quot;&quot; ];then 
+        	break
+		else
+            rm -rf openeuler-os-build
+        fi
+    fi
+done
+latest_iso_dir=&quot;/repo/openeuler/dailybuild/${branch}/${branch}&quot;
+cd openeuler-os-build/script/tools/
+bash copy_embedded_img.sh ${source_user} ${source_ip} ${source_pwd} ${source_dir} ${dest_ip} ${ssh_key} ${latest_iso_dir}
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>update-publish-key</credentialsId>
+          <variable>ssh_key</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>embedded_img_source_ip</credentialsId>
+          <usernameVariable>source_ip</usernameVariable>
+          <passwordVariable>source_pwd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

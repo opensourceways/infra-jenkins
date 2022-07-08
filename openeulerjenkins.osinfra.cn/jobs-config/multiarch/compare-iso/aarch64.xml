@@ -1,0 +1,118 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>cmp_side_a</name>
+          <defaultValue>https://repo.openeuler.org/openEuler-20.03-LTS-SP1/everything/x86_64/Packages/zip-3.0-26.oe1.x86_64.rpm</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>cmp_side_b</name>
+          <defaultValue>https://repo.openeuler.org/openEuler-20.03-LTS/everything/x86_64/Packages/zip-3.0-25.oe1.x86_64.rpm</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <defaultValue>aarch64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/tracedeng/openeuler-jenkins</url>
+        <credentialsId>openeuler_ci_bot</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>k8s-aarch64-soe</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>set +x
+pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple python-magic beautifulsoup4
+
+#export PYTHONPATH=/home/jenkins/ci_check
+
+#python3 /home/jenkins/ci_check/src/tools/compare.py -t diff -w /home/jenkins/extract -d /home/jenkins/detail -f ${cmp_side_a} ${cmp_side_b} -o diff.md
+
+#cd openeuler-jenkins
+#echo &quot;python3 src/tools/compare.py -t diff -w /home/jenkins/extract -d /home/jenkins/detail -f ${cmp_side_a} ${cmp_side_b} -o /home/jenkins/diff.md&quot; &gt;/tmp/abc
+#sleep 10000
+
+#sudo losetup -d /dev/loop0 || echo &quot;detach loop0&quot;
+#sudo losetup -d /dev/loop1 || echo &quot;detach loop1&quot;
+#echo &quot;python3 src/tools/compare.py -t diff -w /home/jenkins/extract -d /home/jenkins/detail -r ${cmp_side_a} ${cmp_side_b} -o /home/jenkins/diff.md -a ${arch} -v&quot; &gt;/tmp/abc
+#python3 src/tools/compare.py -t diff -w /home/jenkins/extract -d /home/jenkins/detail -r ${cmp_side_a} ${cmp_side_b} -o /home/jenkins/diff.md -a ${arch} -v
+
+python3 src/tools/compare.py -t diff -w /home/jenkins/extract -d /home/jenkins/detail -f ${cmp_side_a} ${cmp_side_b} -o /home/jenkins/diff.md -a ${arch} -v
+
+#sudo losetup -d /dev/loop0 || echo &quot;detach loop0&quot;
+#sudo losetup -d /dev/loop1 || echo &quot;detach loop1&quot;
+
+sed -i s&quot;/\/home\/jenkins\/detail/http:\/\/${repo_server}\/compare\/detail/&quot; /home/jenkins/diff.md
+
+now=$(date &quot;+%Y-%m-%d-%H-%M-%S&quot;)
+diff_markdown_name=&quot;${now}_$(basename $cmp_side_a)_$(basename $cmp_side_b)_${arch}.md&quot;
+diff_markdown=/repo/openeuler/compare/$diff_markdown_name
+diff_detail=/repo/openeuler/compare/
+
+scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null /home/jenkins/diff.md root@${repo_server}:$diff_markdown
+scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null /home/jenkins/detail root@${repo_server}:$diff_detail
+echo &quot;click http://${repo_server}/compare/$diff_markdown_name view detail&quot;
+set -x
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,135 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>更新PXE服务器上repo文件</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:liujingjing</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:liujingjing</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:liujingjing</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:liujingjing</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:liujingjing</permission>
+      <permission>hudson.model.Item.Build:liujingjing</permission>
+      <permission>hudson.model.Item.Cancel:liujingjing</permission>
+      <permission>hudson.model.Item.Configure:liujingjing</permission>
+      <permission>hudson.model.Item.Delete:liujingjing</permission>
+      <permission>hudson.model.Item.Discover:liujingjing</permission>
+      <permission>hudson.model.Item.Move:liujingjing</permission>
+      <permission>hudson.model.Item.Read:liujingjing</permission>
+      <permission>hudson.model.Item.Workspace:liujingjing</permission>
+      <permission>hudson.model.Run.Delete:liujingjing</permission>
+      <permission>hudson.model.Run.Update:liujingjing</permission>
+      <permission>hudson.scm.SCM.Tag:liujingjing</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>x86isula-ci</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>echo &apos;#!/bin/bash
+PXE_IP=123.60.114.22
+PXE_USER=$1
+PXE_PASSWORD=$2
+fail_flag=0
+sshcmd() {
+    cmd=${1}
+    rmt_ip=${2-${PXE_IP}}
+    password=${3-${PXE_PASSWORD}}
+
+    [ -z &quot;${cmd}&quot; ] &amp;&amp; {
+        echo &quot;[X] CMD is null&quot;
+        return 1
+    }
+    cmd=${cmd//\&quot;/\\\&quot;}
+    cmd=${cmd//\$/\\\$}
+    echo ${cmd} ${rmt_ip} ${password}
+
+    &gt;/root/.ssh/known_hosts
+
+    expect &lt;&lt;EOF1
+        set timeout 10800
+        spawn ssh -p 22094 root@${rmt_ip} &quot;${cmd}&quot;
+        expect {
+                &quot;*(yes/no?&quot; {
+                send &quot;yes\r&quot;
+                }
+        }
+        expect {
+                &quot;assword:&quot; {
+                send &quot;${password}\r&quot;
+                }
+        }
+        expect eof
+
+        catch wait result;
+        exit [lindex \$result 3]
+EOF1
+    retcode=$?
+    echo &quot;retcode of sshcmd is ${retcode}&quot;
+    return ${retcode}
+}
+sshcmd &quot;sh /etc/jekins_openqa.sh openEuler-20.03-LTS-SP3-netinst-x86_64-dvd check_release&quot; || fail_flag=1
+if [ $fail_flag -ne 0 ];then
+    exit $fail_flag
+fi
+cmd=&quot;sh /etc/jekins_openqa.sh openEuler-20.03-LTS-SP3-netinst-x86_64-dvd check_iso&quot;
+for ((i = 0; i &lt; 60; i++)); do
+	fail_flag=0
+    sshcmd &quot;${cmd}&quot; || fail_flag=1
+    if [ $fail_flag -eq 0 ];then
+        break
+    fi
+    sleep 240
+done
+if [ $fail_flag -ne 0 ];then
+    exit $fail_flag
+fi
+cmd=&quot;sh /etc/jekins_openqa.sh openEuler-20.03-LTS-SP3-netinst-x86_64-dvd pxe_path&quot;
+sshcmd &quot;${cmd}&quot; || fail_flag=2
+if [ $fail_flag -ne 0 ];then
+    exit $fail_flag
+fi
+sshcmd &quot;bash /etc/run_openeuler_at.sh openEuler-20.03-LTS-SP3-netinst-x86_64-dvd&quot; || fail_flag=3
+if [ $fail_flag -ne 0 ];then
+    exit $fail_flag
+fi
+&apos; &gt;jekins_cmd.sh
+chmod 755 jekins_cmd.sh
+sh -x jekins_cmd.sh $LoginPXEUserName $LoginPXEPassword</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>login_new_pxe</credentialsId>
+          <usernameVariable>LoginPXEUserName</usernameVariable>
+          <passwordVariable>LoginPXEPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,53 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>openeuler仓库全版本代码片段扫描-插件方式</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-oe</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H 23 * * * </spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set +x
+sudo cp -r /home/jenkins/.local/lib/python3.7/site-packages/* /usr/lib/python3.7/site-packages 2&gt;&amp;1 &gt; /dev/null
+sudo cp /home/jenkins/.local/bin/scanoss-py /usr/bin 2&gt;&amp;1 &gt; /dev/null;set -x</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <io.jenkins.plugins.builder.ScanossBuilder plugin="scanoss-jenkins@1.0-SNAPSHOT">
+      <url>https://api.osinfra.cn</url>
+      <repoUrlsAndBranches>https://gitee.com/openeuler/async-libfuse.git:master;https://gitee.com/openeuler/authz.git:master;https://gitee.com/openeuler/clibcni.git:master;https://gitee.com/openeuler/isula-build.git:master;https://gitee.com/openeuler/iSulad.git:master;https://gitee.com/openeuler/iSulad-img.git:master;https://gitee.com/openeuler/isula-transform.git:master;https://gitee.com/openeuler/lcr.git:master;https://gitee.com/openeuler/lib-shim-v2.git:master;https://gitee.com/openeuler/lxcfs-tools.git:master;https://gitee.com/openeuler/syscontainer-tools.git:master;https://gitee.com/openeuler/A-Tune.git:master;https://gitee.com/openeuler/A-Tune-Collector.git:master;https://gitee.com/openeuler/A-Tune-UI.git:master;https://gitee.com/openeuler/prefetch_tuning.git:master;https://gitee.com/openeuler/wisdom-advisor.git:master;https://gitee.com/openeuler/qemu.git:master;https://gitee.com/openeuler/vmtop.git:master;https://gitee.com/openeuler/secGear.git:master;https://gitee.com/openeuler/pkgship.git:master;https://gitee.com/openeuler/openeuler-jenkins.git:master;https://gitee.com/openeuler/stratovirt.git:master;https://gitee.com/openeuler/isula-transform.git:master;https://gitee.com/openeuler/kunpengsecl.git:master;https://gitee.com/openeuler/kernel.git:openEuler-21.09</repoUrlsAndBranches>
+      <authCode>eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RAMTIzNC5jb20ifQ.jcROsr6ktxQNujA-9w2CR_tLFbBliaivqojzGQ5bePI</authCode>
+      <credentialId>test</credentialId>
+      <SbomFile>/home/jenkins/ci_check/src/conf/deny_list.sbom</SbomFile>
+      <urlChoose>1</urlChoose>
+      <scanossCredentials></scanossCredentials>
+    </io.jenkins.plugins.builder.ScanossBuilder>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

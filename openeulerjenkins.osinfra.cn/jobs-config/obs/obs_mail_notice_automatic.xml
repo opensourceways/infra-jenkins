@@ -1,0 +1,120 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>检查某些工程中所有软件包编译状态，将所有工程中编译失败的软件包名以及责任人邮箱通过邮件发送给相应责任人和接口人。</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:senlin</permission>
+      <permission>hudson.model.Item.Build:senlin</permission>
+      <permission>hudson.model.Item.Cancel:senlin</permission>
+      <permission>hudson.model.Item.Configure:senlin</permission>
+      <permission>hudson.model.Item.Delete:senlin</permission>
+      <permission>hudson.model.Item.Discover:senlin</permission>
+      <permission>hudson.model.Item.Move:senlin</permission>
+      <permission>hudson.model.Item.Read:senlin</permission>
+      <permission>hudson.model.Item.Workspace:senlin</permission>
+      <permission>hudson.model.Run.Delete:senlin</permission>
+      <permission>hudson.model.Run.Replay:senlin</permission>
+      <permission>hudson.model.Run.Update:senlin</permission>
+      <permission>hudson.scm.SCM.Tag:senlin</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_project</name>
+          <description>OBS工程名（工程名之间用英文逗号隔开）
+如：openEuler:Mainline,openEuler:20.03:LTS:Next,openEuler:20.03:LTS:SP1,openEuler:20.03:LTS:SP2,openEuler:21.03,openEuler:21.09,openEuler:21.09:Epol,openEuler:20.03:LTS:SP3,openEuler:20.03:LTS:SP3:Epol</description>
+          <defaultValue>openEuler:Mainline</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>cc_addr_email</name>
+          <description>抄送者的邮箱（邮箱之间用英文逗号隔开）
+如：xxx@xxx.com,xxx@xxx.com
+</description>
+          <defaultValue>wangyiru1@huawei.com,xiasenlin1@huawei.com,pengchenghan@huawei.com,yangmingtai@huawei.com,zhengzengkai@huawei.com,xingchaochao@huawei.com,yezengruan@huawei.com,hewenliang4@huawei.com,yanan@huawei.com,shenyangyang4@huawei.com,liuzhiqiang26@huawei.com,lixiang172@huawei.com,dingxiaoxiong@huawei.com,kong.kongxinwei@hisilicon.com,zhangtao221@huawei.com,zhouxiaxiang2@h-partners.com,wangchong56@huawei.com</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H 8 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>sudo su - root &lt;&lt;EOF
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; FEOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+FEOF
+
+cd $WORKSPACE &amp;&amp; rm -rf openeuler_obs-*
+wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.3.4-aarch64.tar.gz
+tar -xvf openeuler_obs-v1.3.4-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v1.3.4-aarch64
+
+./openeuler_obs -p ${obs_project} -fa ${from_addr} -fap ${form_addr_pwd} -ca ${cc_addr_email} -omn true
+
+EOF</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>chong_w_163_email</credentialsId>
+          <usernameVariable>from_addr</usernameVariable>
+          <passwordVariable>form_addr_pwd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

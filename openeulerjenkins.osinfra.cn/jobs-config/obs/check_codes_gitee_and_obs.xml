@@ -1,0 +1,238 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>比对码云代码和obs代码，检查出为同步的软件包</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:senlin</permission>
+      <permission>hudson.model.Item.Build:dongjie</permission>
+      <permission>hudson.model.Item.Build:senlin</permission>
+      <permission>hudson.model.Item.Cancel:dongjie</permission>
+      <permission>hudson.model.Item.Cancel:senlin</permission>
+      <permission>hudson.model.Item.Configure:dongjie</permission>
+      <permission>hudson.model.Item.Configure:senlin</permission>
+      <permission>hudson.model.Item.Delete:dongjie</permission>
+      <permission>hudson.model.Item.Delete:senlin</permission>
+      <permission>hudson.model.Item.Discover:dongjie</permission>
+      <permission>hudson.model.Item.Discover:senlin</permission>
+      <permission>hudson.model.Item.Move:dongjie</permission>
+      <permission>hudson.model.Item.Move:senlin</permission>
+      <permission>hudson.model.Item.Read:dongjie</permission>
+      <permission>hudson.model.Item.Read:senlin</permission>
+      <permission>hudson.model.Item.Workspace:dongjie</permission>
+      <permission>hudson.model.Item.Workspace:senlin</permission>
+      <permission>hudson.model.Run.Delete:dongjie</permission>
+      <permission>hudson.model.Run.Delete:senlin</permission>
+      <permission>hudson.model.Run.Replay:dongjie</permission>
+      <permission>hudson.model.Run.Replay:senlin</permission>
+      <permission>hudson.model.Run.Update:dongjie</permission>
+      <permission>hudson.model.Run.Update:senlin</permission>
+      <permission>hudson.scm.SCM.Tag:dongjie</permission>
+      <permission>hudson.scm.SCM.Tag:senlin</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>obs_project_name</name>
+          <description>obs 项目名称</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler:Factory</string>
+              <string>openEuler:Mainline</string>
+              <string>openEuler:Epol</string>
+              <string>openEuler:20.03:LTS</string>
+              <string>openEuler:20.03:LTS:Next</string>
+              <string>openEuler:20.03:LTS:Next:Epol</string>
+              <string>openEuler:20.03:LTS:SP1</string>
+              <string>bringInRely:SP1</string>
+              <string>openEuler:20.09</string>
+              <string>openEuler:20.09:Epol</string>
+              <string>openEuler:20.03:LTS:SP1:Epol</string>
+              <string>openEuler:21.03</string>
+              <string>openEuler:21.03:Epol</string>
+              <string>openEuler:20.03:LTS:SP2</string>
+              <string>openEuler:20.03:LTS:SP2:Epol</string>
+              <string>openEuler:20.03:LTS:SP3</string>
+              <string>openEuler:20.03:LTS:SP3:Epol</string>
+              <string>openEuler:22.03:LTS:Next</string>
+              <string>openEuler:22.03:LTS:Next:Epol</string>
+              <string>openEuler:22.03:LTS</string>
+              <string>openEuler:22.03:LTS:Epol</string>
+              <string>openEuler:21.09</string>
+              <string>openEuler:21.09:Epol</string>
+              <string>openEuler:20.03:LTS:SP2:oepkg:openstack:common</string>
+              <string>openEuler:20.03:LTS:SP2:oepkg:openstack:queens</string>
+              <string>openEuler:20.03:LTS:SP2:oepkg:openstack:rocky</string>
+              <string>openEuler:22.03:LTS:Next:Epol:Multi-Version:OpenStack:Train</string>
+              <string>openEuler:22.03:LTS:Next:Epol:Multi-Version:OpenStack:Wallaby</string>
+              <string>openEuler:22.03:LTS:Epol:Multi-Version:OpenStack:Train</string>
+              <string>openEuler:22.03:LTS:Epol:Multi-Version:OpenStack:Wallaby</string>
+              <string>openEuler:Testing:BaseTools</string>
+              <string>openEuler:Testing:KernelSpace</string>
+              <string>openEuler:Testing:Common_Languages_Dependent_Tools</string>
+              <string>openEuler:Testing:C</string>
+              <string>openEuler:Testing:Java</string>
+              <string>openEuler:Testing:Python</string>
+              <string>openEuler:Testing:Perl</string>
+              <string>openEuler:Testing:Ruby</string>
+              <string>openEuler:Testing:Erlang</string>
+              <string>openEuler:Testing:Meson</string>
+              <string>openEuler:Testing:Nodejs</string>
+              <string>openEuler:Testing:MultiLanguage</string>
+              <string>openEuler:Testing:Mainline</string>
+              <string>openEuler:Testing:Epol</string>
+              <string>openEuler:Testing:Factory</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>branch</name>
+          <description>分支名称</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>master</string>
+              <string>openEuler-20.03-LTS</string>
+              <string>openEuler-20.03-LTS-Next</string>
+              <string>openEuler-20.03-LTS-SP1</string>
+              <string>openEuler-20.09</string>
+              <string>openEuler-21.03</string>
+              <string>openEuler-20.03-LTS-SP2</string>
+              <string>openEuler-20.03-LTS-SP3</string>
+              <string>openEuler-22.03-LTS-Next</string>
+              <string>openEuler-22.03-LTS</string>
+              <string>openEuler-21.09</string>
+              <string>oepkg_openstack-queens_oe-20.03-LTS-SP2</string>
+              <string>oepkg_openstack-rocky_oe-20.03-LTS-SP2</string>
+              <string>oepkg_openstack-common_oe-20.03-LTS-SP2</string>
+              <string>Multi-Version_OpenStack-Train_openEuler-22.03-LTS-Next</string>
+              <string>Multi-Version_OpenStack-Wallaby_openEuler-22.03-LTS-Next</string>
+              <string>Multi-Version_OpenStack-Train_openEuler-22.03-LTS</string>
+              <string>Multi-Version_OpenStack-Wallaby_openEuler-22.03-LTS</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>OBS_SOURCE_IP</name>
+          <defaultValue>172.16.1.89</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+sudo su - root &lt;&lt;FEOF
+
+echo &quot;nameserver 114.114.114.114&quot; &gt;&gt; /etc/resolv.conf
+
+if [[ ${branch} == &quot;openEuler-20.03-LTS-Next&quot; ]];then
+    exit 0
+fi
+
+
+if [ &quot;x$isbuild&quot; == &quot;x0&quot; ]; then
+    echo &quot;skip by all&quot;
+    exit 0
+fi
+(
+cat &lt;&lt;EOF
+[general]
+apiurl=http://117.78.1.88
+no_verify=yes
+[http://117.78.1.88]
+user=${OBS_USER}
+pass=${OBS_PWD}
+EOF
+) &gt; ~/.oscrc
+
+yum install diffutils -y
+set +e
+git config --global user.email &quot;80474298@qq.com&quot;
+git config --global user.name &quot;openeuler-ci-bot&quot;
+git config --global pull.ff only
+
+#osc list ${obs_project_name} &gt; pkgslist
+
+rm -rf openeuler_obs-*
+set -e
+#
+wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.4.4-aarch64.tar.gz
+tar -xvf openeuler_obs-v1.4.4-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v1.4.4-aarch64/
+#./trigger_services ${obs_project_name} ../../pkgslist
+
+./openeuler_obs -cc True -p ${obs_project_name} -b $branch -ip ${OBS_SOURCE_IP} -suser ${SRC_SERVER} -spwd ${SRC_SERVER_PWD} -guser ${GiteeCloneUserName} -gpwd ${GiteeClonePassword}
+
+
+FEOF</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>5a700b90-012d-48a8-b6c6-64a5ebaf82e9</credentialsId>
+          <usernameVariable>OBS_BACKEND_USR</usernameVariable>
+          <passwordVariable>OBS_BACKEND_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>d06a4ace-be97-4230-9acd-95c48d6971ad</credentialsId>
+          <usernameVariable>SRC_SERVER</usernameVariable>
+          <passwordVariable>SRC_SERVER_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

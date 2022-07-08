@@ -1,0 +1,139 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>master_project_update_repo</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:senlin</permission>
+      <permission>hudson.model.Item.Build:senlin</permission>
+      <permission>hudson.model.Item.Cancel:senlin</permission>
+      <permission>hudson.model.Item.Configure:senlin</permission>
+      <permission>hudson.model.Item.Delete:senlin</permission>
+      <permission>hudson.model.Item.Discover:senlin</permission>
+      <permission>hudson.model.Item.Move:senlin</permission>
+      <permission>hudson.model.Item.Read:senlin</permission>
+      <permission>hudson.model.Item.Workspace:senlin</permission>
+      <permission>hudson.model.Run.Delete:senlin</permission>
+      <permission>hudson.model.Run.Replay:senlin</permission>
+      <permission>hudson.model.Run.Update:senlin</permission>
+      <permission>hudson.scm.SCM.Tag:senlin</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.TextParameterDefinition>
+          <name>obs_project</name>
+          <description>obs工程名</description>
+          <trim>false</trim>
+        </hudson.model.TextParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>backend_ip</name>
+          <description>obs backend ip</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>172.16.1.124</string>
+              <string>172.16.1.95</string>
+              <string>172.16.1.155</string>
+              <string>172.16.1.32</string>
+              <string>172.16.1.234</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>sudo su - root &lt;&lt;EOF
+echo &quot;nameserver 114.114.114.114&quot; &gt;&gt; /etc/resolv.conf
+EOF
+
+sudo su - root &lt;&lt;EOF
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; FEOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+FEOF
+
+set +e
+
+#  1115fc3c8314b5e014f433fcbb6b19e84a
+git config --global user.email &quot;80474298@qq.com&quot;
+git config --global user.name &quot;openeuler-ci-bot&quot;
+git config --global pull.ff only
+
+yum install python3-pip -y --repo OS
+pip3 install python-jenkins argparse -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+
+rm -rf home:zhouxiaxiang
+osc co home:zhouxiaxiang testing
+cp ./home\:zhouxiaxiang/testing/master_project_update_repo3.py .
+
+
+if [ -z $obs_project ];then
+	python3 master_project_update_repo3.py -u &quot;${juser}&quot; -p &quot;${jpwd}&quot; -ip ${backend_ip}
+else
+	python3 master_project_update_repo3.py -u &quot;${juser}&quot; -p &quot;${jpwd}&quot; -ip ${backend_ip} -proj ${obs_project}
+fi
+
+set -e</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>jenkins_admin</credentialsId>
+          <usernameVariable>juser</usernameVariable>
+          <passwordVariable>jpwd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

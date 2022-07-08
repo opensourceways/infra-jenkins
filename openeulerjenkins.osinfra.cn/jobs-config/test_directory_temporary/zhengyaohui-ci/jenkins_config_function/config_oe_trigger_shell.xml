@@ -1,0 +1,137 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>job</name>
+          <description>所属obs包</description>
+          <defaultValue>multiarch/openeuler/trigger/pkgship</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-soe-zhengyaohui</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>cat &gt; shell_command.sh &lt;&lt; &quot;EOF&quot;
+#!/bin/bash
+#shell_path=/home/jenkins/ci_check
+# 调测可使用以下代码
+ shell_path=/home/jenkins/ci_check2
+ mkdir -p ${shell_path}
+ rm -rf ${shell_path}
+ git clone -b for_test https://gitee.com/MementoMoriCheng/openeuler-jenkins.git ${shell_path}
+
+. ${shell_path}/src/lib/trigger.sh 
+
+set +x
+main
+set -x
+
+EOF
+cat &gt; hotfix.py &lt;&lt; EOF
+#!/usr/bin/python3
+from src.proxy.jenkins_proxy import JenkinsProxy
+import xml.etree.ElementTree as ET
+jp = JenkinsProxy(&quot;http://jenkins.jenkins&quot;, &quot;$user&quot;, &quot;$token&quot;)
+config = jp.get_config(&quot;$job&quot;)
+new_command = open(&apos;shell_command.sh&apos;).read( )
+root = ET.fromstring(config)
+ele = root.findall(&quot;builders/hudson.tasks.Shell/command&quot;)
+if ele:
+    print(ele[0].text)
+    ele[0].text = new_command
+config = ET.tostring(root).decode(&quot;utf-8&quot;)
+
+print(new_command)
+print(config)
+jp.update_job(&quot;$job&quot;, config)
+EOF
+
+
+rm -rf /home/jenkins/ci_check2
+git clone -b master https://gitee.com/openeuler/openeuler-jenkins /home/jenkins/ci_check2
+
+export PYTHONPATH=/home/jenkins/ci_check2
+python3 hotfix.py</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.3.0">
+      <info>
+        <propertiesFilePath>acfile</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+  </builders>
+  <publishers>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.39">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>repo=${giteeRepoName}
+branch=${giteeSourceBranch}
+tbranch=${giteeTargetBranch}
+prid=${giteePullRequestIid}
+committer=${giteeCommitter}
+commentid=${commentID}</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <projects>multiarch-ci-test/src-openeuler/x86-64/ansible-2.9,multiarch-ci-test/src-openeuler/aarch64/ansible-2.9</projects>
+          <condition>SUCCESS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <triggerFromChildProjects>false</triggerFromChildProjects>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+    <join.JoinTrigger plugin="join@1.21">
+      <joinProjects></joinProjects>
+      <joinPublishers/>
+      <resultThreshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+        <completeBuild>true</completeBuild>
+      </resultThreshold>
+    </join.JoinTrigger>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>be1d7d09-4ab8-44da-ad52-82b3dcc795b0</credentialsId>
+          <usernameVariable>user</usernameVariable>
+          <passwordVariable>token</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

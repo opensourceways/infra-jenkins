@@ -1,0 +1,383 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.42">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_Mainline</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_Epol</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_Factory</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_Next</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_Next_Epol</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_SP1</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_SP3_oepkg</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_SP1_Epol</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_SP3</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_SP3_Epol</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_03_LTS_Next</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_03_LTS_Next_Epol</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_03_LTS</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_03_LTS_Epol</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_03_LTS_LoongArch</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_x86</name>
+          <defaultValue>standard_x86_64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_aarch64</name>
+          <defaultValue>standard_aarch64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_loongarch64</name>
+          <defaultValue>standard_loongarch64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch_x86_64</name>
+          <defaultValue>x86_64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch_aarch64</name>
+          <defaultValue>aarch64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch_loongarch64</name>
+          <defaultValue>loongarch64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>pkgname</name>
+          <description>若为空即全量归档。
+单包或多包同步，请参照如下格式：
+package1 pacakge2 package3 ...</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>OBS_BACKEND_SERVER_IP</name>
+          <defaultValue>172.16.1.95</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.TimerTrigger>
+          <spec>H 20 * * *</spec>
+        </hudson.triggers.TimerTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
+    <script>pipeline {
+    agent none
+    stages {
+        stage(&quot;2203-LTS-2203-LTS-Next&quot;) {
+            steps {
+                parallel(
+                    &quot;22.03-LTS_standard_arm&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_03_LTS),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: params.OBS_BACKEND_SERVER_IP)], propagate: false
+                    },
+                    &quot;22.03-LTS_standard_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_03_LTS),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: params.OBS_BACKEND_SERVER_IP)], propagate: false
+                    },
+                    &quot;22.03-LTS_epol_arm&quot;:{
+				        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Epol&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_03_LTS_Epol),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: params.OBS_BACKEND_SERVER_IP)], propagate: false
+                    },
+                    &quot;22.03-LTS_epol_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Epol&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_03_LTS_Epol),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: params.OBS_BACKEND_SERVER_IP)], propagate: false
+                    },
+					&quot;22.03-LTS-Next_standard_arm&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Next&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_03_LTS_Next),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.155&quot;)], propagate: false
+                    },
+                    &quot;22.03-LTS-Next_standard_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Next&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_03_LTS_Next),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.155&quot;)], propagate: false
+                    },
+                    &quot;22.03-LTS-Next_epol_arm&quot;:{
+				        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Next:Epol&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_03_LTS_Next_Epol),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.155&quot;)], propagate: false
+                    },
+                    &quot;22.03-LTS-Next_epol_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Next:Epol&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_03_LTS_Next_Epol),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.155&quot;)], propagate: false
+                    }
+                )
+            }
+        }
+        stage(&quot;22_03-LTS-LoongArch&quot;) {
+            steps {
+                parallel(
+                    &quot;22_03-LTS-LoongArch_standard_arm&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:LoongArch&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_03_LTS_LoongArch),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: params.OBS_BACKEND_SERVER_IP)], propagate: false
+                    },
+                    &quot;22_03-LTS-LoongArch_standard_loongarch64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:LoongArch&apos;),string(name: &apos;repo&apos;,value: params.repo_loongarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_03_LTS_LoongArch),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: params.OBS_BACKEND_SERVER_IP)], propagate: false
+                    },
+                    &quot;22_03-LTS-LoongArch_standard_x86_64&quot;:{
+				        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:LoongArch&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_03_LTS_LoongArch),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: params.OBS_BACKEND_SERVER_IP)], propagate: false
+                    },
+                )
+            }
+        }
+        stage(&quot;SP1-SP3&quot;) {
+            steps {
+                parallel(
+					&quot;sp1_standard_arm&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP1&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP1),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    },
+                    &quot;sp1_standard_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP1&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP1),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    },
+                    &quot;sp1_epol_arm&quot;:{
+				        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP1:Epol&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP1_Epol),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    },
+                    &quot;sp1_epol_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP1:Epol&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP1_Epol),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    },
+                    &quot;sp3_standard_arm&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP3),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    },
+                    &quot;sp3_standard_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP3),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    },
+                    &quot;sp3_epol_arm&quot;:{
+				        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3:Epol&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP3_Epol),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    },
+                    &quot;sp3_epol_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3:Epol&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP3_Epol),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    }
+                )
+            }
+        }
+        stage(&quot;mainline-factory-epol&quot;) {
+            steps {
+                parallel(
+                    
+                    &quot;mainline_standard_arm&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Mainline&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_Mainline),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.95&quot;)], propagate: false
+                    },
+                    &quot;mianline_standard_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Mainline&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_Mainline),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.95&quot;)], propagate: false
+                    },
+                    &quot;mainline_epol_arm&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Epol&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_Epol),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.95&quot;)], propagate: false
+                    },
+                    &quot;mainline_epol_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Epol&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_Epol),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.95&quot;)], propagate: false
+                    },
+                    &quot;mainline_factory_arm&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Factory&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_Factory),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.95&quot;)], propagate: false
+                    },
+                    &quot;mainline_factory_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Factory&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_Factory),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.95&quot;)], propagate: false
+                    }
+                )
+            }
+        }
+        stage(&quot;sp3-oepkg&quot;) {
+            steps {
+                parallel(
+                    &quot;common_arm&quot;:{
+				        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3:oepkg:openstack:common&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP3_oepkg),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    },
+                    &quot;common_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3:oepkg:openstack:common&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP3_oepkg),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    },
+                    &quot;queens_arm&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3:oepkg:openstack:queens&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP3_oepkg),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    },
+                    &quot;queens_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3:oepkg:openstack:queens&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP3_oepkg),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    },
+                    &quot;rocky_arm&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3:oepkg:openstack:rocky&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP3_oepkg),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    },
+                    &quot;rocky_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3:oepkg:openstack:rocky&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_20_03_LTS_SP3_oepkg),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &quot;172.16.1.32&quot;)], propagate: false
+                    }
+                )
+            }
+        }
+        stage(&quot;check-archive&quot;) {
+            steps {
+                build job: &apos;sync_obs_repos_all-check-Main&apos;, propagate: false       
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

@@ -1,0 +1,194 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.42">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>The newest community check project</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.2.7">
+          <spec></spec>
+          <triggerOnPush>false</triggerOnPush>
+          <triggerOnCommitComment>false</triggerOnCommitComment>
+          <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+          <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+          <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+          <triggerOnUpdatePullRequest>0</triggerOnUpdatePullRequest>
+          <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+          <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+          <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+          <triggerOnNoteRequest>true</triggerOnNoteRequest>
+          <noteRegex>/retest</noteRegex>
+          <buildInstructionFilterType>NONE</buildInstructionFilterType>
+          <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+          <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+          <skipLastCommitHasBeenBuild>true</skipLastCommitHasBeenBuild>
+          <setBuildDescription>true</setBuildDescription>
+          <branchFilterType>All</branchFilterType>
+          <includeBranchesSpec></includeBranchesSpec>
+          <excludeBranchesSpec></excludeBranchesSpec>
+          <targetBranchRegex></targetBranchRegex>
+          <secretToken>{AQAAABAAAAAwu9V+zbYSXv3aa+qN9lPPpbv049t9at11C0EvgcwTlFwlzjS6DNHPkXTseQEbfraR6XBRIpPFjMYXk4cvvp99JQ==}</secretToken>
+          <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+          <cancelIncompleteBuildOnSamePullRequest>true</cancelIncompleteBuildOnSamePullRequest>
+          <ignorePullRequestConflicts>true</ignorePullRequestConflicts>
+        </com.gitee.jenkins.trigger.GiteePushTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
+    <script>def giteeCommentHeader = &quot;| Check Name | Build Result | Build Details |\n| --- | --- | --- |\n&quot;
+pipeline {
+    agent { node { label &apos;infra-check&apos; } }
+    environment {
+        GITEE_TOKEN = credentials(&apos;openeuler-ci-bot&apos;)
+    }
+    stages {
+        stage(&apos;conflict check&apos;){
+            steps{
+                sh&quot;&quot;&quot;#!/bin/sh -e
+                
+                test -f conflictCheck.py &amp;&amp; rm conflictCheck.py*
+                test -f ci_tags.py &amp;&amp; rm ci_tags.py*
+                wget https://gitee.com/openeuler/infrastructure/raw/master/ci/tools/conflictCheck.py
+                wget https://gitee.com/openeuler/infrastructure/raw/master/ci/tools/ci_tags.py
+                python3 conflictCheck.py $giteeTargetNamespace $giteeTargetRepoName $giteePullRequestIid $GITEE_TOKEN
+                &quot;&quot;&quot;    
+            }
+        }
+        
+        stage(&apos;source code clone&apos;) {
+            steps {
+                sh &quot;&quot;&quot;#!/bin/sh -e
+                
+                
+                python3 ci_tags.py $giteeTargetNamespace $giteeTargetRepoName $giteePullRequestIid $GITEE_TOKEN ATP
+                
+                if [ -d &quot;PR-$giteePullRequestIid&quot; ]; then
+                    echo &quot;The build is running by another trigger, please try again later!&quot;
+                    exit 1
+                fi
+                mkdir PR-$giteePullRequestIid
+                cd PR-$giteePullRequestIid
+                git clone https://$GITEE_TOKEN@gitee.com/openeuler/community.git
+                cp community/ci-scripts/check_branch.py ./
+                cp community/ci-scripts/validator.py ./
+                cd community
+                git checkout -b pr_$giteePullRequestIid
+                git fetch origin pull/$giteePullRequestIid/head:master-$giteePullRequestIid
+                git merge --no-edit master-$giteePullRequestIid
+                &quot;&quot;&quot;
+            }
+        }
+
+        stage(&apos;sanity_check&apos;){
+            steps{
+                sh &quot;&quot;&quot;#!/bin/sh -e
+
+                cd PR-$giteePullRequestIid
+                if [ -f community/ci-scripts/sanity_check.py ]
+                then
+                    python3 community/ci-scripts/sanity_check.py community
+                else
+                    python3 community/zh/technical-committee/governance/sanity_check.py community
+                fi
+                &quot;&quot;&quot;
+            }
+        }
+
+        stage(&apos;branch check&apos;){
+            steps{
+                sh &quot;&quot;&quot;#!/bin/sh -e
+                
+                cd PR-$giteePullRequestIid
+                wget https://gitee.com/openeuler/release-management/raw/master/valid_release_branches.yaml
+                python3 check_branch.py -conf valid_release_branches.yaml -repo community -id $giteePullRequestIid
+                &quot;&quot;&quot;
+            }
+        }
+        
+        stage(&apos;sig info check&apos;){
+            steps{
+                sh &quot;&quot;&quot;
+                cd PR-$giteePullRequestIid
+                wget https://gitee.com/openeuler/community/raw/master/ci-scripts/sigInfoCheck.py
+                python3 sigInfoCheck.py -o openeuler -r community -n $giteePullRequestIid -t $GITEE_TOKEN
+                &quot;&quot;&quot;
+            }    
+        }
+
+        // stage(&apos;validate user and projects&apos;){
+        //     parallel {
+        //         stage(&apos;validate gitee user&apos;) {
+        //             steps {
+        //                 sh &quot;&quot;&quot;#!/bin/sh -e
+                        
+        //                 cd PR-$giteePullRequestIid
+        //                 python3 validator.py -a users -d community -t $GITEE_TOKEN
+        //                 &quot;&quot;&quot;
+        //             }
+        //         }
+        //         stage(&apos;validate gitee project&apos;) {
+        //             steps {
+        //                 sh &quot;&quot;&quot;#!/bin/sh -e
+                        
+        //                 cd PR-$giteePullRequestIid
+        //                 python3 validator.py -a projects -d community -t $GITEE_TOKEN 
+        //                 &quot;&quot;&quot;
+        //             }
+        //         }
+        //     }
+        // }
+    }
+
+    post {
+        success {
+        	script {
+        		comments = giteeCommentHeader + &quot;| Infra Check | **success** :white_check_mark: | [#${currentBuild.fullDisplayName}](${env.BUILD_URL}/console) | \n&quot;
+        	    sh &quot;python3 ci_tags.py $giteeTargetNamespace $giteeTargetRepoName $giteePullRequestIid $GITEE_TOKEN ATS&quot;
+        	}
+        	addGiteeMRComment comment: comments
+            echo &apos;succeeded!&apos;
+
+        }
+
+        failure {
+        	script {
+                comments = giteeCommentHeader + &quot;| Infra Check | **failed** :x: | [#${currentBuild.fullDisplayName}](${env.BUILD_URL}/console) | \n&quot;
+        	    sh &quot;python3 ci_tags.py $giteeTargetNamespace $giteeTargetRepoName $giteePullRequestIid $GITEE_TOKEN ATF&quot;
+        	}
+        	addGiteeMRComment comment: comments
+            echo &apos;failed :(&apos;
+        }
+
+        always {
+            sh &quot;&quot;&quot;#!/bin/sh -e
+
+            rm -rf PR-$giteePullRequestIid
+            &quot;&quot;&quot;
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

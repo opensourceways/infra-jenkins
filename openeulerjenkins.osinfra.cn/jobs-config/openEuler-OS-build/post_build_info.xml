@@ -1,0 +1,119 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>发送构建数据到看板</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:senlin</permission>
+      <permission>hudson.model.Item.Build:senlin</permission>
+      <permission>hudson.model.Item.Cancel:senlin</permission>
+      <permission>hudson.model.Item.Configure:senlin</permission>
+      <permission>hudson.model.Item.Delete:senlin</permission>
+      <permission>hudson.model.Item.Discover:senlin</permission>
+      <permission>hudson.model.Item.Move:senlin</permission>
+      <permission>hudson.model.Item.Read:senlin</permission>
+      <permission>hudson.model.Item.Workspace:senlin</permission>
+      <permission>hudson.model.Run.Delete:senlin</permission>
+      <permission>hudson.model.Run.Replay:senlin</permission>
+      <permission>hudson.model.Run.Update:senlin</permission>
+      <permission>hudson.scm.SCM.Tag:senlin</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_start</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_end</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>iso_start</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_project</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+sudo su - root&lt;&lt;FEOF
+echo &quot;nameserver 114.114.114.114&quot; &gt;&gt; /etc/resolv.conf
+FEOF
+
+(
+cat &lt;&lt;EOF
+[general]
+apiurl=http://117.78.1.88
+no_verify=yes
+[http://117.78.1.88]
+user=${obs_admin}
+pass=${obs_pwd}
+EOF
+) &gt; ~/.oscrc
+
+rm -rf openeuler_obs-v*
+wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.4.0-aarch64.tar.gz
+tar -xvf openeuler_obs-v1.4.0-aarch64.tar.gz
+cd openeuler_obs-v1.4.0-aarch64/tools/
+iso_end=`date &apos;+%Y-%m-%d %H:%M:%S&apos;`
+echo ${iso_end}
+./build_obs_iso -f kafka -b 159.138.58.212:9092 -t &quot;openeuler_statewall_dist_build_time&quot; -p ${obs_project} -pst &quot;${obs_start}&quot; -pet &quot;${obs_end}&quot; -ist &quot;${iso_start}&quot; -iet &quot;${iso_end}&quot;
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>obs_admin</usernameVariable>
+          <passwordVariable>obs_pwd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

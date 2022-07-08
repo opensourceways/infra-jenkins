@@ -1,0 +1,153 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>每隔6小时自动更新https://repo.openeuler.org/security/data/cvrf目录下CVE的xml文件和index.txt文件</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:zhangtao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:zhangtao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:zhangtao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:zhangtao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:zhangtao</permission>
+      <permission>hudson.model.Item.Build:chemingdao</permission>
+      <permission>hudson.model.Item.Build:zhangtao</permission>
+      <permission>hudson.model.Item.Cancel:chemingdao</permission>
+      <permission>hudson.model.Item.Cancel:zhangtao</permission>
+      <permission>hudson.model.Item.Configure:chemingdao</permission>
+      <permission>hudson.model.Item.Configure:zhangtao</permission>
+      <permission>hudson.model.Item.Delete:chemingdao</permission>
+      <permission>hudson.model.Item.Delete:zhangtao</permission>
+      <permission>hudson.model.Item.Discover:chemingdao</permission>
+      <permission>hudson.model.Item.Discover:zhangtao</permission>
+      <permission>hudson.model.Item.Move:chemingdao</permission>
+      <permission>hudson.model.Item.Move:zhangtao</permission>
+      <permission>hudson.model.Item.Read:chemingdao</permission>
+      <permission>hudson.model.Item.Read:zhangtao</permission>
+      <permission>hudson.model.Item.Workspace:chemingdao</permission>
+      <permission>hudson.model.Item.Workspace:zhangtao</permission>
+      <permission>hudson.model.Run.Delete:chemingdao</permission>
+      <permission>hudson.model.Run.Delete:zhangtao</permission>
+      <permission>hudson.model.Run.Replay:chemingdao</permission>
+      <permission>hudson.model.Run.Replay:zhangtao</permission>
+      <permission>hudson.model.Run.Update:chemingdao</permission>
+      <permission>hudson.model.Run.Update:zhangtao</permission>
+      <permission>hudson.scm.SCM.Tag:chemingdao</permission>
+      <permission>hudson.scm.SCM.Tag:zhangtao</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>server</name>
+          <description>OBS云网址</description>
+          <defaultValue>https://obs.ap-southeast-1.myhuaweicloud.com</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>bucketname</name>
+          <description>桶名称</description>
+          <defaultValue>openeuler-cve-cvrf</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>filename</name>
+          <description>需要下载的文件名称</description>
+          <defaultValue>index.txt,update_fixed.txt</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ipaddr</name>
+          <description>发布机器IP地址</description>
+          <defaultValue>121.36.97.194</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H H/6 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>git config --global http.postBuffer 52428800
+
+cd $WORKSPACE
+if [ -d lao_wang_9527 ];then
+	rm -rf lao_wang_9527
+fi
+for((i = 1; i&lt;=5; i++))
+do
+	set +e
+	git clone --depth 1 https://${GITUSER}:${GITPWD}@gitee.com/wangchong1995924/lao_wang_9527.git
+    set -e
+    if [ -d lao_wang_9527 ];then
+    	if [ &quot;`ls -A lao_wang_9527`&quot; != &quot;&quot; ];then 
+        		break
+		fi
+        rm -rf lao_wang_9527
+	fi
+done
+
+
+cd ${WORKSPACE}/lao_wang_9527/script/update_cve
+./update_cve -f &quot;cve&quot; -ak ${access_key} -sk ${secret_access_key} -s ${server} -bn ${bucketname} -fn ${filename} -ip ${ipaddr} -key ${sshkey}
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GITUSER</usernameVariable>
+          <passwordVariable>GITPWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>cve_access_key</credentialsId>
+          <usernameVariable></usernameVariable>
+          <passwordVariable>access_key</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>Secret_Access_Key</credentialsId>
+          <usernameVariable></usernameVariable>
+          <passwordVariable>secret_access_key</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>update-publish-key</credentialsId>
+          <variable>sshkey</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

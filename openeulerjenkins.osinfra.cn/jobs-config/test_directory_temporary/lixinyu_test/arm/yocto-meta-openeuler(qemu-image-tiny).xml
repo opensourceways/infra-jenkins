@@ -1,0 +1,128 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:lixinyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:lixinyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:lixinyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:lixinyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:lixinyu</permission>
+      <permission>hudson.model.Item.Build:lixinyu</permission>
+      <permission>hudson.model.Item.Cancel:lixinyu</permission>
+      <permission>hudson.model.Item.Configure:lixinyu</permission>
+      <permission>hudson.model.Item.Delete:lixinyu</permission>
+      <permission>hudson.model.Item.Discover:lixinyu</permission>
+      <permission>hudson.model.Item.Move:lixinyu</permission>
+      <permission>hudson.model.Item.Read:lixinyu</permission>
+      <permission>hudson.model.Item.Workspace:lixinyu</permission>
+      <permission>hudson.model.Run.Delete:lixinyu</permission>
+      <permission>hudson.model.Run.Update:lixinyu</permission>
+      <permission>hudson.scm.SCM.Tag:lixinyu</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo</name>
+          <description>码云中仓库名称</description>
+          <defaultValue>yocto-meta-openeuler</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>pr 源分支</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tbranch</name>
+          <description>pr 目标分支</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prid</name>
+          <description>pull request id</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>结果保存地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>committer</name>
+          <description>提交者</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ACL</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>is_debug</name>
+          <defaultValue>1</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-rtos-openeuler-test</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># 将结果写入远程文件
+arch=&quot;arm_(qemu-image-tiny)&quot;
+fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
+comment_file=${repo}_${prid}_${arch}_test_comment
+if [ $exitCode = 0 ]; then
+	echo &quot;[{&apos;name&apos;: &apos;check_test&apos;, &apos;result&apos;: 0}]&quot; &gt; ${comment_file}
+else
+	echo &quot;[{&apos;name&apos;: &apos;check_test&apos;, &apos;result&apos;: 2}]&quot; &gt; ${comment_file}
+fi
+if [[ -f ${comment_file} ]]; then
+	scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR ${comment_file} root@${repo_server}:$fileserver_tmpfile_path
+    echo &quot;upload success&quot;
+fi
+
+exit $exitCode
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

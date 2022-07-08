@@ -1,0 +1,80 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>构建x86-64-openeuler22.03 平台镜像专用工程；</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>docker-build-node</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+docker login -u $DockerRegistryUserName -p $DockerRegistryPassword swr.cn-north-4.myhuaweicloud.com
+#sh /image/build-openeuler22.03-image.sh
+
+arch=&quot;x86-64&quot;
+tag=&quot;22.03-lts&quot;
+openjdk_version=&quot;11-jdk-stretch&quot;
+
+if [ -e openeuler-jenkins ];then
+        rm -rf openeuler-jenkins
+fi
+
+git clone https://gitee.com/openeuler/openeuler-jenkins.git
+cd openeuler-jenkins
+cp src/dockerfile/openjdk-openeuler Dockerfile
+sed -i &quot;s/openeuler:VERSION/openeuler:22.03-lts/&quot; Dockerfile
+cat Dockerfile
+
+#docker push swr.cn-north-4.myhuaweicloud.com/openeuler/x86-64/openjdk/11-jdk-stretch:22.03-lts
+#docker build -t swr.cn-north-4.myhuaweicloud.com/openeuler/${arch}/openjdk/${openjdk_version}:${tag} .
+#docker push     swr.cn-north-4.myhuaweicloud.com/openeuler/x86-64/openjdk/11-jdk-stretch:22.03-lts
+docker images
+docker rmi       swr.cn-north-4.myhuaweicloud.com/openeuler/x86-64/openjdk/11-jdk-stretch:22.03-lts
+docker images
+
+echo &quot;#############################&quot;
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>docker_registry_ci_bot</credentialsId>
+          <usernameVariable>DockerRegistryUserName</usernameVariable>
+          <passwordVariable>DockerRegistryPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

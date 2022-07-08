@@ -1,0 +1,181 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>获取工程结果并生成csv</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>OBS_BACKEND_SERVER_IP</name>
+          <defaultValue>172.16.1.124</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.TextParameterDefinition>
+          <name>project</name>
+          <description>工程名，请参照如下格式（备注：分隔符支持换行）：
+project1
+project2
+...</description>
+          <trim>false</trim>
+        </hudson.model.TextParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>sudo su - root &lt;&lt;FEOF
+echo &quot;nameserver 114.114.114.114&quot; &gt;&gt; /etc/resolv.conf
+
+#yum install python3-pip -y --repo OS
+#pip3 install pexpect -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+FEOF
+
+(
+cat &lt;&lt;EOF
+[general]
+apiurl=http://117.78.1.88
+no_verify=yes
+[http://117.78.1.88]
+user=${OBS_USER}
+pass=${OBS_PWD}
+EOF
+) &gt; ~/.oscrc
+
+
+#set +e
+#git config --global user.email &quot;80474298@qq.com&quot;
+#git config --global user.name &quot;openeuler-ci-bot&quot;
+#git config --global pull.ff only
+#rm -rf openeuler_obs-*
+
+
+if [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.95&quot; ];then
+    OBS_BACKEND_USR=${OBS_BACKEND_USR_main}
+    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_main}
+    echo &quot;95&quot;
+elif [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.124&quot; ];then
+    OBS_BACKEND_USR=${OBS_BACKEND_USR_other}
+    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_other}
+    echo &quot;124&quot;
+elif [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.155&quot; ];then
+    OBS_BACKEND_USR=${OBS_BACKEND_USR_002}
+    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_002}
+    echo &quot;155&quot;
+elif [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.32&quot; ];then
+    OBS_BACKEND_USR=${OBS_BACKEND_USR_003}
+    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_003}
+    echo &quot;32&quot;
+elif [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.234&quot; ];then
+    OBS_BACKEND_USR=${OBS_BACKEND_USR_004}
+    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_004}
+    echo &quot;234&quot;
+fi
+
+
+# http://117.78.1.88:82/obs_build_log/
+# https://gitee.com/openeuler/pkgship
+# https://pkgmanage.openeuler.org/Packagemanagement
+
+osc r openEuler:Mainline --xml &gt; openeuler_mainline_result_20220707.xml
+osc r openEuler:Epol --xml &gt; openeuler_epol_result_20220707.xml
+
+rm -rf home:zhouxiaxiang
+osc co home:zhouxiaxiang project_build_result
+cp ./home\:zhouxiaxiang/project_build_result/build_result.py .
+
+
+python3 build_result.py -c &quot;build_result_20220707.csv&quot; -l &quot;117.78.1.88:82&quot; -p ${project}
+
+
+cp openeuler_mainline_result_20220707.xml ./home\:zhouxiaxiang/project_build_result
+cp openeuler_epol_result_20220707.xml ./home\:zhouxiaxiang/project_build_result
+cp build_result_20220707.csv ./home\:zhouxiaxiang/project_build_result
+cd ./home\:zhouxiaxiang/project_build_result
+osc addremove
+osc ci -n
+
+echo &quot;finish&quot;
+
+#cp ./home\:zhouxiaxiang/testing2/ssh_cmd.py .
+
+#set -e
+#echo ${cmd}
+#python3 ssh_cmd.py -ip ${OBS_BACKEND_SERVER_IP} -bu ${OBS_BACKEND_USR} -bp ${OBS_BACKEND_PWD} -c &quot;${cmd}&quot;
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>5a700b90-012d-48a8-b6c6-64a5ebaf82e9</credentialsId>
+          <usernameVariable>OBS_BACKEND_USR_main</usernameVariable>
+          <passwordVariable>OBS_BACKEND_PWD_main</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>d4071859-e366-40c4-995e-35881b9f2645</credentialsId>
+          <usernameVariable>OBS_BACKEND_USR_other</usernameVariable>
+          <passwordVariable>OBS_BACKEND_PWD_other</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>172.16.1.155</credentialsId>
+          <usernameVariable>OBS_BACKEND_USR_002</usernameVariable>
+          <passwordVariable>OBS_BACKEND_PWD_002</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>172.16.1.32</credentialsId>
+          <usernameVariable>OBS_BACKEND_USR_003</usernameVariable>
+          <passwordVariable>OBS_BACKEND_PWD_003</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>172.16.1.234</credentialsId>
+          <usernameVariable>OBS_BACKEND_USR_004</usernameVariable>
+          <passwordVariable>OBS_BACKEND_PWD_004</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

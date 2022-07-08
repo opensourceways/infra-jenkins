@@ -1,0 +1,140 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>全量同步到obs后台并触发全量编译</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>obs_project_name</name>
+          <description></description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler:Factory</string>
+              <string>openEuler:Mainline</string>
+              <string>openEuler:Epol</string>
+              <string>openEuler:Extras</string>
+              <string>openEuler:20.03:LTS</string>
+              <string>openEuler:20.03:LTS:Extras</string>
+              <string>openEuler:20.03:LTS:Next</string>
+              <string>openEuler:20.03:LTS:Next:Epol</string>
+              <string>openEuler:20.03:LTS:SP1</string>
+              <string>openEuler:20.03:LTS:SP1:Epol</string>
+              <string>openEuler:20.09</string>
+              <string>openEuler:20.09:Epol</string>
+              <string>openEuler:20.09:Extras</string>
+              <string>openEuler:20.03:MCP</string>
+              <string>openEuler:21.03</string>
+              <string>openEuler:21.03:Epol</string>
+              <string>openEuler:21.03:Extras</string>
+              <string>openEuler:20.03:LTS:SP2</string>
+              <string>openEuler:20.03:LTS:SP2:Epol</string>
+              <string>openEuler:20.03:LTS:SP2:oepkg:openstack:common</string>
+              <string>openEuler:20.03:LTS:SP2:oepkg:openstack:queens</string>
+              <string>openEuler:20.03:LTS:SP2:oepkg:openstack:rocky</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>packages</name>
+          <description>All 即全量同步并编译，
+broken即同步obs工程中broken状态的软件包
+单包或多包同步，请参照如下格式：
+package1,pacakge,package3 ...</description>
+          <defaultValue>All</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>branch</name>
+          <description></description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>master</string>
+              <string>openEuler-20.03-LTS</string>
+              <string>openEuler-20.03-LTS-Next</string>
+              <string>openEuler-20.03-LTS-SP1</string>
+              <string>openEuler-20.09</string>
+              <string>openEuler-21.03</string>
+              <string>openEuler-20.03-LTS-SP2</string>
+              <string>oepkg_openstack-common_oe-20.03-LTS-SP2</string>
+              <string>oepkg_openstack-queens_oe-20.03-LTS-SP2</string>
+              <string>oepkg_openstack-rocky_oe-20.03-LTS-SP2</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>OBS_SOURCE_IP</name>
+          <description></description>
+          <defaultValue>172.16.1.89</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>git config --global http.postBuffer 52428800
+
+if [ -d $WORKSPACE/openeuler_jenkins/ci_check/ ];then  
+    rm -rf $WORKSPACE/openeuler_jenkins/ci_check/
+fi
+
+mkdir -p $WORKSPACE/openeuler_jenkins
+cd $WORKSPACE/openeuler_jenkins/
+
+git clone --depth 1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/src-openeuler/ci_check.git
+
+cd $WORKSPACE/openeuler_jenkins/ci_check/job_scripts
+
+TOOLS=&quot;${WORKSPACE}/openeuler_jenkins/ci_check/lib&quot;
+
+bash -x ${TOOLS}/sshscp.sh -p &quot;${OBS_PASSWORD}&quot; -s &quot;rebuild_by_latest_obs.sh&quot; -d &quot;${OBS_SOURCE_IP}:~&quot;
+bash -x ${TOOLS}/sshcmd.sh -c &quot;bash -x rebuild_by_latest_obs.sh ${obs_project_name} ${packages} ${branch} ${GiteeCloneUserName} ${GiteeClonePassword}| tee rebuild.log&quot; -m &quot;${OBS_SOURCE_IP}&quot; -u &quot;${OBS_USERNAME}&quot; -p &quot;${OBS_PASSWORD}&quot;</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>d06a4ace-be97-4230-9acd-95c48d6971ad</credentialsId>
+          <usernameVariable>OBS_USERNAME</usernameVariable>
+          <passwordVariable>OBS_PASSWORD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

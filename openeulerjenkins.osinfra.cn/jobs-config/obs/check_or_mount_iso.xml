@@ -1,0 +1,100 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>检查每日构建的iso挂载情况，如果没有挂载即执行挂载动作</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>release_version</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler-20.03-LTS</string>
+              <string>openEuler-20.03-LTS-Next</string>
+              <string>openEuler-20.03-LTS-SP1</string>
+              <string>openEuler-20.03-LTS-SP2</string>
+              <string>openEuler-20.03-LTS-SP3</string>
+              <string>openEuler-22.03-LTS-Next</string>
+              <string>openEuler-22.03-LTS</string>
+              <string>openEuler-20.09</string>
+              <string>openEuler-21.03</string>
+              <string>openEuler-21.09</string>
+              <string>openEuler-Mainline</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+    
+git config --global user.email &quot;80474298@qq.com&quot;
+git config --global user.name &quot;openeuler-ci-bot&quot;
+git config --global pull.ff only
+set +e
+rm -rf openeuler-os-build
+for ((i=1;i&lt;=5;i++));
+do
+    if [ ! -d openeuler-os-build ];then
+    	set +e
+        git clone --depth 1 https://gitee.com/openeuler/openeuler-os-build
+        set -e
+    else
+        break
+    fi
+done
+cd openeuler-os-build
+#git fetch origin pull/103/head:head-103
+#git checkout head-103
+
+bash -x script/tools/check_iso_mount.sh &quot;/repo/openeuler/dailybuild/${release_version}&quot; $sshkey 172.16.1.236 30322
+ 
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>sshkey</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

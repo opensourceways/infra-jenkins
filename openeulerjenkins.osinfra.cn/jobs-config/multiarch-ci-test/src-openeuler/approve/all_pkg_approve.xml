@@ -1,0 +1,186 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>repo地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>cpu框架</description>
+          <defaultValue>x86_64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MysqldbHost</name>
+          <defaultValue>114.116.251.180</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MysqldbPort</name>
+          <defaultValue>30250</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-soe</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <org.jenkinsci.plugins.gwt.GenericTrigger plugin="generic-webhook-trigger@1.67">
+      <spec></spec>
+      <genericVariables>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeRepoName</key>
+          <value>repository.name</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteePullRequestIid</key>
+          <value>pull_request.number</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeSourceBranch</key>
+          <value>pull_request.head.ref</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeTargetBranch</key>
+          <value>pull_request.base.ref</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeSourceNamespace</key>
+          <value>pull_request.head.repo.namespace</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeTargetNamespace</key>
+          <value>pull_request.base.repo.namespace</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteePRMerged</key>
+          <value>pull_request.merged</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteePRHookName</key>
+          <value>hook_name</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeCommitter</key>
+          <value>pull_request.user.login</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+      </genericVariables>
+      <regexpFilterText>$giteeTargetNamespace $giteePRHookName $giteePRMergedEOF</regexpFilterText>
+      <regexpFilterExpression>fan-xiaoyaya merge_request_hooks trueEOF</regexpFilterExpression>
+      <printPostContent>false</printPostContent>
+      <printContributedVariables>false</printContributedVariables>
+      <causeString>&quot;$giteeRepoName&quot; trigger by pull request $giteePullRequestIid  [$giteeSourceNamespace:$giteeSourceBranch -&gt; $giteeTargetNamespace:$giteeTargetBranch]</causeString>
+      <token></token>
+      <silentResponse>false</silentResponse>
+      <overrideQuietPeriod>false</overrideQuietPeriod>
+    </org.jenkinsci.plugins.gwt.GenericTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+repo_owner=&apos;fan-xiaoyaya&apos;
+shell_path=/home/jenkins/ci_check
+JENKINS_HOME=/home/jenkins
+# 调测可使用以下代码
+shell_path=/home/jenkins/ci_check2
+mkdir -p ${shell_path}
+rm -rf ${shell_path}/*
+rm -rf ${JENKINS_HOME}/oecp/
+#git clone -b br_symbol https://15336166610:a528553518@gitee.com/openeuler-customization/oecp.git ${JENKINS_HOME}/oecp/
+git clone -b br_symbol https://15336166610:P4ssW0rd@gitee.com/openeuler-customization/oecp.git ${JENKINS_HOME}/oecp/
+result=`find ${JENKINS_HOME} -name &apos;oecp.conf&apos;`
+echo &quot;****************find oecp.conf=&quot;$result
+echo &quot;**************giteeTargetBranch******************&quot;
+echo ${giteeTargetBranch}
+echo &quot;**************giteeTargetBranch******************&quot;
+echo &quot;+++++++++++++++MysqlUserPasswd++++++++++++++++++++++++++++&quot;
+echo ${MysqlUserPasswd:5}
+echo &quot;+++++++++++++++MysqlUserPasswd++++++++++++++++++++++++++++&quot;
+echo &quot;------------giteePullRequestIid--------------&quot;
+echo ${giteePullRequestIid}
+echo &quot;------------giteePullRequestIid--------------&quot;
+
+sed -i &quot;s/dbhost=127.0.0.1/dbhost=114.116.251.180/g&quot; ${JENKINS_HOME}/oecp/oecp/conf/oecp.conf 
+sed -i &quot;s/dbport=3306/dbport=30250/g&quot; ${JENKINS_HOME}/oecp/oecp/conf/oecp.conf
+
+git clone https://15336166610:P4ssW0rd@gitee.com/xielihao/openeuler-jenkins.git ${shell_path}
+pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple -r ${JENKINS_HOME}/oecp/requirement
+. ${shell_path}/src/lib/approve.sh
+set +x
+set -e
+main
+set +e
+set -x</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+          <credentialsId>68ddb94f-871e-4cc7-9611-c1c507b9bf53</credentialsId>
+          <variable>MysqlUserPasswd</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

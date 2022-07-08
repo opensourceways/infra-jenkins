@@ -1,0 +1,181 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>openeuler版本构建</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:pangyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:rtos</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:wangjiaming</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:zhangziyang</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:pangyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:rtos</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:wangjiaming</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:zhangziyang</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:pangyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:rtos</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:wangjiaming</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:zhangziyang</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:pangyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:rtos</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:wangjiaming</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:zhangziyang</permission>
+      <permission>hudson.model.Item.Build:pangyu</permission>
+      <permission>hudson.model.Item.Build:rtos</permission>
+      <permission>hudson.model.Item.Build:wangjiaming</permission>
+      <permission>hudson.model.Item.Build:zhangziyang</permission>
+      <permission>hudson.model.Item.Cancel:pangyu</permission>
+      <permission>hudson.model.Item.Cancel:rtos</permission>
+      <permission>hudson.model.Item.Cancel:wangjiaming</permission>
+      <permission>hudson.model.Item.Cancel:zhangziyang</permission>
+      <permission>hudson.model.Item.Configure:pangyu</permission>
+      <permission>hudson.model.Item.Configure:rtos</permission>
+      <permission>hudson.model.Item.Configure:wangjiaming</permission>
+      <permission>hudson.model.Item.Configure:zhangziyang</permission>
+      <permission>hudson.model.Item.Delete:pangyu</permission>
+      <permission>hudson.model.Item.Delete:rtos</permission>
+      <permission>hudson.model.Item.Delete:wangjiaming</permission>
+      <permission>hudson.model.Item.Delete:zhangziyang</permission>
+      <permission>hudson.model.Item.Read:pangyu</permission>
+      <permission>hudson.model.Item.Read:rtos</permission>
+      <permission>hudson.model.Item.Read:wangjiaming</permission>
+      <permission>hudson.model.Item.Read:zhangziyang</permission>
+      <permission>hudson.model.Run.Update:pangyu</permission>
+      <permission>hudson.model.Run.Update:rtos</permission>
+      <permission>hudson.model.Run.Update:wangjiaming</permission>
+      <permission>hudson.model.Run.Update:zhangziyang</permission>
+      <permission>hudson.scm.SCM.Tag:pangyu</permission>
+      <permission>hudson.scm.SCM.Tag:rtos</permission>
+      <permission>hudson.scm.SCM.Tag:wangjiaming</permission>
+      <permission>hudson.scm.SCM.Tag:zhangziyang</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-rtos-new</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H 2 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>ls ${repo}
+pwd &amp;&amp; ls /home/jenkins
+
+# 创建构建目录
+sudo mkdir -p /home/jenkins/ci_build
+if [ ! -d &quot;/usr1&quot; ]; then
+    sudo ln -s /home/jenkins/ci_build /usr1
+fi
+
+# 下载构建脚本
+#build_script=/usr1/scripts
+#sudo rm -rf &quot;$build_script&quot;
+#if [ ! -d &quot;$build_script&quot; ]; then
+#    sudo git clone https://gitee.com/ilisimin/yocto-pseudo.git -b openEuler-21.09 -v $build_script  --depth=1
+#else
+#    pushd $build_script
+#    #sudo git checkout aarch64
+#    sudo git status
+#    sudo git config pull.ff only
+#    sudo git reset --hard HEAD^ || echo &quot;&quot;
+#    sudo git reset --hard HEAD
+#    sudo git clean -dfx
+#    sudo git pull
+#    popd
+#fi
+
+# 执行构建脚本
+#sudo sh $build_script/scripts/build.sh &quot;arm-std aarch64-std&quot; yes yes no
+
+# 删除修改过的代码
+#sudo rm -rf $src_path/${repo}
+
+
+source_user=&quot;public&quot;
+source_dir=&quot;/usr1/output/dailybuild&quot;
+dest_ip=&quot;121.36.84.172&quot;
+source_ip=&quot;&quot;
+source_pwd=&quot;&quot;
+branch=&quot;openEuler-22.03-LTS-Next&quot;
+
+#归档发布件
+#if [[ ${branch} != &quot;openEuler-22.03-LTS&quot; ]];then
+#	echo &quot;该功能当前只限于openEuler-22.03-LTS分支！！！&quot;
+#    exit 0
+#fi
+
+
+if [[ ${source_user} == &quot;&quot; ]] || [[ ${source_dir} == &quot;&quot; ]] || [[ ${dest_ip} == &quot;&quot; ]];then
+    echo &quot;请检查参数是否正确！！！&quot;
+    exit 1
+fi
+
+if [ -d $WORKSPACE/openeuler-os-build ];then
+	rm -rf $WORKSPACE/openeuler-os-build
+fi
+
+cd $WORKSPACE
+for((i=1;i&lt;=5;i++));
+do
+	set +e
+    git clone -b master  https://gitee.com/openeuler/openeuler-os-build.git
+    #git clone -b master  https://gitee.com/ilisimin/openeuler-os-build.git
+    set -e
+    if [ -d openeuler-os-build ];then
+		if [ &quot;`ls -A openeuler-os-build`&quot; != &quot;&quot; ];then 
+        	break
+		else
+            rm -rf openeuler-os-build
+        fi
+    fi
+done
+latest_iso_dir=&quot;/repo/openeuler/dailybuild/${branch}/${branch}&quot;
+
+# 执行构建脚本
+sudo sh $WORKSPACE/openeuler-os-build/script/embedded/compile/build.sh &quot;arm-std aarch64-std&quot; yes yes no &quot;&quot; &quot;master&quot; &quot;openEuler-22.03-LTS&quot;
+
+cd openeuler-os-build/script/tools/
+#bash copy_embedded_img.sh ${source_user} ${source_ip} ${source_pwd} ${source_dir} ${dest_ip} ${ssh_key} ${latest_iso_dir}
+bash -x copy_embedded_img.sh &quot;&quot; &quot;&quot; &quot;&quot; ${source_dir} ${dest_ip} ${ssh_key} ${latest_iso_dir}</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>update-publish-key</credentialsId>
+          <variable>ssh_key</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.20">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>120</timeoutMinutes>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+  </buildWrappers>
+</project>

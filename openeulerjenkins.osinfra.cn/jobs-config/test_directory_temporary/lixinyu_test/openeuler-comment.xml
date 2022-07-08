@@ -1,0 +1,161 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>上报打包结果</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:lixinyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:lixinyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:lixinyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:lixinyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:lixinyu</permission>
+      <permission>hudson.model.Item.Build:lixinyu</permission>
+      <permission>hudson.model.Item.Cancel:lixinyu</permission>
+      <permission>hudson.model.Item.Configure:lixinyu</permission>
+      <permission>hudson.model.Item.Delete:lixinyu</permission>
+      <permission>hudson.model.Item.Discover:lixinyu</permission>
+      <permission>hudson.model.Item.Move:lixinyu</permission>
+      <permission>hudson.model.Item.Read:lixinyu</permission>
+      <permission>hudson.model.Item.Workspace:lixinyu</permission>
+      <permission>hudson.model.Run.Delete:lixinyu</permission>
+      <permission>hudson.model.Run.Update:lixinyu</permission>
+      <permission>hudson.scm.SCM.Tag:lixinyu</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo</name>
+          <description>仓库名</description>
+          <defaultValue>yocto-meta-openeuler</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>pr源分支</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tbranch</name>
+          <description>pr目标分支</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prid</name>
+          <description>pull request id</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>committer</name>
+          <description>提交人</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>commentid</name>
+          <description>唯一的评论编号</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ACL</name>
+          <description>环境变量</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-oe</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+set +x
+
+repo_server=121.36.53.23
+
+# 以下测试下载时使用
+# fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
+# comment_file=${repo}_test_${prid}_aarch64_comment
+# scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:${fileserver_tmpfile_path}/${comment_file} . || echo ${comment_file}&quot; download faild&quot;
+# exit
+
+#shell_path=/home/jenkins/ci_check
+
+# 测试
+shell_path=/home/jenkins/ci_check2
+git clone -b feature/openeuler-test https://gitee.com/alichinese/openeuler-jenkins ${shell_path}
+
+. ${shell_path}/src/lib/lib.sh
+owner=&quot;openeuler&quot;
+
+echo &quot;comment ${repo}&quot;
+export PYTHONPATH=${shell_path}
+
+fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
+
+aarch64_qemu_image_standard=&quot;aarch64_\(qemu-image-standard\)&quot;
+aarch64_qemu_image_tiny=&quot;aarch64_\(qemu-image-tiny\)&quot;
+arm_qemu_image_standard=&quot;arm_\(qemu-image-standard\)&quot;
+arm_qemu_image_tiny=&quot;arm_\(qemu-image-tiny\)&quot;
+comment_aarch64_qemu_image_standard_file=${repo}_${prid}_${aarch64_qemu_image_standard}_test_comment
+comment_aarch64_qemu_image_tiny_file=${repo}_${prid}_${aarch64_qemu_image_tiny}_test_comment
+comment_arm_qemu_image_standard_file=${repo}_${prid}_${arm_qemu_image_standard}_test_comment
+comment_arm_qemu_image_tiny_file=${repo}_${prid}_${arm_qemu_image_tiny}_test_comment
+
+
+scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:${fileserver_tmpfile_path}/${comment_aarch64_qemu_image_standard_file} . || echo &quot;file ${comment_aarch64_qemu_image_standard_file} not exist&quot;
+scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:${fileserver_tmpfile_path}/${comment_aarch64_qemu_image_tiny_file} . || echo &quot;file ${comment_aarch64_qemu_image_tiny_file} not exist&quot;
+scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:${fileserver_tmpfile_path}/${comment_arm_qemu_image_standard_file} . || echo &quot;file ${comment_arm_qemu_image_standard_file} not exist&quot;
+scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:${fileserver_tmpfile_path}/${comment_arm_qemu_image_tiny_file} . || echo &quot;file ${comment_arm_qemu_image_tiny_file} not exist&quot;
+
+
+#if [[ -f ${comment_aarch64_file} -a -f ${comment_arm_file} ]];then
+python3 ${shell_path}/src/build/gitee_comment_openeuler.py -o $owner -r $repo -p $prid -c $committer -t $giteetoken -u $jenkins_user -j $jenkins_api_token -m ${commentid} -a ${comment_aarch64_qemu_image_standard_file} ${comment_aarch64_qemu_image_tiny_file} ${comment_arm_qemu_image_standard_file} ${comment_arm_qemu_image_tiny_file}
+# fi
+set -x</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>be1d7d09-4ab8-44da-ad52-82b3dcc795b0</credentialsId>
+          <usernameVariable>jenkins_user</usernameVariable>
+          <passwordVariable>jenkins_api_token</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>lisir-gitee-api-token</credentialsId>
+          <variable>giteetoken</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

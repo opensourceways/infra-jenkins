@@ -1,0 +1,174 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.40">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>自动检查obs工程中软件包代码是否以_service方式拉取</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>100</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_Factory</name>
+          <description>1：构建
+0：不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_Mainline</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_Next</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_SP1</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_SP2</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_21_03</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_21_09</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.TimerTrigger>
+          <spec>H H * * 1,3,5</spec>
+        </hudson.triggers.TimerTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.87">
+    <script>pipeline {
+    agent none
+    stages {
+        stage(&quot;check_package_withoutservice&quot;){
+            parallel {
+				stage(&quot;Factory&quot;) {
+                    steps {
+                                build job: &apos;check_obs_project_package_withoutservice&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:Factory&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_Factory)], propagate: false
+                            }
+                }
+                stage(&quot;Mainline&quot;) {
+                    steps {
+                                build job: &apos;check_obs_project_package_withoutservice&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:Mainline&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_Mainline)], propagate: false
+                            }
+                }
+				stage(&quot;LTS&quot;) {
+                    steps{
+                                build job: &apos;check_obs_project_package_withoutservice&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:20.03:LTS&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_20_03_LTS)], propagate: false
+                            }
+                }
+                stage(&quot;LTS-Next&quot;) {
+                    steps{
+                                build job: &apos;check_obs_project_package_withoutservice&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:20.03:LTS:Next&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_20_03_LTS_Next)], propagate: false
+                            }
+                }
+                stage(&quot;SP1&quot;) {
+                    steps{
+                                build job: &apos;check_obs_project_package_withoutservice&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:20.03:LTS:SP1&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_20_03_LTS_SP1)], propagate: false
+                            }
+                }
+                stage(&quot;SP2&quot;) {
+                    steps{
+                                build job: &apos;check_obs_project_package_withoutservice&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:20.03:LTS:SP2&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_20_03_LTS_SP2)], propagate: false
+                            }
+                }
+                stage(&quot;21.03&quot;) {
+                    steps{
+                                build job: &apos;check_obs_project_package_withoutservice&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:21.03&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_21_03)], propagate: false
+                            }
+                }
+				stage(&quot;21.09&quot;) {
+                    steps{
+                                build job: &apos;check_obs_project_package_withoutservice&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:21.09&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_21_09)], propagate: false
+                            }
+                }
+            }
+        }
+    }
+}
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

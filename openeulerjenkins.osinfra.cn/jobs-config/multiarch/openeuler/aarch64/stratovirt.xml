@@ -1,0 +1,210 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>30</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo</name>
+          <description>码云中仓库名称</description>
+          <defaultValue>stratovirt</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>pr 源分支</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tbranch</name>
+          <description>pr 目标分支</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prid</name>
+          <description>pull request id</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>committer</name>
+          <description>提交者</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>cpu框架</description>
+          <defaultValue>aarch64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>结果保存地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/${prid}/MERGE:refs/pull/${prid}/MERGE</refspec>
+        <url>https://gitee.com/openeuler/${repo}.git</url>
+        <credentialsId>openeuler_ci_bot</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>pull/${prid}/MERGE</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+        <deleteUntrackedNestedRepositories>false</deleteUntrackedNestedRepositories>
+      </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>${repo}</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.CloneOption>
+        <shallow>true</shallow>
+        <noTags>true</noTags>
+        <reference></reference>
+        <depth>1</depth>
+        <honorRefspec>true</honorRefspec>
+      </hudson.plugins.git.extensions.impl.CloneOption>
+    </extensions>
+  </scm>
+  <assignedNode>k8s-aarch64-virt</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#YUM_URL=&quot;http://117.78.1.88:82/dailybuilds/openeuler/openEuler-20.09/openeuler_2020-10-26-16-10-07/&quot;
+#YUM_URL=&quot;http://121.36.84.172/dailybuild/openEuler-20.03-LTS-SP2/openeuler-2021-05-21-12-45-08/&quot;
+#BASE_URL=&quot;http://repo.openeuler.org/openEuler-20.09/&quot;
+#sudo sed -i &quot;s#$BASE_URL#$YUM_URL#g&quot; /etc/yum.repos.d/openEuler.repo
+
+arch=&quot;$(uname -m)&quot;
+echo &quot;[openEuler_iso]&quot; &gt; openEuler.repo_bak
+echo -e &quot;name=openEuler_iso&quot; &gt;&gt; openEuler.repo_bak
+if [ &quot;$arch&quot; == &quot;x86_64&quot; ]; then
+    #echo -e &quot;baseurl=http://119.3.219.20:82/openEuler:/20.03:/LTS:/SP2/standard_x86_64/&quot; &gt;&gt; openEuler.repo_bak
+    echo -e &quot;baseurl=http://119.3.219.20:82/openEuler:/22.03:/LTS/standard_x86_64/&quot; &gt;&gt; openEuler.repo_bak
+elif [ &quot;$arch&quot; == &quot;aarch64&quot; ]; then
+    #echo -e &quot;baseurl=http://119.3.219.20:82/openEuler:/20.03:/LTS:/SP2/standard_aarch64/&quot; &gt;&gt; openEuler.repo_bak
+    echo -e &quot;baseurl=http://119.3.219.20:82/openEuler:/22.03:/LTS/standard_aarch64/&quot; &gt;&gt; openEuler.repo_bak
+else
+	return 0
+fi
+echo -e &quot;gpgcheck=0&quot; &gt;&gt; openEuler.repo_bak
+echo -e &quot;enable=1&quot; &gt;&gt; openEuler.repo_bak
+
+sudo mv openEuler.repo_bak /etc/yum.repos.d/openEuler.repo
+
+cat /etc/yum.repos.d/openEuler.repo
+
+
+sudo yum install -y \
+openssl-libs \
+libstdc++ \
+rust \
+rustfmt \
+rust-src \
+rust-std-static \
+cargo* \
+clippy* \
+dtc* \
+--downloadonly --downloaddir=./
+sudo rpm -ivh --force --nodeps *.rpm
+cargo -V
+rustc -V
+
+sudo mkdir -p /home/jenkins/.cargo/
+cd /home/jenkins/.cargo/
+sudo touch config
+sudo chmod 777 -R /home/jenkins/.cargo
+cd -
+sudo echo &quot;[source.crates-io]&quot; |sudo tee /home/jenkins/.cargo/config
+sudo echo &quot;registry = \&quot;https://github.com/rust-lang/crates.io-index\&quot;&quot; |sudo tee -a /home/jenkins/.cargo/config
+sudo echo &quot;replace-with = &apos;ustc&apos;&quot; |sudo tee -a /home/jenkins/.cargo/config
+sudo echo &quot;[source.ustc]&quot; |sudo tee -a /home/jenkins/.cargo/config
+sudo echo &quot;registry = \&quot;http://mirrors.ustc.edu.cn/crates.io-index\&quot;&quot; |sudo tee -a /home/jenkins/.cargo/config
+
+
+cd ${repo}
+#export RUSTUP_DIST_SERVER=http://mirrors.ustc.edu.cn/rust-static
+#export RUSTUP_UPDATE_ROOT=http://mirrors.ustc.edu.cn/rust-static/rustup
+
+cargo fmt --all -- --check
+cargo clean
+
+
+cargo clippy -- -D warnings
+cargo clean
+
+cargo check
+cargo clean
+
+#cargo rustc -- -D warnings
+bin=$(sed -n &apos;/[[bin]]/ {n;p}&apos; Cargo.toml | sed &apos;s/\&quot;//g&apos; | sed &apos;s/name = //g&apos;)
+for bin_name in $bin
+do
+echo $bin_name
+cargo rustc --bin $bin_name -- -D warnings
+done
+
+cargo build --release
+
+RUST_BACKTRACE=1 cargo test --all -- --nocapture --test-threads=1
+
+#RUST_BACKTRACE=1 cargo test --all -- --nocapture</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeUserName</usernameVariable>
+          <passwordVariable>GiteePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

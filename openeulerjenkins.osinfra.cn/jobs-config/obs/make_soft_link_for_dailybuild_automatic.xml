@@ -1,0 +1,64 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.42">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>自动给最新的dailybuild做一个软连接</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.TimerTrigger>
+          <spec>H/30 * * * *</spec>
+        </hudson.triggers.TimerTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
+    <script>pipeline {
+    agent none
+    stages {
+        stage(&quot;make soft link&quot;) {
+            steps {
+                parallel(
+                    &apos;mainline&apos;: {
+                        build job: &apos;make_soft_link_for_dailybuild&apos;, parameters: [string(name: &apos;iso_daily_dir&apos;,value: &apos;openEuler-Mainline&apos;)], propagate: false
+                    },
+                    &apos;20.03-LTS-SP1&apos;: {
+                        build job: &apos;make_soft_link_for_dailybuild&apos;, parameters: [string(name: &apos;iso_daily_dir&apos;,value: &apos;openEuler-20.03-LTS-SP1&apos;)], propagate: false
+                    },
+                    &apos;20.03-LTS-SP3&apos;: {
+                        build job: &apos;make_soft_link_for_dailybuild&apos;, parameters: [string(name: &apos;iso_daily_dir&apos;,value: &apos;openEuler-20.03-LTS-SP3&apos;)], propagate: false
+                    },
+                    &apos;openEuler-22.03-LTS&apos;: {
+                        build job: &apos;make_soft_link_for_dailybuild&apos;, parameters: [string(name: &apos;iso_daily_dir&apos;,value: &apos;openEuler-22.03-LTS&apos;)], propagate: false
+                    },
+                    &apos;openEuler-22.03-LTS-Next&apos;: {
+                        build job: &apos;make_soft_link_for_dailybuild&apos;, parameters: [string(name: &apos;iso_daily_dir&apos;,value: &apos;openEuler-22.03-LTS-Next&apos;)], propagate: false
+                    },
+                )
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

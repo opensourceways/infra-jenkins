@@ -1,0 +1,199 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>30</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo</name>
+          <description>码云中仓库名称</description>
+          <defaultValue>avocado</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>pr 源分支</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tbranch</name>
+          <description>pr 目标分支</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prid</name>
+          <description>pull request id</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>committer</name>
+          <description>提交者</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>cpu框架</description>
+          <defaultValue>x86_64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>结果保存地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.11.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/${prid}/MERGE:refs/pull/${prid}/MERGE</refspec>
+        <url>https://gitee.com/openeuler/${repo}.git</url>
+        <credentialsId>openeuler_ci_bot</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>pull/${prid}/MERGE</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>${repo}</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.CloneOption>
+        <shallow>true</shallow>
+        <noTags>true</noTags>
+        <reference></reference>
+        <depth>1</depth>
+        <honorRefspec>true</honorRefspec>
+      </hudson.plugins.git.extensions.impl.CloneOption>
+    </extensions>
+  </scm>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>rpms=(git \
+      gcc \
+      python3-pip \
+      python3-devel \
+      diffutils \
+      tcpdump \
+      iproute \
+      iputils \
+      nc \
+      qemu \
+      qemu-img)
+sudo rm -f *.rpm
+sudo yum downgrade -y &quot;${rpms[@]}&quot; --downloadonly --downloaddir=./ --allowerasing --skip-broken --nobest || true
+sudo yum install -y &quot;${rpms[@]}&quot; --downloadonly --downloaddir=./ --allowerasing --skip-broken --nobest
+sudo rpm -Uvh --force --nodeps *.rpm || true
+sudo pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+sudo pip3 install inspektor==0.4.5 autopep8 isort==4.3.21
+sudo rm -rf build-vt
+mkdir build-vt
+
+cp -a &quot;${repo}&quot; build-vt/
+cd &quot;build-vt/${repo}&quot;
+git config --add remote.origin.fetch &quot;+refs/pull/${prid}/head:refs/pull/${prid}/head&quot;
+git config --add remqote.origin.fetch &quot;+refs/heads/${tbranch}:refs/remotes/origin/${tbranch}&quot;
+git fetch
+# files=$(git diff &quot;origin/${tbranch}&quot; --name-only | while read file; do find &quot;${file}&quot; -name &quot;*.py&quot; -type f -size +0c || true; done)
+# [ -z &quot;${files}&quot; ] || inspekt checkall --disable-lint W,R,C,E1002,E1101,E1103,E1120,F0401,I0011,E1003 --no-license-check ${files}
+cd ..
+
+for vt in avocado avocado-vt tp-qemu tp-libvirt
+do
+    [ -d &quot;${vt}&quot; ] || git clone -b &quot;${tbranch}&quot; &quot;https://gitee.com/openeuler/${vt}.git&quot;
+done
+! find -name &quot;*.cfg&quot; | xargs tail -c 1 | grep &quot;^.$&quot; -B 1
+
+sed -i &quot;s/^libvirt-python/#&amp;/&quot; avocado/requirements-selftests.txt
+sed -i &quot;/^branch: /d&quot; avocado-vt/test-providers.d/io-github-autotest-qemu.ini
+if [ &quot;${repo}&quot; = &quot;tp-qemu&quot; ]; then
+    sed -i &quot;/^uri: /c uri: file://$(pwd)/tp-qemu&quot; avocado-vt/test-providers.d/io-github-autotest-qemu.ini
+else
+    sed -i &quot;/^uri: /c uri: $(pwd)/tp-qemu&quot; avocado-vt/test-providers.d/io-github-autotest-qemu.ini
+    sed -i &quot;/^uri: /a branch: ${tbranch}&quot; avocado-vt/test-providers.d/io-github-autotest-qemu.ini
+fi
+sed -i &quot;/^branch: /d&quot; avocado-vt/test-providers.d/io-github-autotest-libvirt.ini
+if [ &quot;${repo}&quot; = &quot;tp-libvirt&quot; ]; then
+    sed -i &quot;/^uri: /c uri: file://$(pwd)/tp-libvirt&quot; avocado-vt/test-providers.d/io-github-autotest-libvirt.ini
+else
+    sed -i &quot;/^uri: /c uri: $(pwd)/tp-libvirt&quot; avocado-vt/test-providers.d/io-github-autotest-libvirt.ini
+    sed -i &quot;/^uri: /a branch: ${tbranch}&quot; avocado-vt/test-providers.d/io-github-autotest-libvirt.ini
+fi
+rm -f avocado-vt/test-providers.d/io-github-spiceqa-spice.ini
+
+cd avocado
+sudo pip3 install -r requirements-selftests.txt
+sudo python3 setup.py install
+cd ..
+
+cd avocado-vt
+sudo pip3 install -r requirements.txt
+sudo python3 setup.py install
+cd ..
+
+sudo avocado vt-bootstrap --vt-type qemu --vt-skip-verify-download-assets --yes-to-all
+sudo avocado vt-bootstrap --vt-type libvirt --vt-skip-verify-download-assets --yes-to-all
+
+[ &quot;${arch}&quot; = &quot;aarch64&quot; ] &amp;&amp; vt_machine_type=arm64-pci || vt_machine_type=q35
+sudo avocado list qemu_img.create --vt-type qemu --vt-guest-os Guest.Linux.Fedora.28 --vt-machine-type &quot;${vt_machine_type}&quot;
+sudo avocado list virsh.define --vt-type libvirt --vt-guest-os Guest.Linux.Fedora.28 --vt-machine-type &quot;${vt_machine_type}&quot;
+sudo avocado list virsh.define --vt-type libvirt --vt-guest-os Guest.Linux.openEuler.20.03 --vt-machine-type &quot;${vt_machine_type}&quot;
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeUserName</usernameVariable>
+          <passwordVariable>GiteePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

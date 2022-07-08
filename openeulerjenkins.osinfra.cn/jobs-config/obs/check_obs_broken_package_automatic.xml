@@ -1,0 +1,316 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.42">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>自动检查obs工程中broken软件包，并修复</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>100</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_Factory</name>
+          <description>1：构建
+0：不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_Mainline</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_SP1</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_Epol</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_SP3</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_SP1_Epol</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_20_03_LTS_SP3_Epol</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_03_LTS</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_03_LTS_Next</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_03_LTS_Epol</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_03_LTS_Next_Epol</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>SP1_oepkg_openstack_train</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>SP3_oepkg_openstack_common</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>SP3_oepkg_openstack_queens</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>SP3_oepkg_openstack_rocky</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_03_LTS_Epol_Multi_Version_OpenStack_Train</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_03_LTS_Next_Epol_Multi_Version_OpenStack_Wallaby</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_03_LTS_LoongArch</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.TimerTrigger>
+          <spec>H 8 * * *
+H 13 * * *
+H 18 * * *</spec>
+        </hudson.triggers.TimerTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
+    <script>pipeline {
+    agent none
+    stages {
+        stage(&quot;check_broken_package&quot;){
+            parallel {
+                stage(&quot;Mainline&quot;) {
+                    steps {
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:Mainline&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_Mainline),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                            }
+                }
+				stage(&quot;Factory&quot;) {
+                    steps {
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:Factory&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_Factory),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                            }
+                }				
+				stage(&quot;openEuler_Epol&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:Epol&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_Epol),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;SP1&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:20.03:LTS:SP1&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_20_03_LTS_SP1),string(name: &apos;branch&apos;,value: &apos;openEuler-20.03-LTS-SP1&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;SP1_Epol&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:20.03:LTS:SP1:Epol&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_20_03_LTS_SP1_Epol),string(name: &apos;branch&apos;,value: &apos;openEuler-20.03-LTS-SP1&apos;)], propagate: false
+                            }
+                }				
+                stage(&quot;SP3&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:20.03:LTS:SP3&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_20_03_LTS_SP3),string(name: &apos;branch&apos;,value: &apos;openEuler-20.03-LTS-SP3&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;SP3_Epol&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:20.03:LTS:SP3:Epol&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_20_03_LTS_SP3_Epol),string(name: &apos;branch&apos;,value: &apos;openEuler-20.03-LTS-SP3&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;22.03_LTS&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:22.03:LTS&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_22_03_LTS),string(name: &apos;branch&apos;,value: &apos;openEuler-22.03-LTS&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;22.03_LTS_Epol&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:22.03:LTS:Epol&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_22_03_LTS_Epol),string(name: &apos;branch&apos;,value: &apos;openEuler-22.03-LTS&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;22.03_LTS_Next&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:22.03:LTS:Next&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_22_03_LTS_Next),string(name: &apos;branch&apos;,value: &apos;openEuler-22.03-LTS-Next&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;22.03_LTS_Next_Epol&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:22.03:LTS:Next:Epol&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_22_03_LTS_Next_Epol),string(name: &apos;branch&apos;,value: &apos;openEuler-22.03-LTS-Next&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;SP1_oepkg_openstack_train&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:20.03:LTS:SP1:oepkg:openstack:train&apos;),string(name: &apos;isBuild&apos;,value:params.SP1_oepkg_openstack_train),string(name: &apos;branch&apos;,value: &apos;oepkg_openstack-train_oe-20.03-LTS-SP1&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;SP3_oepkg_openstack_common&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:20.03:LTS:SP3:oepkg:openstack:common&apos;),string(name: &apos;isBuild&apos;,value:params.SP3_oepkg_openstack_common),string(name: &apos;branch&apos;,value: &apos;oepkg_openstack-common_oe-20.03-LTS-SP3&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;SP3_oepkg_openstack_queens&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:20.03:LTS:SP3:oepkg:openstack:queens&apos;),string(name: &apos;isBuild&apos;,value:params.SP3_oepkg_openstack_queens),string(name: &apos;branch&apos;,value: &apos;oepkg_openstack-queens_oe-20.03-LTS-SP3&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;SP3_oepkg_openstack_rocky&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:20.03:LTS:SP3:oepkg:openstack:rocky&apos;),string(name: &apos;isBuild&apos;,value:params.SP3_oepkg_openstack_rocky),string(name: &apos;branch&apos;,value: &apos;oepkg_openstack-rocky_oe-20.03-LTS-SP3&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;openEuler_22.03_LTS_Epol_Multi_Version_OpenStack_Train&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:22.03:LTS:Epol:Multi-Version:OpenStack:Train&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_22_03_LTS_Epol_Multi_Version_OpenStack_Train),string(name: &apos;branch&apos;,value: &apos;Multi-Version_OpenStack-Train_openEuler-22.03-LTS&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;openEuler_22.03_LTS_Next_Epol_Multi_Version_OpenStack_Wallaby&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:22.03:LTS:Next:Epol:Multi-Version:OpenStack:Wallaby&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_22_03_LTS_Next_Epol_Multi_Version_OpenStack_Wallaby),string(name: &apos;branch&apos;,value: &apos;Multi-Version_OpenStack-Wallaby_openEuler-22.03-LTS-Next&apos;)], propagate: false
+                            }
+                }
+                stage(&quot;openEuler_22.03_LTS_LoongArch&quot;) {
+                    steps{
+                                build job: &apos;check_obs_broken_package&apos;, parameters: [string(name: &apos;obs_project&apos;,value: &apos;openEuler:22.03:LTS:LoongArch&apos;),string(name: &apos;isBuild&apos;,value:params.openEuler_22_03_LTS_LoongArch),string(name: &apos;branch&apos;,value: &apos;openEuler-22.03-LTS-LoongArch&apos;)], propagate: false
+                            }
+                }
+            }
+        }
+    }
+}
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

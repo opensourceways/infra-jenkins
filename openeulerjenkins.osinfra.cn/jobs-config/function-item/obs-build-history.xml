@@ -1,0 +1,145 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>obs项目构建历史</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>hudson.model.Item.Build:ztzt</permission>
+      <permission>hudson.model.Item.Cancel:ztzt</permission>
+      <permission>hudson.model.Item.Configure:ztzt</permission>
+      <permission>hudson.model.Item.Discover:ztzt</permission>
+      <permission>hudson.model.Item.Read:ztzt</permission>
+      <permission>hudson.model.Item.Workspace:ztzt</permission>
+      <permission>hudson.model.Run.Replay:ztzt</permission>
+      <permission>hudson.model.Run.Update:ztzt</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection></giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>obs_project</name>
+          <description>obs项目</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler:Mainline</string>
+              <string>openEuler:20.09</string>
+              <string>openEuler:20.03:LTS</string>
+              <string>openEuler:20.03:LTS:Next</string>
+              <string>openEuler:20.03:LTS:SP1</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>obs_project_repo</name>
+          <description>obs repo</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>standard_aarch64</string>
+              <string>standard_x86_64</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>arch</name>
+          <description>cpu体系</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>aarch64</string>
+              <string>x86_64</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>concurrency</name>
+          <description>请求obs并发量</description>
+          <defaultValue>50</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-obs</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+
+function config_osc()
+{
+  cat &gt; /home/jenkins/.oscrc &lt;&lt; EOF
+[general]
+apiurl = http://117.78.1.88
+no_verify = 1
+build-root = /home/jenkins/agent/buildroot
+  
+[http://117.78.1.88]
+user = $OBSUserName
+pass = $OBSPassword
+EOF
+}
+
+
+if [[ &quot;${obs_project_repo}&quot; =~ &quot;aarch64&quot; ]];then
+	if [[ &quot;${arch}&quot; =~ &quot;x86_64&quot; ]];then
+    	exit 1
+    fi
+fi
+
+
+if [[ &quot;${obs_project_repo}&quot; =~ &quot;x86_64&quot; ]];then
+	if [[ &quot;${arch}&quot; =~ &quot;aarch64&quot; ]];then
+    	exit 1
+    fi
+fi
+
+
+set +x
+repo_server=&quot;121.36.53.23&quot;
+result=&quot;result&quot;
+config_osc
+export PYTHONPATH=/home/jenkins/ci_check
+python /home/jenkins/ci_check/src/tools/obs_package_build_history.py -p ${obs_project} -r ${obs_project_repo} -a ${arch} -c 50 -o ${result}
+scp -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR ${result} root@${repo_server}:/repo/openeuler/obs_history/${obs_project}_${arch}.json
+set -x
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBSUserName</usernameVariable>
+          <passwordVariable>OBSPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

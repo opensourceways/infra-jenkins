@@ -1,0 +1,177 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.42">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.TimerTrigger>
+          <spec>H */12 * * *</spec>
+        </hudson.triggers.TimerTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
+    <script>pipeline {
+    agent none
+    stages(&quot;check all projects code&quot;){
+        stage(&quot;check obs codes&quot;){
+            parallel{
+			    stage(&quot;22_03_lts&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-22.03-LTS&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;22_03_lts_epol&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Epol&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-22.03-LTS&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;20_03_lts_sp3&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-20.03-LTS-SP3&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;20_03_lts_sp3_epol&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3:Epol&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-20.03-LTS-SP3&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;22_03_lts_next&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Next&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-22.03-LTS-Next&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;22_03_lts_next_epol&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Next:Epol&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-22.03-LTS-Next&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;21_09&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:21.09&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-21.09&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;21_09-Epol&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:21.09:Epol&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-21.09&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;mainline&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Mainline&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;factory&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Factory&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;epol&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Epol&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;20_03_lts_sp2&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP2&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-20.03-LTS-SP2&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;20_03_lts_sp2_epol&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP2:Epol&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-20.03-LTS-SP2&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;20_03_lts_next&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:Next&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-20.03-LTS-Next&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;20_03_lts_next_epol&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:Next:Epol&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-20.03-LTS-Next&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;20_03_lts_sp1&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP1&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-20.03-LTS-SP1&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;20_03_lts_sp1_epol&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP1:Epol&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-20.03-LTS-SP1&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;21_03&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:21.03&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-21.03&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;21_03_epol&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:21.03:Epol&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-21.03&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;openstack-common&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP2:oepkg:openstack:common&apos;),string(name: &apos;branch&apos;,value: &apos;oepkg_openstack-common_oe-20.03-LTS-SP2&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;openstack-queens&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP2:oepkg:openstack:queens&apos;),string(name: &apos;branch&apos;,value: &apos;oepkg_openstack-queens_oe-20.03-LTS-SP2&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;openstack-rocky&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP2:oepkg:openstack:rocky&apos;),string(name: &apos;branch&apos;,value: &apos;oepkg_openstack-rocky_oe-20.03-LTS-SP2&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;22_03_lts_next_openstack-Train&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Next:Epol:Multi-Version:OpenStack:Train&apos;),string(name: &apos;branch&apos;,value: &apos;Multi-Version_OpenStack-Train_openEuler-22.03-LTS-Next&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;22_03_lts_next_openstack-Wallaby&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Next:Epol:Multi-Version:OpenStack:Wallaby&apos;),string(name: &apos;branch&apos;,value: &apos;Multi-Version_OpenStack-Wallaby_openEuler-22.03-LTS-Next&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;22_03_lts_openstack-Train&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Epol:Multi-Version:OpenStack:Train&apos;),string(name: &apos;branch&apos;,value: &apos;Multi-Version_OpenStack-Train_openEuler-22.03-LTS&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;22_03_lts_openstack-Wallaby&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Epol:Multi-Version:OpenStack:Wallaby&apos;),string(name: &apos;branch&apos;,value: &apos;Multi-Version_OpenStack-Wallaby_openEuler-22.03-LTS&apos;)], propagate: false
+                    }
+                }
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

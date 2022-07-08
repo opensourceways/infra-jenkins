@@ -1,0 +1,64 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler-bisheng</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># get source from bishengjdk-riscv
+git clone https://gitee.com/openeuler/bishengjdk-riscv.git
+
+# test qemu
+qemu-riscv64 -version
+
+
+
+cd bishengjdk-riscv
+
+# env
+export RISCV64=/opt/riscv_toolchain_linux
+export LD_LIBRARY_PATH=$RISCV64/lib64
+export PATH=&quot;$RISCV64/bin:$PATH&quot;
+export CC=$RISCV64/bin/riscv64-unknown-linux-gnu-gcc
+export CXX=$RISCV64/bin/riscv64-unknown-linux-gnu-g++
+
+# configure and build
+bash configure                                   \
+     --openjdk-target=riscv64-unknown-linux-gnu  \
+     --disable-warnings-as-errors                \
+     --with-sysroot=/opt/fedora28_riscv_root     \
+     --with-boot-jdk=/usr/lib/jvm/jdk-16
+
+make images
+
+# java -version test
+export LD_LIBRARY_PATH=/opt/fedora28_riscv_root/usr/lib:/opt/fedora28_riscv_root/usr/lib64:$LD_LIBRARY_PATH
+qemu-riscv64 build/linux-riscv64-server-release/images/jdk/bin/java -version</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.13"/>
+  </buildWrappers>
+</project>

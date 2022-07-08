@@ -1,0 +1,163 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>5</daysToKeep>
+        <numToKeep>10</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>sudo su - root&lt;&lt;EOF
+pip3 -V || yum install python3-pip -y
+pack=`pip3 list | grep -E &quot;openpyxl|paramiko&quot;`
+if [ -z $pack ];then
+	pip3 install openpyxl paramiko
+fi
+
+set -e
+git config --global http.sslVerify false
+git config --global http.postBuffer 52428800
+git config --global user.email &quot;80474298@qq.com&quot;
+git config --global user.name &quot;openeuler-ci-bot&quot;
+git config --global pull.ff only
+
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; FEOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+FEOF
+
+cat &gt;obsworkers.list &lt;&lt;EOE
+172.16.1.17
+172.16.1.57
+172.16.1.12
+172.16.1.96
+172.16.1.27
+172.16.1.51
+172.16.1.68
+172.16.1.99
+172.16.1.243
+172.16.1.162
+172.16.1.192
+172.16.1.222
+172.16.1.159
+172.16.1.86
+172.16.1.142
+172.16.1.227
+172.16.1.237
+172.16.1.134
+172.16.1.8
+172.16.1.6
+172.16.1.230
+172.16.1.153
+172.16.1.201
+172.16.1.71
+172.16.1.220
+172.16.1.228
+172.16.1.221
+172.16.1.249
+172.16.1.45
+172.16.1.48
+172.16.1.21
+172.16.1.252
+172.16.1.217
+172.16.1.106
+172.16.1.138
+172.16.1.69
+172.16.1.176
+172.16.1.246
+172.16.1.46
+172.16.1.47
+172.16.1.140
+172.16.1.87
+172.16.1.58
+172.16.1.92
+172.16.1.212
+172.16.1.79
+172.16.1.14
+172.16.1.7
+172.16.1.5
+172.16.1.33
+172.16.1.80
+172.16.1.182
+172.16.1.72
+172.16.1.197
+172.16.1.213
+172.16.1.240
+172.16.1.94
+172.16.1.204
+EOE
+
+##get obsworkers backend info
+[ -d openeuler-obs ] &amp;&amp; rm -rf openeuler-obs
+git clone https://${GiteeCloneUserName}:${GiteeClonePassword}@gitee.com/openEuler/openeuler-obs.git
+python3 openeuler-obs/tools/get_obsworkers_conf.py -f obsworkers.list -p ${obsworkerpasswd}
+
+##upload obs
+osc co home:Admin:ISO obsworkerconfig
+[ -f home:Admin:ISO/obsworkerconfig/obsworker.xlsx ] &amp;&amp; rm -f home:Admin:ISO/obsworkerconfig/obsworker.xlsx
+cp obsworker.xlsx home:Admin:ISO/obsworkerconfig
+cd home:Admin:ISO/obsworkerconfig
+osc addremove &amp;&amp; osc ci -n
+echo &quot;check result wrote in OBS==&gt; home:Admin:ISO/obsworkerconfig&quot;
+EOF
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>6575fb00-6002-4958-b2ca-60315dd27f58</credentialsId>
+          <usernameVariable></usernameVariable>
+          <passwordVariable>obsworkerpasswd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

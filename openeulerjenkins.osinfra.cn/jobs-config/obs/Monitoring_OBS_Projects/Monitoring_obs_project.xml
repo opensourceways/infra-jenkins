@@ -1,0 +1,151 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>监控工程软件包编译状态，并保存日志信息，自动触发编译失败的软件包。</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>obs_project_name</name>
+          <description>obs工程名</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler:Mainline</string>
+              <string>openEuler:Epol</string>
+              <string>openEuler:20.03:LTS:SP1</string>
+              <string>openEuler:20.03:LTS:SP3</string>
+              <string>openEuler:20.03:LTS:SP3:Epol</string>
+              <string>openEuler:22.03:LTS:Next</string>
+              <string>openEuler:22.03:LTS</string>
+              <string>openEuler:22.03:LTS:LoongArch</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>pkg_status</name>
+          <description>failed_status：状态为失败的软件包
+all_status：状态为任意的软件包</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string></string>
+              <string>failed_status</string>
+              <string>all_status</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>isBuild</name>
+          <description>1表示构建；0表示不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>API_IP</name>
+          <description>服务器ip</description>
+          <defaultValue>172.16.1.81</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>git config --global http.postBuffer 52428800
+
+if [[ &quot;x${obs_project_name}&quot; == &quot;x&quot; ]];then
+	echo &quot;obs project is empty!&quot;
+    exit 1
+fi
+
+if [[ &quot;x${pkg_status}&quot; == &quot;x&quot; ]];then
+	echo &quot;pkg status is empty!&quot;
+    exit 1
+fi
+
+if [[ ${isBuild} == 0 ]];then
+    exit 0
+fi
+
+set +e
+#wget http://172.16.1.95:82/openEuler:/20.03:/LTS:/Next/standard_x86_64/x86_64/sshpass-1.06-1.oe1.x86_64.rpm
+wget http://172.16.1.234:82/openEuler:/20.03:/LTS:/Next/standard_x86_64/x86_64/sshpass-1.06-1.oe1.x86_64.rpm
+sudo rpm -ivh sshpass-1.06-1.oe1.x86_64.rpm
+set -e
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; EOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+EOF
+
+if [ -d $WORKSPACE/monitor_proj ];then
+	rm -rf $WORKSPACE/monitor_proj
+fi
+
+for((i=1;i&lt;=5;i++));
+do
+	set +e
+	git clone --depth 1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/wangchong1995924/lao_wang_9527.git monitor_proj
+    set -e
+    if [ -d $WORKSPACE/monitor_proj ];then
+       		break
+    fi
+done
+
+cd $WORKSPACE/monitor_proj/script/obs_log_collection/
+python3 monitor_pkg_and_trigger.py ${obs_project_name} ${API_IP} ${API_PWD} ${pkg_status}</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>7dad2839-7421-4f1b-af57-753b707c49c8</credentialsId>
+          <usernameVariable>API_USER</usernameVariable>
+          <passwordVariable>API_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,197 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>30</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo</name>
+          <description>码云中仓库名称</description>
+          <defaultValue>spark</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>pr 源分支</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tbranch</name>
+          <description>pr 目标分支</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prid</name>
+          <description>pull request id</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>committer</name>
+          <description>提交者</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>commentid</name>
+          <description>唯一的评论id</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>cpu框架</description>
+          <defaultValue>x86_64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>package</name>
+          <description>所属obs包</description>
+          <defaultValue>spark</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>buddy</name>
+          <description>兄弟repo</description>
+          <defaultValue>spark</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>保存结果地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>pkgship_notify_url</name>
+          <description>notify pkgship url</description>
+          <defaultValue>https://jenkins.osinfra.cn/job/openEuler_APPs/build-package-manage-image/build</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_rpm_host</name>
+          <description>obs 归档地址</description>
+          <defaultValue>http://119.3.219.20:82</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_webui_host</name>
+          <description>obs webui地址</description>
+          <defaultValue>http://117.78.1.88/</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-soe-zhengyaohui</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+# 启动ipv6 loopback
+function config_ipv6()
+{
+  sudo sysctl net.ipv6.conf.lo.disable_ipv6=0 &amp;&gt;/dev/null
+}
+
+
+
+set +x
+#set -e
+###config_ipv6
+#sudo yum install -y iputils
+#ping 117.78.1.88 -c 5
+#ping gitee.com -c 5
+#ping mirrors.huaweicloud.com -c 5
+
+#scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:/repo/soe/mappingfile .
+#cat mappingfile
+#sleep 3h
+
+# 10.247.3.10
+###if [[ -d grpc ]]; then
+###	rm -rf grpc
+###fi
+###git clone https://gitee.com/src-openeuler/grpc
+
+#df -h
+#echo &quot;180.97.125.228 gitee.com&quot; &gt;&gt; /etc/hosts
+#sed -i &quot;1i nameserver 100.125.1.250&quot; /etc/resolv.conf
+#echo &quot;1i nameserver 100.125.1.250&quot; &gt;&gt; /etc/resolv.conf
+###cat /etc/resolv.conf
+###sudo su - root  &lt;&lt; FEOF
+###text=\$(cat /etc/resolv.conf)
+###echo &quot;nameserver 100.125.1.250&quot; &gt; /etc/resolv.conf
+###for i in \$text; do
+###	#if [[ &quot;\$(echo \$i | grep -E &apos;[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+&apos;)&quot; ]]; then
+###    #	echo &quot;100.125.1.250&quot; &gt;&gt; /etc/resolv.conf
+###    #else
+###		echo \$i &gt;&gt; /etc/resolv.conf
+###    #fi
+###done
+###FEOF
+###cat /etc/resolv.conf
+
+###if [[ -d grpc ]]; then
+###	rm -rf grpc
+###fi
+###git clone https://gitee.com/src-openeuler/grpc
+#set +e
+
+
+cat &gt; zhengyaohui_ci_test.py &lt;&lt; &quot;EOF&quot;
+print(&quot;hello&quot;)
+import requests
+try:
+    html = requests.get(&quot;https://gitee.com/rspec/rspec-support&quot;, timeout=5).text
+    print(&apos;success&apos;)
+except requests.exceptions.RequestException as e:
+    print(e)
+print(&apos;byebye&apos;)
+EOF
+
+python3 zhengyaohui_ci_test.py
+set -x</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.20">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>3</timeoutMinutes>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

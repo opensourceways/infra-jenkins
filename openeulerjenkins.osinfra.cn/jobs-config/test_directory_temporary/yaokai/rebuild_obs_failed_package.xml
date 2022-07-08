@@ -1,0 +1,133 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>重新构建obs工程相应分支的编译失败的rpm包</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>10</daysToKeep>
+        <numToKeep>30</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>obs_project_name</name>
+          <description>选择即将要触发的二进制包对应的工程</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler:20.03:LTS</string>
+              <string>openEuler:20.03:LTS:Next</string>
+              <string>openEuler:20.03:LTS:Next:Epol</string>
+              <string>openEuler:20.03:LTS:SP1</string>
+              <string>openEuler:20.03:LTS:SP2</string>
+              <string>openEuler:20.03:LTS:SP3</string>
+              <string>openEuler:20.09</string>
+              <string>openEuler:21.03</string>
+              <string>openEuler:Factory</string>
+              <string>openEuler:Mainline</string>
+              <string>openEuler:mytest:old</string>
+              <string>home:yykk:branches:openEuler:Mainline</string>
+              <string>openEuler:20.03:LTS:Next:Bak-rec</string>
+              <string>Next-rec-bak</string>
+              <string>Next-rec</string>
+              <string>openEuler:20.03:LTS:SP2:oepkg:IPC</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>arch</name>
+          <description>选择对应的架构</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>aarch64</string>
+              <string>x86_64</string>
+              <string>all</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>package_name</name>
+          <description>输入rpm源码包名
+all:触发所有状态为failed的rpm包重编译
+package_name:个别状态为failed的rpm包重编译</description>
+          <defaultValue>all</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>OBS_BACKEND_SERVER_IP</name>
+          <defaultValue>172.16.1.89</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>sudo su - root &lt;&lt;EOF
+
+git config --global http.sslVerify false
+git config --global http.postBuffer 52428800
+git config --global user.email &quot;80474298@qq.com&quot;
+git config --global user.name &quot;openeuler-ci-bot&quot;
+git config --global pull.ff only
+
+sudo yum install expect -y
+set +e
+rm -rf my-ci
+set -e
+git clone https://gitee.com/yaokai13/my-ci.git
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; FEOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+FEOF
+
+cat ~/.oscrc
+cd my-ci/bash
+bash -x rebuild_obs_failed_package.sh $obs_project_name $package_name $arch
+EOF</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

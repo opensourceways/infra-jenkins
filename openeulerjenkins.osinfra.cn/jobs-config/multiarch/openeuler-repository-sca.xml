@@ -1,0 +1,144 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.42">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters>
+        <string>merge_dir</string>
+        <string>branches</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>openeuler仓库全版本代码片段扫描</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>merge_dir</name>
+          <defaultValue>CODE</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branches</name>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers/>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
+    <script>#!groovy
+import groovy.json.*
+def static_result = &apos;success&apos;
+// def repoUrls = [&apos;https://gitee.com/openeuler/secGear.git&apos;]
+def repoUrls = [&apos;https://gitee.com/openeuler/kernel.git&apos;]
+
+pipeline {
+	agent {
+		node { 
+			label &quot;k8s-x86-oe&quot; 
+		}
+	}
+	parameters {
+		string(name: &apos;merge_dir&apos;, defaultValue: &apos;CODE&apos;)
+		string(name: &apos;branches&apos;, defaultValue: &apos;master&apos;)
+   }
+	stages {
+		stage (&apos;SCANOSS&apos;)  {
+		    agent {
+				node { 
+					label &quot;k8s-x86-oe&quot; 
+				}
+			}
+			environment {
+			    scanoss_api_key = credentials(&apos;scanoss-api-key&apos;)
+			 //   scp_key = credentials(&apos;11608799-cfc7-42c1-8b38-462a4cbdcdee&apos;)
+			    scp_key = credentials(&apos;update-publish-key&apos;)
+			}
+			steps (&apos;sonar-steps&apos;) {
+				script {
+				    cleanWs();
+				    def repo_server = &quot;121.36.53.23&quot;;
+				    def sca_server = &quot;https://sca.osinfra.cn/api/scan/save&quot;;
+				    // def sca_server = &quot;http://159.138.49.20:39100/api/scan/save&quot;;
+			    	for(int i=0;i&lt;repoUrls.size();i++){
+    			        def repoUrl = repoUrls.get(i);
+    			        def codeDir = &quot;${merge_dir}_${i}&quot;;
+    			        echo &quot;codeDir: ${codeDir}&quot;
+    			        echo &quot;repoUrl-wxj: ${repoUrl}&quot;
+    			        echo &quot;scp_key: ${scp_key}&quot;
+    			        
+    			        try{
+    			            checkout([$class: &apos;GitSCM&apos;, branches: [[name: &apos;*/${branches}&apos;]], extensions: [[$class: &apos;RelativeTargetDirectory&apos;, relativeTargetDir: &quot;${codeDir}&quot;]], userRemoteConfigs: [[url: &quot;${repoUrl}&quot;]]])
+							
+							echo &quot;-------------------wxj parameter info begin-------------------&quot;	  
+    						echo &quot;url: &apos;${repoUrl}&apos; \n&quot;
+    						echo &quot;relativeTargetDir: &apos;${codeDir}&apos; \n&quot;
+    						echo &quot;branches: &apos;${branches}&apos; \n&quot;
+
+    						echo &quot;-------------------wxj parameter info end-------------------&quot;
+    						
+    						echo &quot;-------------------get token---------------------------&quot;
+    						def authcode = &quot;eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RAMTIzNC5jb20ifQ.jcROsr6ktxQNujA-9w2CR_tLFbBliaivqojzGQ5bePI&quot; 
+                            def gtoken = httpRequest contentType: &apos;APPLICATION_JSON&apos;,
+                                                           httpMode: &quot;GET&quot;,
+							                               url: &quot;https://api.osinfra.cn/sca/gateway/scan/getToken?coke=${authcode}&quot;
+							echo &quot;code request return: ${gtoken}&quot;
+							def token = gtoken.content.split(&apos;&quot;&apos;)[9]
+							echo &quot;-------------------get token end---------------------------&quot;
+							
+    						echo &quot;-------------------deal modify code-------------------&quot;
+    						
+    				// 		echo &quot;/home/jenkins/.local/bin/scanner.py --blacklist /home/jenkins/ci_check/src/conf/deny_list.sbom --key ${scanoss_api_key} --apiurl https://shenzhen.scanoss.com/api/scan/direct ${WORKSPACE}/${codeDir} &gt; openeuler-repository-sca--${BUILD_NUMBER}--${i}.json&quot;
+    						sh  &quot;/home/jenkins/.local/bin/scanner.py --blacklist /home/jenkins/ci_check/src/conf/deny_list.sbom --key ${scanoss_api_key} --apiurl https://shenzhen.scanoss.com/api/scan/direct ${WORKSPACE}/${codeDir} &gt; openeuler-repository-sca--${BUILD_NUMBER}--${i}.json&quot;
+    						
+    				// 		echo  &quot;scp -i ${scp_key} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR openeuler-repository-sca--${BUILD_NUMBER}--${i}.json root@${repo_server}:/repo/openeuler/sca_scanoss_repository/openeuler-repository-sca--${BUILD_NUMBER}--${i}.json&quot;
+    						sh  &quot;scp -i ${scp_key} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR openeuler-repository-sca--${BUILD_NUMBER}--${i}.json root@${repo_server}:/repo/openeuler/sca_scanoss_repository/openeuler-repository-sca--${BUILD_NUMBER}--${i}.json&quot;
+
+    						def map = [&quot;reposUrl&quot;:&quot;${repoUrl}&quot;,&quot;resultUrl&quot;:&quot;http://${repo_server}/sca_scanoss_repository/openeuler-repository-sca--${BUILD_NUMBER}--${i}.json&quot;,&quot;branch&quot;:&quot;${branches}&quot;,&quot;nativePath&quot;:&quot;${WORKSPACE}/${codeDir}/&quot;,&quot;token&quot;:&quot;${token}&quot;]
+    			            def JsonData = JsonOutput.toJson(map)
+    						echo JsonData
+    			           
+    						def resp = httpRequest contentType: &apos;APPLICATION_JSON&apos;,
+    													  httpMode: &quot;POST&quot;,
+    													  customHeaders: [
+    													  
+    													   [name: &quot;Accept&quot;, value: &quot;*/*&quot;],
+    													   [name: &quot;Accept-Encoding&quot;, value: &quot;gzip,deflate,br&quot;],
+    													   [name: &quot;Connection&quot;, value: &quot;keep-alive&quot;]
+    													 ],
+    													 requestBody: JsonData,
+    													 url: &quot;https://api.osinfra.cn/sca/gateway/scan/save&quot;
+    				        echo &quot;http return: ${resp}&quot;
+			    	    }
+			    	    catch(all) {
+						    static_result=sh(returnStdout: false, script: &apos;echo false&apos;)
+					    }
+			    	}
+				}
+			}
+		}
+	}
+} // pipeline end</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>true</disabled>
+</flow-definition>

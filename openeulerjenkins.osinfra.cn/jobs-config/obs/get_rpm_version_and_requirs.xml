@@ -1,0 +1,186 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>获取相应二进制仓的对应rpm列表以及安装依赖</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>10</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>obs_project_name</name>
+          <description>obs 项目名称</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler:Factory</string>
+              <string>openEuler:Mainline</string>
+              <string>openEuler:Epol</string>
+              <string>openEuler:Extras</string>
+              <string>openEuler:20.03:LTS</string>
+              <string>openEuler:20.03:LTS:Extras</string>
+              <string>openEuler:20.03:LTS:Next</string>
+              <string>openEuler:20.03:LTS:SP1</string>
+              <string>openEuler:20.09</string>
+              <string>openEuler:20.09:Epol</string>
+              <string>openEuler:20.09:Extras</string>
+              <string>openEuler:Mainline:RISC-V</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>obs_repositories</name>
+          <description>二进制依赖仓库名称</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler:selfbuild:BaseOS/factory_aarch64</string>
+              <string>openEuler:selfbuild:BaseOS/factory_x86_64</string>
+              <string>openEuler:selfbuild:BaseOS/mainline_standard_aarch64</string>
+              <string>openEuler:selfbuild:BaseOS/mainline_standard_x86_64</string>
+              <string>openEuler:selfbuild:BaseOS/epol_aarch64</string>
+              <string>openEuler:selfbuild:BaseOS/epol_x86_64</string>
+              <string>openEuler:selfbuild:BaseOS/extras_standard_aarch64</string>
+              <string>openEuler:selfbuild:BaseOS/extras_standard_x86_64</string>
+              <string>openEuler:20.03:LTS:selfbuild:BaseOS/openeuler_20.03_lts_aarch64</string>
+              <string>openEuler:20.03:LTS:selfbuild:BaseOS/openeuler_20.03_lts_x86_64</string>
+              <string>openEuler:20.03:LTS:selfbuild:BaseOS/openeuler_20.03_lts_extras_aarch64</string>
+              <string>openEuler:20.03:LTS:selfbuild:BaseOS/openeuler_20.03_lts_extras_x86_64</string>
+              <string>openEuler:20.03:LTS:selfbuild:BaseOS/openeuler_20.03_lts_next_aarch64</string>
+              <string>openEuler:20.03:LTS:selfbuild:BaseOS/openeuler_20.03_lts_next_x86_64</string>
+              <string>openEuler:20.03:LTS:SP1:selfbuild:BaseOS/openeuler_20.03_lts_sp1_aarch64</string>
+              <string>openEuler:20.03:LTS:SP1:selfbuild:BaseOS/openeuler_20.03_lts_sp1_x86_64</string>
+              <string>openEuler:20.09:selfbuild:BaseOS/openEuler_20.09_aarch64</string>
+              <string>openEuler:20.09:selfbuild:BaseOS/openEuler_20.09_x86_64</string>
+              <string>openEuler:20.09:selfbuild:BaseOS/openEuler_20.09_EPOL_aarch64</string>
+              <string>openEuler:20.09:selfbuild:BaseOS/openEuler_20.09_EPOL_x86_64</string>
+              <string>openEuler:20.09:selfbuild:BaseOS/openEuler_20.09_extras_aarch64</string>
+              <string>openEuler:20.09:selfbuild:BaseOS/openEuler_20.09_extras_x86_64</string>
+              <string>openEuler:selfbuild:function/zhangxz_riscv64</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>repo</name>
+          <description></description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>standard_aarch64</string>
+              <string>standard_x86_64</string>
+              <string>standard_riscv64</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>arch</name>
+          <description>需要同步的架构</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>aarch64</string>
+              <string>x86_64</string>
+              <string>riscv64</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>pkgname</name>
+          <description></description>
+          <defaultValue>&apos;&apos;</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>OBS_BACKEND_SERVER_IP</name>
+          <description></description>
+          <defaultValue>172.16.1.95</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>if [[ &quot;${obs_repositories}&quot; =~ &quot;aarch64&quot; ]];then
+	if [[ &quot;${repo}&quot; =~ &quot;x86_64&quot; ]];then
+    	exit 1
+    fi
+    if [[ &quot;${arch}&quot; =~ &quot;x86_64&quot; ]];then
+    	exit 1
+    fi
+fi
+
+
+if [[ &quot;${obs_repositories}&quot; =~ &quot;x86_64&quot; ]];then
+	if [[ &quot;${repo}&quot; =~ &quot;aarch64&quot; ]];then
+    	exit 1
+    fi
+    if [[ &quot;${arch}&quot; =~ &quot;aarch64&quot; ]];then
+    	exit 1
+    fi
+fi
+
+git config --global http.postBuffer 52428800
+
+
+if [ -d $WORKSPACE/openeuler_jenkins/ci_check/ ];then  
+    rm -rf $WORKSPACE/openeuler_jenkins/ci_check/
+fi
+
+if [ -d $WORKSPACE/openeuler_jenkins/my-ci/ ];then  
+    rm -rf $WORKSPACE/openeuler_jenkins/my-ci/
+fi
+
+mkdir -p $WORKSPACE/openeuler_jenkins
+cd $WORKSPACE/openeuler_jenkins/
+
+git clone --depth 1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/yaokai13/my-ci.git
+git clone --depth 1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/src-openeuler/ci_check.git
+
+cd $WORKSPACE/openeuler_jenkins/my-ci/bash
+
+TOOLS=&quot;${WORKSPACE}/openeuler_jenkins/ci_check/lib/&quot;
+bash -x ${TOOLS}/sshscp.sh -p &quot;${OBS_BACKEND_PWD}&quot; -s &quot;get_rpm_version_and_requirs.py&quot; -d &quot;${OBS_BACKEND_SERVER_IP}:~&quot;
+bash -x ${TOOLS}/sshcmd.sh -c &quot;python3 get_rpm_version_and_requirs.py ${obs_project_name} ${obs_repositories} ${pkgname} ${repo} ${arch} &quot; -m &quot;${OBS_BACKEND_SERVER_IP}&quot; -u &quot;${OBS_BACKEND_USR}&quot; -p &quot;${OBS_BACKEND_PWD}&quot;</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>5a700b90-012d-48a8-b6c6-64a5ebaf82e9</credentialsId>
+          <usernameVariable>OBS_BACKEND_USR</usernameVariable>
+          <passwordVariable>OBS_BACKEND_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

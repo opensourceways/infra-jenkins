@@ -1,0 +1,277 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>更新软件包的二进制到服务器&#xd;
+可在该网站查看结果：http://121.36.84.172/repo.openeuler.org/</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:zhangtao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:zhangtao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:zhangtao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:zhangtao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:zhangtao</permission>
+      <permission>hudson.model.Item.Build:authenticated</permission>
+      <permission>hudson.model.Item.Build:chemingdao</permission>
+      <permission>hudson.model.Item.Build:zhangtao</permission>
+      <permission>hudson.model.Item.Cancel:chemingdao</permission>
+      <permission>hudson.model.Item.Cancel:zhangtao</permission>
+      <permission>hudson.model.Item.Configure:zhangtao</permission>
+      <permission>hudson.model.Item.Delete:zhangtao</permission>
+      <permission>hudson.model.Item.Discover:chemingdao</permission>
+      <permission>hudson.model.Item.Discover:zhangtao</permission>
+      <permission>hudson.model.Item.Move:zhangtao</permission>
+      <permission>hudson.model.Item.Read:authenticated</permission>
+      <permission>hudson.model.Item.Read:chemingdao</permission>
+      <permission>hudson.model.Item.Read:zhangtao</permission>
+      <permission>hudson.model.Item.Workspace:chemingdao</permission>
+      <permission>hudson.model.Item.Workspace:zhangtao</permission>
+      <permission>hudson.model.Run.Delete:chemingdao</permission>
+      <permission>hudson.model.Run.Delete:zhangtao</permission>
+      <permission>hudson.model.Run.Replay:chemingdao</permission>
+      <permission>hudson.model.Run.Replay:zhangtao</permission>
+      <permission>hudson.model.Run.Update:chemingdao</permission>
+      <permission>hudson.model.Run.Update:zhangtao</permission>
+      <permission>hudson.scm.SCM.Tag:chemingdao</permission>
+      <permission>hudson.scm.SCM.Tag:zhangtao</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>action</name>
+          <description>create：创建update目录并拷贝rpm到(121.36.84.172)上。（该功能需要的参数为：obs_project，pkgnamelist，update_dir【可选】，package_family）
+del_pkg_rpm：删除update目录中软件包的二进制。（该功能需要的参数为：obs_project，pkgnamelist，update_dir，package_family）
+update：更新update目录中一个或多个软件包的二进制。（该功能需要的参数为：obs_project，pkgnamelist，update_dir，package_family）
+del_update_dir：删除172机器上指定的update目录。（该功能需要的参数为：obs_project，update_dir，package_family） 注意：当删除多版本EPOL下的目录时，(1) package_family参数选择EPOL时，会删除整个创建好的update_xxx目录; (2)选择EPOL-main时，会删除update_xxx下的main目录；(3)选择EPOL-multi_version时，会删除update_xxx下的multi_version目录。
+release：发布指定172机器update目录的所有软件包或指定软件包到发布机器(121.36.97.194)上。（该功能需要的参数为：obs_project，pkgnamelist【可选】，update_dir，package_family）</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>create</string>
+              <string>del_pkg_rpm</string>
+              <string>update</string>
+              <string>del_update_dir</string>
+              <string>release</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>obs_project</name>
+          <description>obs工程名</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string></string>
+              <string>openEuler:20.09</string>
+              <string>openEuler:20.09:Epol</string>
+              <string>openEuler:20.03:LTS</string>
+              <string>openEuler:20.03:LTS:SP1</string>
+              <string>openEuler:20.03:LTS:SP1:Epol</string>
+              <string>openEuler:20.03:LTS:SP2</string>
+              <string>openEuler:20.03:LTS:SP2:Epol</string>
+              <string>openEuler:21.09</string>
+              <string>openEuler:21.09:Epol</string>
+              <string>openEuler:20.03:LTS:SP3</string>
+              <string>openEuler:20.03:LTS:SP3:Epol</string>
+              <string>openEuler:22.03:LTS</string>
+              <string>openEuler:22.03:LTS:Epol</string>
+              <string>openEuler:22.03:LTS:Epol:Multi-Version:OpenStack:Train</string>
+              <string>openEuler:22.03:LTS:Epol:Multi-Version:OpenStack:Wallaby</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>pkgnamelist</name>
+          <description>需要更新的软件包名称列表
+单包或多包同步，请参照如下格式：
+package1,pacakge,package3 ...</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>update_dir</name>
+          <description>update_xxxx目录名
+如：update_20210201</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>package_family</name>
+          <description>standard：正常目录
+EPOL：EPOL正常目录
+EPOL-main：多版本EPOL目录（SP2，21.09，SP3，22.03-LTS）
+EPOL-multi_version：多版本EPOL目录（SP2，21.09，SP3，22.03-LTS）</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string></string>
+              <string>standard</string>
+              <string>EPOL</string>
+              <string>EPOL-main</string>
+              <string>EPOL-multi_version</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/openeuler/openeuler-os-build.git</url>
+        <credentialsId>openeuler_ci_bot</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>git config --global http.postBuffer 52428800
+
+if [[ ${obs_project} =~ &quot;SP2:Epol&quot; ]];then
+	if [[ ! ${package_family} =~ &quot;EPOL-&quot; ]];then
+    	echo &quot;openEuler:20.03:LTS:SP2:Epol工程必须选择EPOL-main或EPOL-multi_version&quot;
+        exit 1
+    fi
+fi
+
+if [[ ${obs_project} =~ &quot;SP3:Epol&quot; ]];then
+	if [[ ! ${package_family} =~ &quot;EPOL-&quot; ]];then
+    	echo &quot;openEuler:20.03:LTS:SP3:Epol工程必须选择EPOL-main或EPOL-multi_version&quot;
+        exit 1
+    fi
+fi
+
+if [[ ${obs_project} =~ &quot;Multi-Version&quot; ]];then
+	if [[ ${package_family} != &quot;EPOL-multi_version&quot; ]];then
+    	echo &quot;多版本工程必须选择EPOL-multi_version&quot;
+        exit 1
+    fi
+fi
+
+if [[ ${obs_project} =~ &quot;Epol&quot; ]];then
+	if [[ ! ${package_family} =~ &quot;EPOL&quot; ]];then
+    	echo &quot;请检查工程名（obs_project）和package_family是否匹配！！！&quot;
+        exit 1
+    fi
+else
+	if [[ ${package_family} =~ &quot;EPOL&quot; ]];then
+    	echo &quot;请检查工程名（obs_project）和package_family是否匹配！！！&quot;
+        exit 1
+    fi
+fi
+
+
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; EOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+EOF
+
+export update_ip=&quot;121.36.84.172&quot;
+export release_ip=&quot;121.36.97.194&quot;
+
+cd $WORKSPACE/script/tools
+
+
+pkgnamelist=`echo ${pkgnamelist}|sed s/[[:space:]]//g`
+
+if [ ${action} == &quot;create&quot; ];then
+	if [ &quot;x$obs_project&quot; == &quot;x&quot; ] || [ &quot;x$pkgnamelist&quot; == &quot;x&quot; ] || [ &quot;x$package_family&quot; == &quot;x&quot; ];then 
+		echo &quot;obs_project或pkgnamelist为空！&quot;
+    	exit 1
+	fi
+	bash pkg_rpm_update.sh ${obs_project} ${pkgnamelist} ${update_key} ${action} ${package_family} ${update_dir}
+fi
+
+if [ ${action} == &quot;release&quot; ];then
+	if [ &quot;x$obs_project&quot; == &quot;x&quot; ] || [ &quot;x$update_dir&quot; == &quot;x&quot; ] || [ &quot;x$package_family&quot; == &quot;x&quot; ];then 
+		echo &quot;obs_project或update_dir为空！&quot;
+    	exit 1
+	fi
+	bash pkg_rpm_update.sh ${obs_project} ${update_dir} ${update_key} ${action} ${package_family} ${pkgnamelist}
+fi
+
+if [ ${action} == &quot;update&quot; ];then
+	if [ &quot;x$obs_project&quot; == &quot;x&quot; ] || [ &quot;x$pkgnamelist&quot; == &quot;x&quot; ] || [ &quot;x$update_dir&quot; == &quot;x&quot; ] || [ &quot;x$package_family&quot; == &quot;x&quot; ];then
+    	echo &quot;obs_project或pkgnamelist或update_dir为空！&quot;
+        exit 1
+    fi
+    bash -x pkg_rpm_update.sh ${obs_project} ${pkgnamelist} ${update_key} ${action} ${update_dir} ${package_family}
+fi
+
+if [ ${action} == &quot;del_update_dir&quot; ];then
+	if [ &quot;x$obs_project&quot; == &quot;x&quot; ] || [ &quot;x$update_dir&quot; == &quot;x&quot; ] || [ &quot;x$package_family&quot; == &quot;x&quot; ];then
+    	echo &quot;obs_project或update_dir为空！&quot;
+        exit 1
+    fi
+    bash pkg_rpm_update.sh ${obs_project} ${update_dir} ${update_key} ${action} ${package_family}
+fi
+
+if [ ${action} == &quot;del_pkg_rpm&quot; ];then
+	if [ &quot;x$obs_project&quot; == &quot;x&quot; ] || [ &quot;x$pkgnamelist&quot; == &quot;x&quot; ] || [ &quot;x$update_dir&quot; == &quot;x&quot; ] || [ &quot;x$package_family&quot; == &quot;x&quot; ];then
+    	echo &quot;obs_project或pkgnamelist或update_dir为空！&quot;
+        exit 1
+    fi
+    bash -x pkg_rpm_update.sh ${obs_project} ${pkgnamelist} ${update_key} ${action} ${update_dir} ${package_family}
+    
+fi</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>update-publish-key</credentialsId>
+          <variable>update_key</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

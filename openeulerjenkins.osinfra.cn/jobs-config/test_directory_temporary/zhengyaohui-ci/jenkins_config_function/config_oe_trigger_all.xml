@@ -1,0 +1,415 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy"/>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>action</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>create</string>
+              <string>update</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>job_path</name>
+          <defaultValue>multiarch-ci-test/openeuler/trigger</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>jobs</name>
+          <defaultValue>yocto-meta-openeuler</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>owner</name>
+          <defaultValue>zhengyaohui</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-soe-zhengyaohui</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>cat &gt; new_config.xml &lt;&lt; &quot;EOF&quot;
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;project&gt;
+  &lt;actions/&gt;
+  &lt;description/&gt;
+  &lt;keepDependencies&gt;false&lt;/keepDependencies&gt;
+  &lt;properties&gt;
+    &lt;hudson.security.AuthorizationMatrixProperty&gt;
+      &lt;inheritanceStrategy class=&quot;org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy&quot;/&gt;
+    &lt;/hudson.security.AuthorizationMatrixProperty&gt;
+    &lt;com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin=&quot;build-failure-analyzer@1.27.1&quot;&gt;
+      &lt;doNotScan&gt;false&lt;/doNotScan&gt;
+    &lt;/com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty&gt;
+    &lt;com.gitee.jenkins.connection.GiteeConnectionProperty plugin=&quot;gitee@1.1.12&quot;&gt;
+      &lt;giteeConnection&gt;Gitee&lt;/giteeConnection&gt;
+    &lt;/com.gitee.jenkins.connection.GiteeConnectionProperty&gt;
+    &lt;com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin=&quot;naginator@1.18.1&quot;&gt;
+      &lt;optOut&gt;false&lt;/optOut&gt;
+    &lt;/com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty&gt;
+    &lt;com.sonyericsson.rebuild.RebuildSettings plugin=&quot;rebuild@1.31&quot;&gt;
+      &lt;autoRebuild&gt;false&lt;/autoRebuild&gt;
+      &lt;rebuildDisabled&gt;false&lt;/rebuildDisabled&gt;
+    &lt;/com.sonyericsson.rebuild.RebuildSettings&gt;
+  &lt;/properties&gt;
+  &lt;scm class=&quot;hudson.plugins.git.GitSCM&quot; plugin=&quot;git@3.11.0&quot;&gt;
+    &lt;configVersion&gt;2&lt;/configVersion&gt;
+    &lt;userRemoteConfigs&gt;
+      &lt;hudson.plugins.git.UserRemoteConfig&gt;
+        &lt;name&gt;origin&lt;/name&gt;
+        &lt;refspec&gt;+refs/pull/${giteePullRequestIid}/MERGE:refs/pull/${giteePullRequestIid}/MERGE&lt;/refspec&gt;
+        &lt;url&gt;https://gitee.com/openeuler/${giteeRepoName}.git&lt;/url&gt;
+        &lt;credentialsId&gt;openeuler_ci_bot&lt;/credentialsId&gt;
+      &lt;/hudson.plugins.git.UserRemoteConfig&gt;
+    &lt;/userRemoteConfigs&gt;
+    &lt;branches&gt;
+      &lt;hudson.plugins.git.BranchSpec&gt;
+        &lt;name&gt;pull/${giteePullRequestIid}/MERGE&lt;/name&gt;
+      &lt;/hudson.plugins.git.BranchSpec&gt;
+    &lt;/branches&gt;
+    &lt;doGenerateSubmoduleConfigurations&gt;false&lt;/doGenerateSubmoduleConfigurations&gt;
+    &lt;submoduleCfg class=&quot;list&quot;/&gt;
+    &lt;extensions&gt;
+      &lt;hudson.plugins.git.extensions.impl.CleanBeforeCheckout/&gt;
+      &lt;hudson.plugins.git.extensions.impl.CloneOption&gt;
+        &lt;shallow&gt;true&lt;/shallow&gt;
+        &lt;noTags&gt;true&lt;/noTags&gt;
+        &lt;reference/&gt;
+        &lt;depth&gt;2&lt;/depth&gt;
+        &lt;honorRefspec&gt;true&lt;/honorRefspec&gt;
+      &lt;/hudson.plugins.git.extensions.impl.CloneOption&gt;
+      &lt;hudson.plugins.git.extensions.impl.RelativeTargetDirectory&gt;
+        &lt;relativeTargetDir&gt;${giteeRepoName}&lt;/relativeTargetDir&gt;
+      &lt;/hudson.plugins.git.extensions.impl.RelativeTargetDirectory&gt;
+    &lt;/extensions&gt;
+  &lt;/scm&gt;
+  &lt;assignedNode&gt;k8s-x86-oe&lt;/assignedNode&gt;
+  &lt;canRoam&gt;false&lt;/canRoam&gt;
+  &lt;disabled&gt;false&lt;/disabled&gt;
+  &lt;blockBuildWhenDownstreamBuilding&gt;false&lt;/blockBuildWhenDownstreamBuilding&gt;
+  &lt;blockBuildWhenUpstreamBuilding&gt;false&lt;/blockBuildWhenUpstreamBuilding&gt;
+  &lt;triggers&gt;
+    &lt;org.jenkinsci.plugins.gwt.GenericTrigger plugin=&quot;generic-webhook-trigger@1.67&quot;&gt;
+      &lt;spec/&gt;
+      &lt;genericVariables&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;giteeRepoName&lt;/key&gt;
+          &lt;value&gt;repository.name&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;giteePullRequestIid&lt;/key&gt;
+          &lt;value&gt;pull_request.number&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;giteeSourceBranch&lt;/key&gt;
+          &lt;value&gt;pull_request.head.ref&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;giteeTargetBranch&lt;/key&gt;
+          &lt;value&gt;pull_request.base.ref&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;giteeSourceNamespace&lt;/key&gt;
+          &lt;value&gt;pull_request.head.repo.namespace&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;giteeTargetNamespace&lt;/key&gt;
+          &lt;value&gt;pull_request.base.repo.namespace&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;giteeCommitter&lt;/key&gt;
+          &lt;value&gt;pull_request.user.login&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;comment&lt;/key&gt;
+          &lt;value&gt;comment.body&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;commentID&lt;/key&gt;
+          &lt;value&gt;comment.id&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;jobTriggerTime&lt;/key&gt;
+          &lt;value&gt;comment.updated_at&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;prCreateTime&lt;/key&gt;
+          &lt;value&gt;pull_request.created_at&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;triggerLink&lt;/key&gt;
+          &lt;value&gt;comment.html_url&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;PULL_NUMBER&lt;/key&gt;
+          &lt;value&gt;pull_request.number&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;REPO_OWNER&lt;/key&gt;
+          &lt;value&gt;repository.namespace&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+        &lt;org.jenkinsci.plugins.gwt.GenericVariable&gt;
+          &lt;expressionType&gt;JSONPath&lt;/expressionType&gt;
+          &lt;key&gt;REPO_NAME&lt;/key&gt;
+          &lt;value&gt;repository.name&lt;/value&gt;
+          &lt;regexpFilter/&gt;
+          &lt;defaultValue/&gt;
+        &lt;/org.jenkinsci.plugins.gwt.GenericVariable&gt;
+      &lt;/genericVariables&gt;
+      &lt;regexpFilterText&gt;$giteeTargetNamespace $giteeRepoName $commentEOF&lt;/regexpFilterText&gt;
+      &lt;regexpFilterExpression&gt;wanghuan158 yocto-meta-openeuler ([\s\S]*Hi[\s\S]*|/retest)EOF&lt;/regexpFilterExpression&gt;
+      &lt;printPostContent&gt;false&lt;/printPostContent&gt;
+      &lt;printContributedVariables&gt;false&lt;/printContributedVariables&gt;
+      &lt;causeString&gt;&quot;$giteeRepoName&quot; trigger by pull request $giteePullRequestIid  [$giteeSourceNamespace:$giteeSourceBranch -&amp;gt; $giteeTargetNamespace:$giteeTargetBranch]&lt;/causeString&gt;
+      &lt;token/&gt;
+      &lt;silentResponse&gt;false&lt;/silentResponse&gt;
+      &lt;overrideQuietPeriod&gt;false&lt;/overrideQuietPeriod&gt;
+    &lt;/org.jenkinsci.plugins.gwt.GenericTrigger&gt;
+  &lt;/triggers&gt;
+  &lt;concurrentBuild&gt;false&lt;/concurrentBuild&gt;
+  &lt;builders&gt;
+    &lt;hudson.tasks.Shell&gt;
+      &lt;command&gt;#!/bin/bash
+set +x
+sudo cp -r /home/jenkins/.local/lib/python3.7/site-packages/* /usr/lib/python3.7/site-packages 2&gt;&amp;1 &gt; /dev/null
+sudo cp /home/jenkins/.local/bin/scanoss-py /usr/bin 2&gt;&amp;1 &gt; /dev/null;set -x&lt;/command&gt;
+      &lt;configuredLocalRules/&gt;
+    &lt;/hudson.tasks.Shell&gt;
+    &lt;io.jenkins.plugins.sample.SCABuilder plugin=&quot;scanossprjenkins@1.0SNAPSHOT&quot;&gt;
+      &lt;method&gt;API&lt;/method&gt;
+      &lt;methodChoose&gt;1&lt;/methodChoose&gt;
+      &lt;urlChoose/&gt;
+      &lt;credentialsId/&gt;
+      &lt;scanossCredentials/&gt;
+      &lt;url&gt;https://api.osinfra.cn&lt;/url&gt;
+      &lt;sbomFile&gt;/home/jenkins/ci_check/src/conf/deny_list.sbom&lt;/sbomFile&gt;
+      &lt;authCode&gt;eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RANDMyMS5jb20ifQ.1WBjnBDgNsPfAVqxQyXDl-PS7r3L_h4OR45rNKPLJeE&lt;/authCode&gt;
+    &lt;/io.jenkins.plugins.sample.SCABuilder&gt;
+    &lt;hudson.tasks.Shell&gt;
+      &lt;command&gt;#!/bin/bash
+
+set +x
+owner=&quot;openeuler&quot;
+shell_path=/home/jenkins/ci_check2
+mkdir -p ${shell_path}
+rm -rf ${shell_path}
+#git clone https://gitee.com/alichinese/openeuler-jenkins.git  ${shell_path}
+git clone -b for_parted https://gitee.com/wanghuan158/openeuler-jenkins.git  ${shell_path}
+export PYTHONPATH=/home/jenkins/ci_check2
+export PATH=$PATH:/home/jenkins/.local/bin
+output=&quot;scanoss_result_&quot;${BUILD_NUMBER}&quot;.json&quot;
+CodeCheckAPIKEY=&quot;q28abtBDCnrcsXeVRxulPEIeYwWdcM5g&quot;
+python3 /home/jenkins/ci_check2/src/ac/framework/ac.py -w ${WORKSPACE} -r ${giteeRepoName} -o acfile -t ${GiteeToken} -p ${giteePullRequestIid} -b ${giteeTargetBranch} -a ${GiteeUserPassword} -x ${prCreateTime} -l ${triggerLink} -z ${jobTriggerTime} -m &quot;${comment}&quot; -i ${commentID} -e ${giteeCommitter} -c ${owner} --scanoss-output ${output} --codecheck-api-key ${CodeCheckAPIKEY}
+set -x
+&lt;/command&gt;
+      &lt;configuredLocalRules/&gt;
+    &lt;/hudson.tasks.Shell&gt;
+    &lt;EnvInjectBuilder plugin=&quot;envinject@2.3.0&quot;&gt;
+      &lt;info&gt;
+        &lt;propertiesFilePath&gt;acfile&lt;/propertiesFilePath&gt;
+      &lt;/info&gt;
+    &lt;/EnvInjectBuilder&gt;
+  &lt;/builders&gt;
+  &lt;publishers&gt;
+    &lt;hudson.plugins.parameterizedtrigger.BuildTrigger plugin=&quot;parameterized-trigger@2.37&quot;&gt;
+      &lt;configs&gt;
+        &lt;hudson.plugins.parameterizedtrigger.BuildTriggerConfig&gt;
+          &lt;configs&gt;
+            &lt;hudson.plugins.parameterizedtrigger.PredefinedBuildParameters&gt;
+              &lt;properties&gt;repo=${giteeRepoName}
+branch=${giteeSourceBranch}
+tbranch=${giteeTargetBranch}
+prid=${giteePullRequestIid}
+committer=${giteeCommitter}
+commentid=${commentID}&lt;/properties&gt;
+              &lt;textParamValueOnNewLine&gt;false&lt;/textParamValueOnNewLine&gt;
+            &lt;/hudson.plugins.parameterizedtrigger.PredefinedBuildParameters&gt;
+          &lt;/configs&gt;
+          &lt;projects&gt;multiarch/openeuler/x86-64/yocto-meta-openeuler,multiarch/openeuler/aarch64/yocto-meta-openeuler&lt;/projects&gt;
+          &lt;condition&gt;FAILED_OR_BETTER&lt;/condition&gt;
+          &lt;triggerWithNoParameters&gt;false&lt;/triggerWithNoParameters&gt;
+          &lt;triggerFromChildProjects&gt;false&lt;/triggerFromChildProjects&gt;
+        &lt;/hudson.plugins.parameterizedtrigger.BuildTriggerConfig&gt;
+      &lt;/configs&gt;
+    &lt;/hudson.plugins.parameterizedtrigger.BuildTrigger&gt;
+    &lt;join.JoinTrigger plugin=&quot;join@1.21&quot;&gt;
+      &lt;joinProjects/&gt;
+      &lt;joinPublishers&gt;
+        &lt;hudson.plugins.parameterizedtrigger.BuildTrigger plugin=&quot;parameterized-trigger@2.37&quot;&gt;
+          &lt;configs&gt;
+            &lt;hudson.plugins.parameterizedtrigger.BuildTriggerConfig&gt;
+              &lt;configs&gt;
+                &lt;hudson.plugins.parameterizedtrigger.PredefinedBuildParameters&gt;
+                  &lt;properties&gt;repo=${giteeRepoName}
+branch=${giteeSourceBranch}
+tbranch=${giteeTargetBranch}
+prid=${giteePullRequestIid}
+committer=${giteeCommitter}
+commentid=${commentID}
+ACL=${ACL}&lt;/properties&gt;
+                  &lt;textParamValueOnNewLine&gt;false&lt;/textParamValueOnNewLine&gt;
+                &lt;/hudson.plugins.parameterizedtrigger.PredefinedBuildParameters&gt;
+              &lt;/configs&gt;
+              &lt;projects&gt; multiarch/openeuler/comment/yocto-meta-openeuler&lt;/projects&gt;
+              &lt;condition&gt;ALWAYS&lt;/condition&gt;
+              &lt;triggerWithNoParameters&gt;false&lt;/triggerWithNoParameters&gt;
+              &lt;triggerFromChildProjects&gt;false&lt;/triggerFromChildProjects&gt;
+            &lt;/hudson.plugins.parameterizedtrigger.BuildTriggerConfig&gt;
+          &lt;/configs&gt;
+        &lt;/hudson.plugins.parameterizedtrigger.BuildTrigger&gt;
+      &lt;/joinPublishers&gt;
+      &lt;resultThreshold&gt;
+        &lt;name&gt;SUCCESS&lt;/name&gt;
+        &lt;ordinal&gt;0&lt;/ordinal&gt;
+        &lt;color&gt;BLUE&lt;/color&gt;
+        &lt;completeBuild&gt;true&lt;/completeBuild&gt;
+      &lt;/resultThreshold&gt;
+    &lt;/join.JoinTrigger&gt;
+  &lt;/publishers&gt;
+  &lt;buildWrappers&gt;
+    &lt;org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin=&quot;credentials-binding@1.23&quot;&gt;
+      &lt;bindings&gt;
+        &lt;org.jenkinsci.plugins.credentialsbinding.impl.StringBinding&gt;
+          &lt;credentialsId&gt;openeuler-ci-bot&lt;/credentialsId&gt;
+          &lt;variable&gt;GiteeToken&lt;/variable&gt;
+        &lt;/org.jenkinsci.plugins.credentialsbinding.impl.StringBinding&gt;
+        &lt;org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding&gt;
+          &lt;credentialsId&gt;openeuler_ci_bot&lt;/credentialsId&gt;
+          &lt;variable&gt;GiteeUserPassword&lt;/variable&gt;
+        &lt;/org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding&gt;
+        &lt;org.jenkinsci.plugins.credentialsbinding.impl.StringBinding&gt;
+          &lt;credentialsId&gt;scanoss-api-key&lt;/credentialsId&gt;
+          &lt;variable&gt;ScanOSSAPIKey&lt;/variable&gt;
+        &lt;/org.jenkinsci.plugins.credentialsbinding.impl.StringBinding&gt;
+        &lt;org.jenkinsci.plugins.credentialsbinding.impl.FileBinding&gt;
+          &lt;credentialsId&gt;11608799-cfc7-42c1-8b38-462a4cbdcdee&lt;/credentialsId&gt;
+          &lt;variable&gt;SaveBuildRPM2Repo&lt;/variable&gt;
+        &lt;/org.jenkinsci.plugins.credentialsbinding.impl.FileBinding&gt;
+      &lt;/bindings&gt;
+    &lt;/org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper&gt;
+    &lt;hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin=&quot;ansicolor@0.7.1&quot;&gt;
+      &lt;colorMapName&gt;vga&lt;/colorMapName&gt;
+    &lt;/hudson.plugins.ansicolor.AnsiColorBuildWrapper&gt;
+  &lt;/buildWrappers&gt;
+&lt;/project&gt;
+EOF
+
+cat &gt; hotfix.py &lt;&lt; EOF
+#!/usr/bin/python3
+from src.proxy.jenkins_proxy import JenkinsProxy
+import xml.etree.ElementTree as ET
+import re
+import sys
+jp = JenkinsProxy(&quot;http://jenkins.jenkins&quot;, &quot;$user&quot;, &quot;$token&quot;)
+new_config = open(&apos;new_config.xml&apos;).read( )
+#new_config = re.sub(&quot;openeuler-jenkins&quot;, sys.argv[1], new_config)
+
+new_config = re.sub(&quot;openeuler openeuler-jenkins&quot;, &quot;{} {}&quot;.format(&quot;$owner&quot;, sys.argv[1]), new_config)
+
+if &quot;multiarch-ci-test&quot; in &quot;${job_path}&quot;:
+    new_config = re.sub(&quot;multiarch/&quot;, &quot;multiarch-ci-test/&quot;, new_config)
+
+#print(new_config)
+print(&quot;${job_path}/{}&quot;.format(sys.argv[1]))
+jp.${action}_job(&quot;${job_path}/{}&quot;.format(sys.argv[1]), new_config)
+EOF
+
+
+rm -rf /home/jenkins/ci_check2
+git clone -b master https://gitee.com/openeuler/openeuler-jenkins /home/jenkins/ci_check2
+
+export PYTHONPATH=/home/jenkins/ci_check2
+for job in `echo $jobs`; do
+	python3 hotfix.py $job
+done</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>be1d7d09-4ab8-44da-ad52-82b3dcc795b0</credentialsId>
+          <usernameVariable>user</usernameVariable>
+          <passwordVariable>token</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

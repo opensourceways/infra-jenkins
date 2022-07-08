@@ -1,0 +1,67 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>sudo su - root&lt;&lt;EOF
+#gpgkey=http://repo.openeuler.org/openEuler-20.03-LTS-SP3/OS/aarch64/RPM-GPG-KEY-openEuler
+cat &gt; /etc/yum.repos.d/openEuler.repo &lt;&lt;EOF2
+
+
+[copy]
+name=copy
+#baseurl=https://repo.openeuler.org/openEuler-20.03-LTS-SP3/everything/aarch64/
+
+# backend_002
+#baseurl=http://120.46.140.206:82/openEuler:/22.03:/LTS:/Next/standard_aarch64/
+
+# other
+#baseurl=http://124.70.71.209:82/openEuler-Mainline-copy:/Bak/standard_aarch64/
+
+# backend_004
+baseurl=http://124.70.10.167:82/openEuler:/20.03:/LTS/standard_aarch64/
+
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.openeuler.org/openEuler-20.03-LTS-SP3/OS/aarch64/RPM-GPG-KEY-openEuler
+EOF2
+
+
+
+
+cat /etc/yum.repos.d/openEuler.repo
+
+yum install git -y
+EOF
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

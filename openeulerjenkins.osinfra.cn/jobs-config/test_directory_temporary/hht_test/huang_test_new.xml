@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-oe</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <org.jenkinsci.plugins.gwt.GenericTrigger plugin="generic-webhook-trigger@1.67">
+      <spec/>
+      <genericVariables>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeRepoName</key>
+          <value>repository.name</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteePullRequestIid</key>
+          <value>pull_request.number</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeSourceBranch</key>
+          <value>pull_request.head.ref</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeTargetBranch</key>
+          <value>pull_request.base.ref</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeSourceNamespace</key>
+          <value>pull_request.head.repo.namespace</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeTargetNamespace</key>
+          <value>pull_request.base.repo.namespace</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeCommitter</key>
+          <value>pull_request.user.login</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>comment</key>
+          <value>comment.body</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>commentID</key>
+          <value>comment.id</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>jobTriggerTime</key>
+          <value>comment.updated_at</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>prCreateTime</key>
+          <value>pull_request.created_at</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>triggerLink</key>
+          <value>comment.html_url</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>PULL_NUMBER</key>
+          <value>pull_request.number</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>REPO_OWNER</key>
+          <value>repository.namespace</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>REPO_NAME</key>
+          <value>repository.name</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+      </genericVariables>
+      <regexpFilterText>$giteeTargetNamespace $giteeRepoName $commentEOF</regexpFilterText>
+      <regexpFilterExpression>hht8 openeuler-jenkins (Hi[\s\S]*|/retest)EOF</regexpFilterExpression>
+      <printPostContent>false</printPostContent>
+      <printContributedVariables>false</printContributedVariables>
+      <causeString>Generic Cause</causeString>
+      <token/>
+      <silentResponse>false</silentResponse>
+      <overrideQuietPeriod>false</overrideQuietPeriod>
+    </org.jenkinsci.plugins.gwt.GenericTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>sudo cp -r /home/jenkins/.local/lib/python3.7/site-packages/* /usr/lib/python3.7/site-packages 2&gt;&amp;1 &gt; /dev/null
+sudo cp /home/jenkins/.local/bin/scanoss-py /usr/bin 2&gt;&amp;1 &gt; /dev/null</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <io.jenkins.plugins.sample.SCABuilder plugin="scanosspr-jenkins@1.0-SNAPSHOT">
+      <method>API</method>
+      <methodChoose>1</methodChoose>
+      <urlChoose/>
+      <credentialsId/>
+      <scanossCredentials/>
+      <url>https://api.osinfra.cn</url>
+      <sbomFile>/home/jenkins/ci_check/src/conf/deny_list.sbom</sbomFile>
+      <authCode>eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RANDMyMS5jb20ifQ.1WBjnBDgNsPfAVqxQyXDl-PS7r3L_h4OR45rNKPLJeE</authCode>
+    </io.jenkins.plugins.sample.SCABuilder>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+set +x
+owner="openeuler"
+sleep 1000
+export PYTHONPATH=/home/jenkins/ci_check
+export PATH=$PATH:/home/jenkins/.local/bin
+output="scanoss_result_"${BUILD_NUMBER}".json"
+cat ${output}
+echo "$PYTHONPATH"
+cat &gt; /home/jenkins/ci_check/test.patch &lt;&lt; EOF
+From f3b5172832b07201c166ecb65521f2b820a77396 Mon Sep 17 00:00:00 2001
+From: hht8 &lt;huanghaitao12138@163.com&gt;
+Date: Thu, 14 Oct 2021 20:17:56 +0800
+Subject: [PATCH] scanoss log optimization
+
+---
+ src/ac/acl/sca/check_sca.py | 68 ++++++++++---------------------------
+ src/ac/framework/ac.py      |  7 +---
+ src/requirements            |  2 +-
+ 3 files changed, 20 insertions(+), 57 deletions(-)
+
+diff --git a/src/ac/acl/sca/check_sca.py b/src/ac/acl/sca/check_sca.py
+index da04991..ec34a5e 100644
+--- a/src/ac/acl/sca/check_sca.py
++++ b/src/ac/acl/sca/check_sca.py
+@@ -17,6 +17,7 @@
+ import os
+ import shutil
+ import logging
++import json
+ 
+ from src.proxy.git_proxy import GitProxy
+ from src.ac.framework.ac_base import BaseCheck
+@@ -39,50 +40,22 @@ class CheckSCA(BaseCheck):
+         """
+         super(CheckSCA, self).__init__(workspace, repo, conf)
+ 
+-        self._work_diff_dir = os.path.join(workspace, "diff")    # 目标目录，保存变更了的代码
+-
+-    def copy_diff_files_to_dest(self, files):
+-        """
+-        拷贝所有diff文件到目标目录
+-        :param files: 文件列表
+-        :return:
+-        """
+-        for filepath in files:
+-            try:
+-                shutil.copy(os.path.join(self._work_dir, filepath), self._work_diff_dir)
+-            except IOError:
+-                logger.exception("copy {} to {} exception".format(filepath, self._work_diff_dir))
+-
+-    def save_scanoss_result(self, html):
+-        """
+-        保存结果到本地
+-        :param html: scanoss 结果，html格式
+-        :return:
+-        """
+-        with open(self._scanoss_result_output, "w") as f:
+-            f.write(html)
+-
+     def check_scanoss(self):
+         """
+-        scanoss工具检查代码片段引用
+-        https://osskb.org
+-        https://github.com/scanoss/scanner.py
+-        :return:
++        Obtain scanoss logs and result
+         """
+-        gp = GitProxy(self._work_dir)
+-        diff_files = gp.diff_files_between_commits("HEAD~1", "HEAD~0")
+-        logger.debug("diff files: {}".format(diff_files))
+-
+-        self.copy_diff_files_to_dest(diff_files)
+-
+-        blacklist_sbom = os.path.realpath(os.path.join(os.path.realpath(__file__), "../../../../conf/deny_list.sbom"))
+-        scan = ScanOSS(self._scanoss_api_key, self._scanoss_api_url, blacklist_sbom)
+-        result = scan.scan(self._work_diff_dir)
+-
++        # Describes the reportUrl result jenkinsJobName jenkinsBuildNum prNo repoUrl of scanoss
++        try:
++            with open(self._scanoss_result_output, 'r') as f:
++                result_dirt = json.load(f)
++        except IOError:
++            logger.error("{} not found, make sure this file exists".format(self._scanoss_result_output))
++            return FAILED
++        
++        result = result_dirt.get('result')
++        
+         # 保存详细结果到web server
+-        if not result:
+-            self.save_scanoss_result(scan.html)
+-            logger.warning("click {} view scanoss detail".format(self._scanoss_result_repo_path))
++        logger.warning("click {} view scanoss detail".format(result_dirt.get('reportUrl')))
+ 
+         return SUCCESS if result else FAILED
+ 
+@@ -97,13 +72,6 @@ class CheckSCA(BaseCheck):
+ 
+         logger.debug("args: {}, kwargs: {}".format(args, kwargs))
+         scanoss_conf = kwargs.get("scanoss", {})
+-        self._scanoss_api_key = scanoss_conf.get("api_key", "")
+-        self._scanoss_api_url = scanoss_conf.get("api_url", "https://osskb.org/api/scan/direct")
+-        self._scanoss_result_output = scanoss_conf.get("output", "scanoss_result")    # 保存结果到本地文件
+-        self._scanoss_result_repo_path = scanoss_conf.get("repo_path", "-lost linker-")  # 保存结果到web server的路径
+-
+-        _ = not os.path.exists(self._work_diff_dir) and os.mkdir(self._work_diff_dir)
+-        try:
+-            return self.start_check()
+-        finally:
+-            shutil.rmtree(self._work_diff_dir)
++        self._scanoss_result_output = scanoss_conf.get("output", "scanoss_result")
++        
++        return self.start_check()
+diff --git a/src/ac/framework/ac.py b/src/ac/framework/ac.py
+index 6e32ebb..7789bca 100644
+--- a/src/ac/framework/ac.py
++++ b/src/ac/framework/ac.py
+@@ -202,12 +202,8 @@ def init_args():
+     parser.add_argument("-l", type=str, dest="trigger_link", help="job trigger link")
+ 
+     # scanoss
+-    parser.add_argument("--scanoss-api-key", type=str, dest="scanoss_api_key", help="scanoss api key")
+-    parser.add_argument("--scanoss-api-url", type=str, dest="scanoss_api_url", 
+-            default="https://osskb.org/api/scan/direct", help="scanoss api url")
+     parser.add_argument("--scanoss-output", type=str, dest="scanoss_output", 
+             default="scanoss_result", help="scanoss result output")
+-    parser.add_argument("--scanoss-repo-path", type=str, dest="scanoss_repo", help="scanoss result repo path")
+ 
+     parser.add_argument("--codecheck-api-url", type=str, dest="codecheck_api_url",
+                         default="http://124.71.75.234:8384/api/openlibing/codecheck/start", help="codecheck api url")
+@@ -289,8 +285,7 @@ if "__main__" == __name__:
+     gp.create_tags_of_pr(args.pr, "ci_processing")
+ 
+     # scanoss conf
+-    scanoss = {"api_key": args.scanoss_api_key, "api_url": args.scanoss_api_url, 
+-        "output": args.scanoss_output, "repo_path": args.scanoss_repo}
++    scanoss = {"output": args.scanoss_output}
+ 
+     codecheck = {"pr_url": "https://gitee.com/{}/{}/pulls/{}".format(args.community, args.repo, args.pr),
+         "pr_number": args.pr, "codecheck_api_url": args.codecheck_api_url
+diff --git a/src/requirements b/src/requirements
+index d3fd573..7d34070 100644
+--- a/src/requirements
++++ b/src/requirements
+@@ -11,4 +11,4 @@ chardet
+ kafka-python
+ elasticsearch
+ retrying
+-scanoss-scanner
++scanoss
+-- 
+2.30.0
+EOF
+
+cd /home/jenkins/ci_check/
+patch -p1 &lt; test.patch
+cd -
+python3 /home/jenkins/ci_check/src/ac/framework/ac.py -w ${WORKSPACE} -r ${giteeRepoName} -o acfile -t ${GiteeToken} -p ${giteePullRequestIid} -b ${giteeTargetBranch} -a ${GiteeUserPassword} -x ${prCreateTime} -l ${triggerLink} -z ${jobTriggerTime} -m "${comment}" -i ${commentID} -e ${giteeCommitter} -c ${owner}  --scanoss-output ${output}</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.3.0">
+      <info>
+        <propertiesFilePath>acfile</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+  </builders>
+  <publishers>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.39">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>repo=${giteeRepoName}
+branch=${giteeSourceBranch}
+tbranch=${giteeTargetBranch}
+prid=${giteePullRequestIid}
+committer=${giteeCommitter}
+commentid=${commentID}</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <projects>test_directory_temporary/hht_test/huang_test_build_x86_64,test_directory_temporary/hht_test/huang_test_build_aarch64</projects>
+          <condition>FAILED_OR_BETTER</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <triggerFromChildProjects>false</triggerFromChildProjects>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+    <join.JoinTrigger plugin="join@1.21">
+      <joinProjects/>
+      <joinPublishers>
+        <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.37">
+          <configs>
+            <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+              <configs>
+                <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+                  <properties>repo=${giteeRepoName}
+branch=${giteeSourceBranch}
+tbranch=${giteeTargetBranch}
+prid=${giteePullRequestIid}
+committer=${giteeCommitter}
+commentid=${commentID}
+ACL=${ACL}</properties>
+                  <textParamValueOnNewLine>false</textParamValueOnNewLine>
+                </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              </configs>
+              <projects> test_directory_temporary/hht_test/huang_test_comment</projects>
+              <condition>ALWAYS</condition>
+              <triggerWithNoParameters>false</triggerWithNoParameters>
+              <triggerFromChildProjects>false</triggerFromChildProjects>
+            </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          </configs>
+        </hudson.plugins.parameterizedtrigger.BuildTrigger>
+      </joinPublishers>
+      <resultThreshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+        <completeBuild>true</completeBuild>
+      </resultThreshold>
+    </join.JoinTrigger>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>openeuler-ci-bot</credentialsId>
+          <variable>GiteeToken</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <variable>GiteeUserPassword</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>scanoss-api-key</credentialsId>
+          <variable>ScanOSSAPIKey</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

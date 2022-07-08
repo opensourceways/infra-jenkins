@@ -1,0 +1,171 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>每天0点定时刷新multiarch/src-openeuler/trigger/下所有需要修改配置的job</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.TextParameterDefinition>
+          <name>ENDPOINT</name>
+          <description>base url</description>
+          <defaultValue>https://openeulerjenkins.osinfra.cn</defaultValue>
+          <trim>false</trim>
+        </hudson.model.TextParameterDefinition>
+        <hudson.model.TextParameterDefinition>
+          <name>Jobs</name>
+          <description>默认下载解析所有包的spec文件并更新trigger的配置，传参的话只下载解析参数中包的spec文件并更新trigger的配置</description>
+          <defaultValue>all</defaultValue>
+          <trim>false</trim>
+        </hudson.model.TextParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>infra-check</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+test -f reconf_arch.py &amp;&amp; rm reconf_arch.py
+wget -q https://gitee.com/nicliuqi/daily/raw/master/reconf_arch.py
+defaultarch=&quot;aarch64 x86_64&quot;
+defaultlist=$WORKSPACE/pkglist
+if [[ ! -f $defaultlist ]]; then
+	touch $defaultlist
+fi
+rm -rf $WORKSPACE/{*.spec*,updatelist,*.yaml*,new_pkglist,archlist}
+
+function update_list()
+{		
+		echo &quot;Step 1   Starting to update list&quot;
+        if [[ $Jobs == &quot;all&quot; ]]; then
+                wget -P $WORKSPACE -q https://gitee.com/openeuler/community/raw/master/sig/sigs.yaml
+                cat $WORKSPACE/sigs.yaml | grep src-openeuler | cut -d / -f2 &gt; $WORKSPACE/new_pkglist
+                cat $WORKSPACE/new_pkglist $defaultlist | sort | uniq -d &gt; tmp
+                cat tmp $WORKSPACE/new_pkglist | sort | uniq -u &gt; $WORKSPACE/updatelist
+                rm -rf tmp
+                cp $WORKSPACE/new_pkglist $WORKSPACE/pkglist
+        else
+                for job in $Jobs
+                do
+                        echo &quot;$job&quot; &gt;&gt; $WORKSPACE/updatelist
+                done
+        fi
+        echo &quot;Step 1   End&quot;
+}
+
+function confirm_arch()
+{		
+		echo &quot;Step 2   Confirm architecture&quot;
+        touch $WORKSPACE/archlist
+        for pkg in `cat $WORKSPACE/updatelist`
+        do
+                wget -P $WORKSPACE -q https://gitee.com/src-openeuler/$pkg/raw/master/$pkg.spec
+                if [[ -f $WORKSPACE/$pkg.spec ]]; then
+                        arch=`grep ExclusiveArch $WORKSPACE/$pkg.spec | awk &apos;{ for(i=1; i&lt;=NF; i++)printf(&quot;%s &quot;, $i); print &quot;&quot;}&apos;`
+                        if [[ ! $arch ]] || [[ $arch =~ &quot;%&quot; ]] || [[ $arch =~ &quot;$&quot; ]] || [[ $arch =~ &quot;noarch&quot; ]]; then
+                                # logger -s &quot;$pkg support all&quot;
+                                echo &quot;$pkg support all&quot;
+                                continue
+                        fi
+                        if [[ ! $arch =~ &quot;aarch64&quot; ]]; then
+                                echo &quot;$pkg x86_64&quot; &gt;&gt; $WORKSPACE/archlist
+                        fi
+                        if [[ ! $arch =~ &quot;x86_64&quot; ]]; then
+                                echo &quot;$pkg aarch64&quot; &gt;&gt; $WORKSPACE/archlist
+                        fi
+                        continue
+                fi
+                echo &quot;`date` Failed to get $pkg.spec&quot; 2&gt;&amp;1 &gt;&gt; $WORKSPACE/failed_pkgs
+                echo &quot;$pkg&quot; &gt;&gt; $WORKSPACE/need_review
+        done
+        echo &quot;Step 2   End&quot;
+}
+
+if [[-e get_all_soe_repos.py]]; then
+	rm get_all_soe_repos.py
+fi
+cat &lt;&lt; EOF &gt; get_all_soe_repos.py
+import sys
+import os
+def get_all_repos(organization):
+    &quot;&quot;&quot;
+    Get all repositories belong openeuler or src-openeuler through file directories
+    :param organization: openeuler/src-openeuler
+    :return: A list of all repositories
+    &quot;&quot;&quot;
+    # download community repo
+    if os.path.exists(&apos;community&apos;):
+        os.system(&apos;rm -rf community&apos;)
+    os.system(&apos;git clone -b master --depth 1 https://gitee.com/openeuler/community&apos;)
+
+    sig_exception_list = [&apos;README.md&apos;, &apos;sig-recycle&apos;, &apos;sig-template&apos;]
+    sig_path = os.path.join(&apos;community&apos;, &apos;sig&apos;)
+    repositories = []
+    for i in os.listdir(sig_path):
+        if i in sig_exception_list:
+            continue
+        if organization in os.listdir(os.path.join(sig_path, i)):
+            for _, _, repos in os.walk(os.path.join(sig_path, i, organization)):
+                for repo in repos:
+                    repositories.append(os.path.splitext(os.path.basename(repo))[0])
+    return repositories
+    
+def write_update_list(all_repos, file_path):
+    if os.path.exists(file_path):
+        os.system(&apos;rm -rf file_path&apos;)
+    with open(file_path, &apos;w&apos;) as f:
+        f.writelines([line+&apos;\n&apos; for line in all_repos])
+
+all_repos = get_all_repos(&quot;src-openeuler&quot;)
+write_update_list(all_repos, &quot;$WORKSPACE/updatelist&quot;)
+EOF
+cat get_all_soe_repos.py
+python3 get_all_soe_repos.py
+cat $WORKSPACE/updatelist -n
+
+#update_list
+confirm_arch
+#python3 reconf_arch.py -e $ENDPOINT -u $USERNAME -p $PASSWORD -f $WORKSPACE/archlist
+cat $WORKSPACE/archlist
+set -x
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>4430ba2c-0183-486b-ad2c-1bfdf99add43</credentialsId>
+          <variable>USERNAME</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>f05e4da5-3775-4579-8ae6-7f79b1e1fcfa</credentialsId>
+          <variable>PASSWORD</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

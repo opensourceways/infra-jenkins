@@ -1,0 +1,320 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo</name>
+          <description>码云中仓库名称</description>
+          <defaultValue>openssl</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>pr 源分支</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tbranch</name>
+          <description>pr 目标分支</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prid</name>
+          <description>pull request id</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>committer</name>
+          <description>提交者</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>commentid</name>
+          <description>唯一的评论id</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>cpu框架</description>
+          <defaultValue>aarch64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>package</name>
+          <description>所属包，支持多个，用“,”分割</description>
+          <defaultValue>openssl</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>buddy</name>
+          <description>兄弟repo，支持多个，用“,”分割</description>
+          <defaultValue>openssl</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>结果保存地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>pkgship_notify_url</name>
+          <description>notify pkgship url</description>
+          <defaultValue>https://jenkins.osinfra.cn/job/openEuler_APPs/build-package-manage-image/build</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_rpm_host</name>
+          <description>obs 归档地址</description>
+          <defaultValue>119.3.219.20:82</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_webui_host</name>
+          <description>obs webui地址</description>
+          <defaultValue>117.78.1.88/</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MysqldbHost</name>
+          <defaultValue>114.116.251.180</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MysqldbPort</name>
+          <defaultValue>3306</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-soe</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+repo_owner=&apos;fan-xiaoyaya&apos;
+#shell_path=/home/jenkins/ci_check
+# 调测可使用以下代码
+#shell_path=/home/jenkins/ci_check2
+JENKINS_HOME=/home/jenkins
+OECP_HOME=${JENKINS_HOME}/oecp
+RPM_PACKAGE=/home/jenkins/agent/workspace/multiarch-ci-test/src-openeuler/${arch}/openssl
+mkdir -p ${OECP_HOME}
+mkdir -p ${RPM_PACKAGE}
+
+rm -rf ${OECP_HOME}
+git clone -b br_symbol https://15336166610:a528553518@gitee.com/openeuler-customization/oecp.git ${OECP_HOME}
+echo ${MysqlUserPasswd}
+echo ${MysqldbHost}
+echo ${MysqldbPort}
+sed -i &quot;s/dbhost=127.0.0.1/dbhost=114.116.251.180/g&quot; ${OECP_HOME}/oecp/conf/oecp.conf 
+sed -i &quot;s/dbport=3306/dbport=30250/g&quot; ${OECP_HOME}/oecp/conf/oecp.conf
+pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple -r ${OECP_HOME}/requirement
+
+rm -rf ${RPM_PACKAGE}/*
+
+cat &gt; ${OECP_HOME}/oecp.repo &lt;&lt; EOF
+#[openEuler-20.03-LTS-SP1-aarch64]
+[LTS-SP1_1]
+name=LTS-SP1_1
+baseurl=http://121.36.94.113:82/openEuler:/20.03:/LTS:/SP1/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[LTS-SP1_2]
+name=LTS-SP1_2
+baseurl=http://121.36.94.113:82/openEuler:/20.03:/LTS:/SP1:/Epol/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+#[openEuler-20.03-LTS-SP3-aarch64]
+[LTS-SP3_1]
+name=LTS-SP3_1
+baseurl=http://121.36.94.113:82/openEuler:/20.03:/LTS:/SP3/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[LTS-SP3_2]
+name=LTS-SP3_2
+baseurl=http://121.36.94.113:82/openEuler:/20.03:/LTS:/SP3:/Epol/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+#[openEuler-22.03-LTS-Next-aarch64]
+[LTS-Next_1]
+name=LTS-Next_1
+baseurl=http://120.46.140.206:82/openEuler:/22.03:/LTS:/Next/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[LTS-Next_2]
+name=LTS-Next_2
+baseurl=http://120.46.140.206:82/openEuler:/22.03:/LTS:/Next:/Epol/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+#[openEuler-22.03-LTS-aarch64]
+[22_03-LTS_1]
+name=22_03-LTS_1
+baseurl=http://119.3.219.20:82/openEuler:/22.03:/LTS/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[22_03-LTS_2]
+name=22_03-LTS_2
+baseurl=http://119.3.219.20:82/openEuler:/22.03:/LTS:/Epol/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+#[master-aarch64]
+[master_1]
+name=master_1
+baseurl=http://119.3.219.20:82/openEuler:/Epol/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[master_2]
+name=master_2
+baseurl=http://119.3.219.20:82/openEuler:/Factory/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[master_3]
+name=master_3
+baseurl=http://119.3.219.20:82/openEuler:/Mainline/standard_aarch64/
+enabled=1
+gpgcheck=0
+EOF
+yum clean all
+yum makecache
+
+sudo sed -i &quot;s#http://repo.huaweicloud.com#https://repo.huaweicloud.com#g&quot; /etc/yum.repos.d/*.repo
+grep &quot;repo.huaweicloud.com&quot; -R /etc/yum.repos.d/
+if command -v yumdownloader &gt;/dev/null 2&gt;&amp;1; then 
+  echo &apos;exists yumdownloader&apos; 
+else 
+  sudo yum install dnf-plugins-core -y
+fi
+
+#openEuler-20.03-LTS-SP1-aarch64分支
+ret=`yum list --setopt=reposdir=${OECP_HOME} --available --repo LTS-SP1_1 | grep -E &apos;aarch64|noarch&apos; | grep -Ev &apos;debuginfo|debugsource&apos; |awk &apos;{print $1}&apos; | tr &apos;\n&apos; &apos; &apos;`
+yumdownloader --setopt=reposdir=${OECP_HOME} --repo LTS-SP1_1 --destdir=${RPM_PACKAGE}/LTS-SP1 $ret
+ret=`yum list --setopt=reposdir=${OECP_HOME} --available --repo LTS-SP1_2 | grep -E &apos;aarch64|noarch&apos; | grep -Ev &apos;debuginfo|debugsource&apos; |awk &apos;{print $1}&apos; | tr &apos;\n&apos; &apos; &apos;`
+yumdownloader --setopt=reposdir=${OECP_HOME} --repo LTS-SP1_2 --destdir=${RPM_PACKAGE}/LTS-SP1 $ret
+python3 ${OECP_HOME}/cli.py -s openEuler-20.03-LTS-SP1-aarch64 --db-password ${MysqlUserPasswd:5} ${RPM_PACKAGE}/LTS-SP1/
+
+#openEuler-20.03-LTS-SP3-aarch64分支
+ret=`yum list --setopt=reposdir=${OECP_HOME} --available --repo LTS-SP3_1 | grep -E &apos;aarch64|noarch&apos; | grep -Ev &apos;debuginfo|debugsource&apos; |awk &apos;{print $1}&apos; | tr &apos;\n&apos; &apos; &apos;`
+yumdownloader --setopt=reposdir=${OECP_HOME} --repo LTS-SP3_1 --destdir=${RPM_PACKAGE}/LTS-SP3 $ret
+ret=`yum list --setopt=reposdir=${OECP_HOME} --available --repo LTS-SP3_2 | grep -E &apos;aarch64|noarch&apos; | grep -Ev &apos;debuginfo|debugsource&apos; |awk &apos;{print $1}&apos; | tr &apos;\n&apos; &apos; &apos;`
+yumdownloader --setopt=reposdir=${OECP_HOME} --repo LTS-SP3_2 --destdir=${RPM_PACKAGE}/LTS-SP3 $ret
+python3 ${OECP_HOME}/cli.py -s openEuler-20.03-LTS-SP3-aarch64 --db-password ${MysqlUserPasswd:5} ${RPM_PACKAGE}/LTS-SP3/
+
+#openEuler-22.03-LTS-Next-aarch64分支
+ret=`yum list --setopt=reposdir=${OECP_HOME} --available --repo LTS-Next_1 | grep -E &apos;aarch64|noarch&apos; | grep -Ev &apos;debuginfo|debugsource&apos; |awk &apos;{print $1}&apos; | tr &apos;\n&apos; &apos; &apos;`
+yumdownloader --setopt=reposdir=${OECP_HOME} --repo LTS-Next_1 --destdir=${RPM_PACKAGE}/LTS-NEXT $ret
+ret=`yum list --setopt=reposdir=${OECP_HOME} --available --repo LTS-Next_2 | grep -E &apos;aarch64|noarch&apos; | grep -Ev &apos;debuginfo|debugsource&apos; |awk &apos;{print $1}&apos; | tr &apos;\n&apos; &apos; &apos;`
+yumdownloader --setopt=reposdir=${OECP_HOME} --repo LTS-Next_2 --destdir=${RPM_PACKAGE}/LTS-NEXT $ret
+python3 ${OECP_HOME}/cli.py -s openEuler-22.03-LTS-Next-aarch64 --db-password ${MysqlUserPasswd:5} ${RPM_PACKAGE}/LTS-NEXT/
+
+#openEuler-22.03-LTS-aarch64分支
+ret=`yum list --setopt=reposdir=${OECP_HOME} --available --repo 22_03-LTS_1 | grep -E &apos;aarch64|noarch&apos; | grep -Ev &apos;debuginfo|debugsource&apos; |awk &apos;{print $1}&apos; | tr &apos;\n&apos; &apos; &apos;`
+yumdownloader --setopt=reposdir=${OECP_HOME} --repo 22_03-LTS_1 --destdir=${RPM_PACKAGE}/22_03_LTS $ret
+ret=`yum list --setopt=reposdir=${OECP_HOME} --available --repo 22_03-LTS_2 | grep -E &apos;aarch64|noarch&apos; | grep -Ev &apos;debuginfo|debugsource&apos; |awk &apos;{print $1}&apos; | tr &apos;\n&apos; &apos; &apos;`
+yumdownloader --setopt=reposdir=${OECP_HOME} --repo 22_03-LTS_2 --destdir=${RPM_PACKAGE}/22_03_LTS $ret
+python3 ${OECP_HOME}/cli.py -s openEuler-22.03-LTS-aarch64 --db-password ${MysqlUserPasswd:5} ${RPM_PACKAGE}/22_03_LTS/
+
+#master-aarch64分支
+ret=`yum list --setopt=reposdir=${OECP_HOME} --available --repo master_1 | grep -E &apos;aarch64|noarch&apos; | grep -Ev &apos;debuginfo|debugsource&apos; |awk &apos;{print $1}&apos; | tr &apos;\n&apos; &apos; &apos;`
+yumdownloader --setopt=reposdir=${OECP_HOME} --repo master_1 --destdir=${RPM_PACKAGE}/master $ret
+ret=`yum list --setopt=reposdir=${OECP_HOME} --available --repo master_2 | grep -E &apos;aarch64|noarch&apos; | grep -Ev &apos;debuginfo|debugsource&apos; |awk &apos;{print $1}&apos; | tr &apos;\n&apos; &apos; &apos;`
+yumdownloader --setopt=reposdir=${OECP_HOME} --repo master_2 --destdir=${RPM_PACKAGE}/master $ret
+ret=`yum list --setopt=reposdir=${OECP_HOME} --available --repo master_3 | grep -E &apos;aarch64|noarch&apos; | grep -Ev &apos;debuginfo|debugsource&apos; |awk &apos;{print $1}&apos; | tr &apos;\n&apos; &apos; &apos;`
+yumdownloader --setopt=reposdir=${OECP_HOME} --repo master_3 --destdir=${RPM_PACKAGE}/master $ret
+python3 ${OECP_HOME}/cli.py -s master-aarch64 --db-password ${MysqlUserPasswd:5} ${RPM_PACKAGE}/master/
+
+
+sudo dnf install -y mariadb
+mysql -h 114.116.251.180 -uroot -p${MysqlUserPasswd:5} -P 30250 -e &quot;show databases;&quot;
+
+set +x
+set -e
+#main
+set +e
+set -x</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBSUserName</usernameVariable>
+          <passwordVariable>OBSPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeUserName</usernameVariable>
+          <passwordVariable>GiteePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>93245f7d-4603-405d-b056-4c1d6316c05f</credentialsId>
+          <usernameVariable>PkgShipUserName</usernameVariable>
+          <passwordVariable>PkgShipPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <variable>GiteeUserPassword</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>pkgship-notify-token</credentialsId>
+          <variable>pkgship_notify_token</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>openeuler-ci-bot</credentialsId>
+          <variable>GiteeToken</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+          <credentialsId>68ddb94f-871e-4cc7-9611-c1c507b9bf53</credentialsId>
+          <variable>MysqlUserPasswd</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

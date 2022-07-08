@@ -1,0 +1,177 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>gitee处理tag</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>tag_manage_type</name>
+          <description>tag处理方式：add-新增</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string></string>
+              <string>add</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tag_name</name>
+          <description>要处理的tag名称</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>project</name>
+          <description>工程名</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string></string>
+              <string>openEuler:20.03:LTS:SP1</string>
+              <string>openEuler:20.03:LTS:SP1:Epol</string>
+              <string>openEuler:20.03:LTS:SP2</string>
+              <string>openEuler:20.03:LTS:SP2:Epol</string>
+              <string>openEuler:20.03:LTS:SP3</string>
+              <string>openEuler:20.03:LTS:SP3:Epol</string>
+              <string>openEuler:22.03:LTS:Next</string>
+              <string>openEuler:22.03:LTS:Next:Epol</string>
+              <string>openEuler:22.03:LTS</string>
+              <string>openEuler:22.03:LTS:Epol</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>branch</name>
+          <description>分支名</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string></string>
+              <string>openEuler-20.03-LTS-SP1</string>
+              <string>openEuler-20.03-LTS-SP2</string>
+              <string>openEuler-20.03-LTS-SP3</string>
+              <string>openEuler-22.03-LTS-Next</string>
+              <string>openEuler-22.03-LTS</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.TextParameterDefinition>
+          <name>pkgs</name>
+          <description>若为空即为工程全量处理tag，否则为单包或多包处理tag。
+请参照如下格式（备注：分隔符支持英文逗号，空格和换行）：
+package1，pacakge2
+或者：
+package1
+pacakge2
+...</description>
+          <trim>false</trim>
+        </hudson.model.TextParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>arm-slave-001</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>if [[ -z $tag_manage_type ]];then
+    exit 1
+fi
+
+# check project and branch
+if [[ $branch == &apos;master&apos; ]];then
+    exit 1
+fi
+if [[ $project} =~ :Epol ]];then
+    tmp_project=${project%:Epol}   # delete :Epol
+else
+    tmp_project=${project}
+fi
+tmp_project=${tmp_project//:/-}  # replace &apos;:&apos; to &apos;-&apos; in project, then compare with branch
+if [[ ${tmp_project} != ${branch} ]];then
+    exit 1
+fi
+
+
+sudo su - root &lt;&lt;EOF
+
+echo &quot;nameserver 114.114.114.114&quot; &gt;&gt; /etc/resolv.conf
+
+git config --global http.sslVerify false
+git config --global http.postBuffer 52428800
+git config --global user.email &quot;80474298@qq.com&quot;
+git config --global user.name &quot;openeuler-ci-bot&quot;
+git config --global pull.ff only
+
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; FEOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+FEOF
+cat ~/.oscrc
+
+cd $WORKSPACE
+
+wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.4.4-aarch64.tar.gz
+tar -xvf openeuler_obs-v1.4.4-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v1.4.4-aarch64/tools
+
+set -e
+if [ -z $pkgs ];then
+    ./gitee_tag_manager -u ${GiteeCloneUserName} -p ${GiteeClonePassword} -proj ${project} -br ${branch} -tag_n ${tag_name} -tag_t ${tag_manage_type}
+else		
+    ./gitee_tag_manager -u ${GiteeCloneUserName} -p ${GiteeClonePassword} -proj ${project} -br ${branch} -tag_n ${tag_name} -tag_t ${tag_manage_type} -pkgs $pkgs
+fi
+
+
+EOF
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

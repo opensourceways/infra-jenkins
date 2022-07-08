@@ -1,0 +1,204 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>repo地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>cpu框架</description>
+          <defaultValue>x86_64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-soe-zhengyaohui</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <org.jenkinsci.plugins.gwt.GenericTrigger plugin="generic-webhook-trigger@1.67">
+      <spec></spec>
+      <genericVariables>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeRepoName</key>
+          <value>repository.name</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteePullRequestIid</key>
+          <value>pull_request.number</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeSourceBranch</key>
+          <value>pull_request.head.ref</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeTargetBranch</key>
+          <value>pull_request.base.ref</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeSourceNamespace</key>
+          <value>pull_request.head.repo.namespace</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeTargetNamespace</key>
+          <value>pull_request.base.repo.namespace</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteePRMerged</key>
+          <value>pull_request.merged</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteePRHookName</key>
+          <value>hook_name</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeCommitter</key>
+          <value>pull_request.user.login</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+      </genericVariables>
+      <regexpFilterText>$giteeTargetNamespace $giteeRepoName $giteePRHookName $giteePRMergedEOF</regexpFilterText>
+      <regexpFilterExpression>zhengyaohui grpc merge_request_hooks trueEOF</regexpFilterExpression>
+      <printPostContent>false</printPostContent>
+      <printContributedVariables>false</printContributedVariables>
+      <causeString>&quot;$giteeRepoName&quot; trigger by pull request $giteePullRequestIid  [$giteeSourceNamespace:$giteeSourceBranch -&gt; $giteeTargetNamespace:$giteeTargetBranch]</causeString>
+      <token></token>
+      <silentResponse>false</silentResponse>
+      <overrideQuietPeriod>false</overrideQuietPeriod>
+    </org.jenkinsci.plugins.gwt.GenericTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+#tbranch=${giteeTargetBranch}
+#committer=${giteeCommitter}
+repo=${giteeRepoName}
+tbranch=&apos;openEuler-20.03-LTS-SP2&apos;
+committer=&apos;wanghuan158&apos;
+giteePullRequestIid=&apos;10&apos;
+echo &apos;tbranch&apos;
+echo $tbranch $committer $repo
+
+# 启动ipv6 loopback
+function config_ipv6()
+{
+  sudo sysctl net.ipv6.conf.lo.disable_ipv6=0 &amp;&gt;/dev/null
+}
+
+function save_build_result()
+{
+  committer_pr_x86_64_dir=&quot;/repo/openeuler/src-openeuler/${tbranch}/${committer}/${repo}/x86_64/${giteePullRequestIid}/&quot;
+  committer_pr_aarch64_dir=&quot;/repo/openeuler/src-openeuler/${tbranch}/${committer}/${repo}/aarch64/${giteePullRequestIid}/&quot;
+  global_x86_64_dir=&quot;/repo/openeuler/src-openeuler/${tbranch}/0X080480000XC0000000/${repo}/x86_64/&quot;
+  global_aarch64_dir=&quot;/repo/openeuler/src-openeuler/${tbranch}/0X080480000XC0000000/${repo}/aarch64/&quot;
+  
+  remote_place_cmd=$(cat &lt;&lt; EOF
+if [[ ! -d &quot;$global_x86_64_dir/report&quot; ]]; then
+	mkdir -p $global_x86_64_dir/report
+fi
+if [[ -d &quot;$global_x86_64_dir&quot; &amp;&amp; &quot;\$(ls -A $global_x86_64_dir | grep &apos;*.rpm&apos;)&quot; ]]; then
+	rm $global_x86_64_dir/*.rpm
+fi
+if [[ ! -d &quot;$global_aarch64_dir/report&quot; ]]; then
+	mkdir -p $global_aarch64_dir/report
+fi
+if [[ -d &quot;$global_aarch64_dir&quot; &amp;&amp; &quot;\$(ls -A $global_aarch64_dir | grep &apos;*.rpm&apos;)&quot; ]]; then
+	rm $global_aarch64_dir/*.rpm
+fi
+
+if [[ -d &quot;$committer_pr_x86_64_dir&quot; &amp;&amp; &quot;\$(ls -A $committer_pr_x86_64_dir | grep &apos;*.rpm&apos;)&quot; ]]; then
+	cp $committer_pr_x86_64_dir/*.rpm $global_x86_64_dir/
+fi
+if [[ -d &quot;$committer_pr_x86_64_dir&quot; &amp;&amp; &quot;\$(ls -A $committer_pr_x86_64_dir | grep &apos;*.json&apos;)&quot; ]]; then
+	cp $committer_pr_x86_64_dir/*.json $global_x86_64_dir/report/
+fi
+if [[ -d &quot;$committer_pr_aarch64_dir&quot; &amp;&amp; &quot;\$(ls -A $committer_pr_aarch64_dir | grep &apos;*.rpm&apos;)&quot; ]]; then
+	cp $committer_pr_aarch64_dir/*.rpm $global_x86_64_dir/
+fi
+if [[ -d &quot;$committer_pr_aarch64_dir&quot; &amp;&amp; &quot;\$(ls -A $committer_pr_aarch64_dir | grep &apos;*.json&apos;)&quot; ]]; then
+	cp $committer_pr_aarch64_dir/*.json $global_x86_64_dir/report/
+fi
+
+EOF
+)
+  #echo &quot;$remote_place_cmd&quot;
+  echo &apos;https://gitee.com/src-openeuler/&apos;${repo}&apos;/pulls/&apos;${giteePullRequestIid}
+  ssh -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR root@${repo_server} &quot;$remote_place_cmd&quot;
+}
+
+set +x
+set -e
+config_ipv6
+save_build_result
+#ssh -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR root@${repo_server} \
+	#&quot;rm -rf /repo/openeuler/src-openeuler/master; rm -rf /repo/openeuler/src-openeuler/openEuler-20.03-LTS-SP2; rm -rf /repo/openeuler/src-openeuler/openEuler-20.03-LTS-SP3&quot;
+set +e
+set -x</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

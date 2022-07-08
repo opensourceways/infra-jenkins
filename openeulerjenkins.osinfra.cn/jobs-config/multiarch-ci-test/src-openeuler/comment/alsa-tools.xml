@@ -1,0 +1,247 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>上报打包结果</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo</name>
+          <description>仓库名</description>
+          <defaultValue>alsa-tools</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>pr源分支</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tbranch</name>
+          <description>pr目标分支</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prid</name>
+          <description>pull request id</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>committer</name>
+          <description>提交人</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>commentid</name>
+          <description>唯一的评论编号</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ACL</name>
+          <defaultValue>[]</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>保存结果地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prtitle</name>
+          <description>pull request title</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>jobtriggertime</name>
+          <description>trigger工程触发时间</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prcreatetime</name>
+          <description>pr创建时间</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prurl</name>
+          <description>pr url</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>triggerbuildid</name>
+          <description>trigger的构建号</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-soe</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+ shell_path=/home/jenkins/ci_check
+ . $shell_path/src/lib/lib.sh
+
+# 调测可使用以下代码
+# shell_path=/home/jenkins/ci_check2
+# . $shell_path/src/lib/lib.sh
+
+# mkdir -p ${shell_path}
+# rm -rf ${shell_path}/*
+# git clone https://gitee.com/xxx/openeuler-jenkins.git ${shell_path}
+ shell_path=/home/jenkins/ci_check2
+ mkdir -p ${shell_path}
+ rm -rf ${shell_path}
+git clone -b for_kind_codestyle https://gitee.com/wanghuan158/openeuler-jenkins.git ${shell_path}
+repo_owner=&quot;wanghuan158&quot;
+jenkins_api_host=&quot;https://jenkins.openeuler.org/&quot;
+ls -l /var/log
+
+# debug测试变量
+function config_debug_variable() {
+  if [[ &quot;${repo_owner}&quot; == &quot;&quot; ]]; then
+    repo_owner=&quot;src-openeuler&quot;
+    repo_server_test_tail=&quot;&quot;
+  elif [[ &quot;${repo_owner}&quot; != &quot;src-openeuler&quot; &amp;&amp; &quot;${repo_owner}&quot; != &quot;openeuler&quot; ]]; then
+    repo_server_test_tail=&quot;-test&quot;
+  fi
+}
+config_debug_variable
+
+# 清理环境
+function clearn_env() {
+  log_info &quot;***** Start to clearn env *****&quot;
+  # download compare package comment files
+  check_item_comment_aarch64=&quot;${repo}_${prid}_aarch64_comment&quot;
+  check_item_comment_x86=&quot;${repo}_${prid}_x86_64_comment&quot;
+  #cat $compare_package_comment_x86
+  compare_package_result_aarch64=&quot;${repo}_${prid}_aarch64_compare_result&quot;
+  compare_package_result_x86=&quot;${repo}_${prid}_x86_64_compare_result&quot;
+  build_num_file=&quot;${repo_owner}_${repo}_${prid}_build_num.yaml&quot;
+
+
+  if [[ -e check_item_comment_aarch64 ]]; then
+    rm $check_item_comment_aarch64
+  fi
+  if [[ -e $check_item_comment_x86 ]]; then
+    rm $check_item_comment_x86
+  fi
+  if [[ -e $compare_package_result_aarch64 ]]; then
+    rm $compare_package_result_aarch64
+  fi
+  if [[ -e $compare_package_result_x86 ]]; then
+    rm $compare_package_result_x86
+  fi
+  if [[ -e build_num_file ]]; then
+    rm $build_num_file
+  fi
+  log_info &quot;***** End to clearn env *****&quot;
+}
+
+# 从文件服务器拷贝文件
+function scp_comment_file() {
+  log_info &quot;***** Start to scp comment file *****&quot;
+  fileserver_tmpfile_path=&quot;/repo/soe${repo_server_test_tail}/check_item&quot;
+  scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:$fileserver_tmpfile_path/${check_item_comment_aarch64} . || log_info &quot;file ${check_item_comment_aarch64} not exist&quot;
+  scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:$fileserver_tmpfile_path/${check_item_comment_x86} . || log_info &quot;file ${check_item_comment_x86} not exist&quot;
+  #ls $WORKSPACE/${comment}
+  scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:$fileserver_tmpfile_path/${compare_package_result_aarch64} . || log_info &quot;file ${compare_package_result_aarch64} not exist&quot;
+  scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:$fileserver_tmpfile_path/${compare_package_result_x86} . || log_info &quot;file ${compare_package_result_x86} not exist&quot;
+  ls $WORKSPACE/${compare_result}
+  scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:$fileserver_tmpfile_path/${build_num_file} . || log_info &quot;file ${build_num_file} not exist&quot;
+  log_info &quot;***** End to scp comment file *****&quot;
+}
+
+# 执行评论功能
+function exec_comment() {
+  log_info &quot;***** Start to exec comment *****&quot;
+  export PYTHONPATH=${shell_path}
+  python3 ${shell_path}/src/build/gitee_comment.py -o $repo_owner -r $repo -p $prid -c $committer -t ${giteetoken}\
+   -b $jenkins_api_host -u $jenkins_user -j $jenkins_api_token -a ${check_item_comment_aarch64} ${check_item_comment_x86}\
+    -f ${compare_package_result_x86},${compare_package_result_aarch64} -m ${commentid}
+  log_info &quot;***** End to exec comment *****&quot;
+
+  #mv build_result.yaml build_result2.yaml
+  log_info &quot;***** Start to exec comment to kafka*****&quot;
+  python3 ${shell_path}/src/build/comment_to_dashboard.py -r $repo -c $committer -m ${commentid} -g $jobtriggertime\
+   -k &quot;${prtitle}&quot; -t $prcreatetime -b $tbranch -u $prurl -i $triggerbuildid -p $prid -o $repo_owner
+  log_info &quot;***** End to exec comment to kafka*****&quot;
+}
+
+# 执行入口
+function main() {
+  clearn_env
+  scp_comment_file
+  exec_comment
+  log_info &quot;save build num file&quot;
+  if [[ -e $build_num_file ]]; then
+    scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR ${build_num_file} root@${repo_server}:$fileserver_tmpfile_path/${build_num_file}
+  fi
+}
+#. ${shell_path}/src/lib/comment.sh &quot;$repo&quot; &quot;$prid&quot; &quot;$committer&quot; &quot;$giteetoken&quot; &quot;$jenkins_user&quot; &quot;$jenkins_api_token&quot; &quot;$WORKSPACE&quot; &quot;$SaveBuildRPM2Repo&quot; &quot;$repo_server&quot; &quot;$compare_result&quot; &quot;$commentid&quot; &quot;https://jenkins.openeuler.org/&quot;
+
+set +x
+#set -e
+main
+#set -x
+set +e</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <com.chikli.hudson.plugin.naginator.NaginatorPublisher plugin="naginator@1.18.1">
+      <regexpForRerun></regexpForRerun>
+      <rerunIfUnstable>true</rerunIfUnstable>
+      <rerunMatrixPart>false</rerunMatrixPart>
+      <checkRegexp>false</checkRegexp>
+      <regexpForMatrixStrategy>TestParent</regexpForMatrixStrategy>
+      <delay class="com.chikli.hudson.plugin.naginator.FixedDelay">
+        <delay>60</delay>
+      </delay>
+      <maxSchedule>3</maxSchedule>
+    </com.chikli.hudson.plugin.naginator.NaginatorPublisher>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>be1d7d09-4ab8-44da-ad52-82b3dcc795b0</credentialsId>
+          <usernameVariable>jenkins_user</usernameVariable>
+          <passwordVariable>jenkins_api_token</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>openeuler-ci-bot</credentialsId>
+          <variable>giteetoken</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

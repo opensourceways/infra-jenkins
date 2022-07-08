@@ -1,0 +1,172 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>构建x86 64 平台镜像</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>cpu架构</description>
+          <defaultValue>x86-64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>name</name>
+          <description></description>
+          <defaultValue>jenkins/obs</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tag</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-inbound</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+set +x
+
+function config_build_extra()
+{
+  cat &gt; build-extra &lt;&lt; EOF
+#!/bin/bash
+BUILD_ROOT=&quot;/home/jenkins/agent/buildroot&quot;
+ABUILD_UID=399
+ABUILD_GID=399
+
+# maven
+mkdir -p \$BUILD_ROOT/home/abuild/.m2
+chown \$ABUILD_UID:\$ABUILD_GID \$BUILD_ROOT/home/abuild/.m2
+test -e /home/jenkins/.m2 &amp;&amp; cp /home/jenkins/.m2 \$BUILD_ROOT/home/abuild/.m2/settings.xml\
+
+# ccache
+project=\$(cat \$PWD/.osc/_project)
+package=\$(cat \$PWD/.osc/_package)
+
+
+if [[ -d /home/jenkins/ccache/\${project} ]] &amp;&amp; [[ -e \$BUILD_ROOT/usr/bin/ccache ]] &amp;&amp; [[ ! -z \$project ]] &amp;&amp; [[ ! -z \$package ]]
+then
+    if [[ \$package == &quot;openjdk-11&quot; || \$package == &quot;openjdk-latest&quot; ]]
+    then
+        exit
+	fi
+    
+    echo &quot;Building \$package for \$project using ccache&quot;
+    
+    mkdir -p \$BUILD_ROOT/home/abuild/.ccache
+    chown \$ABUILD_UID:\$ABUILD_GID \$BUILD_ROOT/home/abuild/.ccache
+    mkdir -p /home/jenkins/ccache/\${project}/\$package
+    chown \$ABUILD_UID:\$ABUILD_GID /home/jenkins/ccache/\${project}/\$package
+    if [[ ! -e /home/jenkins/ccache/\${project}/\$package/ccache.conf ]]
+    then
+        cp -p /home/jenkins/ccache/\${project}/ccache.conf /home/jenkins/ccache/\${project}/\$package
+    fi
+    mount --bind /home/jenkins/ccache/\${project}/\$package \$BUILD_ROOT/home/abuild/.ccache
+
+    cp \$BUILD_ROOT/usr/bin/ccache \$BUILD_ROOT/usr/local/bin
+    for compiler in \$(ls \$BUILD_ROOT/usr/bin | grep -E &apos;^(cc|gcc|[cg][+][+]|clang|clang[+][+])([-]?[234][.]?[0-9])*\$&apos;); do
+        ln -sf ccache \$BUILD_ROOT/usr/local/bin/\$compiler
+    done
+fi
+EOF
+}
+
+function config_dockerfile()
+{
+# 容器启动时会重置/home/jenkins/agent目录，顾将ci_check放到/home/jenkins目录下
+  cat &gt; Dockerfile &lt;&lt; EOF
+FROM swr.cn-north-4.myhuaweicloud.com/openeuler/jenkins/obs:base
+ARG user=jenkins
+    
+RUN cd /home/\${user} \
+    &amp;&amp; git config --global http.postBuffer 1048576000 \
+    &amp;&amp; git clone -b ${tag} --depth 1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/openeuler/openeuler-jenkins.git ci_check \
+    &amp;&amp; pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r ci_check/src/requirements \
+    &amp;&amp; pip install -i https://pypi.tuna.tsinghua.edu.cn/simple elasticsearch \
+    &amp;&amp; pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple requests PyYAML colorlog scanoss-scanner
+
+# time zone UTC +8
+RUN sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+RUN sudo sed -i &apos;/ttmpfs/a \    mount -n -tsysfs none \$BUILD_ROOT/sys 2&gt; \/dev\/null&apos; /usr/lib/obs-build/build \
+    &amp;&amp; sudo sed -i &apos;/localhost/i test -e \$BUILD_ROOT/etc/resolv.conf || cp /etc/resolv.conf \$BUILD_ROOT/etc/resolv.conf&apos; /usr/lib/obs-build/init_buildsystem \
+
+# maven镜像 &amp; ccache
+COPY build-extra /usr/lib/obs-build/build-extra
+RUN sudo sed -i &apos;/BUILD_USER_ABUILD_USED=true/i bash /usr/lib/obs-build/build-extra&apos; /usr/lib/obs-build/build
+RUN sudo sed -i &apos;/test -n &quot;\$VM_ROOT&quot; -a/i umount -n \$BUILD_ROOT/home/abuild/.ccache 2&gt;/dev/null || true&apos; /usr/lib/obs-build/build
+
+WORKDIR \${AGENT_WORKDIR}
+ENTRYPOINT [&quot;jenkins-agent&quot;]
+EOF
+}
+
+config_build_extra
+config_dockerfile
+set -x</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <com.nirima.jenkins.plugins.docker.builder.DockerBuilderPublisher plugin="docker-plugin@1.2.0">
+      <dockerFileDirectory></dockerFileDirectory>
+      <fromRegistry plugin="docker-commons@1.17">
+        <url>swr.cn-north-4.myhuaweicloud.com/</url>
+        <credentialsId>docker_registry_ci_bot</credentialsId>
+      </fromRegistry>
+      <tags>
+        <string>swr.cn-north-4.myhuaweicloud.com/openeuler/${arch}/${name}:${tag}</string>
+      </tags>
+      <pushOnSuccess>true</pushOnSuccess>
+      <pushCredentialsId>docker_registry_ci_bot</pushCredentialsId>
+      <cleanImages>true</cleanImages>
+      <cleanupWithJenkinsJobDelete>true</cleanupWithJenkinsJobDelete>
+      <cloud>dockerd-x86</cloud>
+      <noCache>true</noCache>
+      <pull>true</pull>
+    </com.nirima.jenkins.plugins.docker.builder.DockerBuilderPublisher>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>docker_registry_ci_bot</credentialsId>
+          <usernameVariable>DockerRegistryUserName</usernameVariable>
+          <passwordVariable>DockerRegistryPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

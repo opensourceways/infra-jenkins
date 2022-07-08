@@ -1,0 +1,209 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>hudson.model.Item.Build:heruxiao</permission>
+      <permission>hudson.model.Item.Cancel:heruxiao</permission>
+      <permission>hudson.model.Item.Configure:heruxiao</permission>
+      <permission>hudson.model.Item.Discover:heruxiao</permission>
+      <permission>hudson.model.Item.Read:heruxiao</permission>
+      <permission>hudson.model.Item.Workspace:heruxiao</permission>
+      <permission>hudson.model.Run.Delete:heruxiao</permission>
+      <permission>hudson.model.Run.Update:heruxiao</permission>
+      <permission>hudson.scm.SCM.Tag:heruxiao</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-obs</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <org.jenkinsci.plugins.gwt.GenericTrigger plugin="generic-webhook-trigger@1.67">
+      <spec></spec>
+      <genericVariables>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeRepoName</key>
+          <value>repository.name</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteePullRequestIid</key>
+          <value>pull_request.number</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeSourceBranch</key>
+          <value>pull_request.head.ref</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeTargetBranch</key>
+          <value>pull_request.base.ref</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeSourceNamespace</key>
+          <value>pull_request.head.repo.namespace</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeTargetNamespace</key>
+          <value>pull_request.base.repo.namespace</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>giteeCommitter</key>
+          <value>pull_request.user.login</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>comment</key>
+          <value>comment.body</value>
+          <regexpFilter></regexpFilter>
+          <defaultValue></defaultValue>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+      </genericVariables>
+      <regexpFilterText>$giteeTargetNamespace $giteeRepoName $commentEOF</regexpFilterText>
+      <regexpFilterExpression>src-openeuler kernel (Hey[\s\S]*|/retest)EOF</regexpFilterExpression>
+      <printPostContent>false</printPostContent>
+      <printContributedVariables>false</printContributedVariables>
+      <causeString>&quot;$giteeRepoName&quot; trigger by pull request $giteePullRequestIid  [$giteeSourceNamespace:$giteeSourceBranch -&gt; $giteeTargetNamespace:$giteeTargetBranch]</causeString>
+      <token></token>
+      <silentResponse>false</silentResponse>
+      <overrideQuietPeriod>false</overrideQuietPeriod>
+    </org.jenkinsci.plugins.gwt.GenericTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+function get_source(){
+        if [[ $1 = &quot;20.03-LTS&quot; ]];then
+        	git clone https://heruxiao%40huawei.com:Huawei12%23%24@gitee.com/KeyboardXia/kernel-san-20.03-LTS-SP1.git
+            cd kernel-san-20.03-LTS-SP1
+            git filter-branch -f --tree-filter &apos;rm -rf *&apos; --tag-name-filter cat -- --all
+            git pull --rebase
+            git push --all --force
+            cd -
+        	wget https://gitee.com/openeuler/kernel/repository/archive/openEuler-1.0-LTS.zip
+            unzip openEuler-1.0-LTS.zip -d ./kernel-san-20.03-LTS-SP1
+            rm -rf *.zip
+            mkdir -p ./kernel-san-20.03-LTS-SP1/tmp
+            #wget https://gitee.com/src-openeuler/kernel/repository/archive/openEuler-$1.zip
+            wget https://gitee.com/src-openeuler/kernel/repository/archive/openEuler-20.03-LTS-SP1.zip
+            unzip openEuler-20.03-LTS-SP1.zip -d ./kernel-san-20.03-LTS-SP1/tmp
+            
+            mv ./kernel-san-20.03-LTS-SP1/tmp/kernel/* ./kernel-san-20.03-LTS-SP1
+            rm -rf *.zip ./kernel-san-20.03-LTS-SP1/tmp
+        else
+            git clone  https://heruxiao%40huawei.com:Huawei12%23%24@gitee.com/KeyboardXia/kernel-san-20.09.git
+            cd kernel-san-20.09
+            git filter-branch -f --tree-filter &apos;rm -rf *&apos; --tag-name-filter cat -- --all
+            git pull --rebase
+            git push --all --force
+            cd -
+            wget https://gitee.com/openeuler/kernel/repository/archive/openEuler-$1.zip 
+            unzip openEuler-$1.zip -d ./kernel-san-20.09
+            rm -rf *.zip
+            mkdir -p ./kernel-san-20.09/tmp
+            wget https://gitee.com/src-openeuler/kernel/repository/archive/openEuler-$1.zip
+            unzip openEuler-$1.zip -d ./kernel-san-20.09/tmp
+            mv ./kernel-san-20.09/tmp/kernel/* ./kernel-san-20.09
+            rm -rf *.zip ./kernel-san-20.09/tmp
+            
+        fi
+       
+}
+
+function modify_kernel_config(){
+        sed -i &quot;s/CONFIG_RANDOMIZE_BASE=y/# CONFIG_RANDOMIZE_BASE is not set/g&quot; $1
+        sed -i &quot;s/# CONFIG_DEBUG_KMEMLEAK is not set/CONFIG_DEBUG_KMEMLEAK=y/g&quot; $1
+        sed -i &quot;s/# CONFIG_KASAN is not set/CONFIG_KASAN=y\nCONFIG_KASANINLINE=y/g&quot; $1
+        sed -i &quot;s/CONFIG_ARCH_HAS_KCOV=y/CONFIG_ARCH_HAS_KCOV=y\nCONFIG_KCOV=y\nCONFIG_KCOV_INSTRUMENT_ALL=y\
+\nCONFIG_KCOV_ENABLE_COMPARISONS=y/g&quot; $1
+        sed -i &quot;s/# CONFIG_FAULT_INJECTION is not set/CONFIG_FAULT_INJECTION=y\n\
+CONFIG_FAULT_INJECTION_DEBUG_FS=y\nCONFIG_FAULT_INJECTION_USERCOPY=y\n\
+CONFIG_FAILSLAB=y\nCONFIG_FAIL_PAGE_ALLOC=y/g&quot; $1
+}
+function update_gitee_repo(){
+        arm_config_file=kernel/arch/arm64/configs/openeuler_defconfig
+        x86_config_file=kernel/arch/x86/configs/openeuler_defconfig
+        cd kernel-san-$1
+		modify_kernel_config ${arm_config_file}
+        modify_kernel_config ${x86_config_file}
+        old_version=`grep %{hulkrelease} kernel.spec |grep Release |awk -F . &apos;{ print $2}&apos;`
+		new_version=$old_version&apos;.1&apos;
+		sed -i &quot;s/$old_version/$new_version/g&quot; kernel.spec
+        git add -A
+        git commit -m &quot;update&quot;
+        git push
+        cd -
+}
+
+function branch_modify(){
+        git config --global user.email &quot;heruxiao@huawei.com&quot;
+        git config --global user.name &quot;horsefucker&quot;
+        if [[ -d kernel-san* ]];then
+        	rm -rf kernel-san*
+        fi
+        get_source 20.03-LTS
+        update_gitee_repo 20.03-LTS-SP1
+        rm -rf ./openeuler_kernel_san
+        get_source 20.09
+        update_gitee_repo 20.09
+        rm -rf ./openeuler_kernel_san
+        
+}
+
+branch_modify
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt;EOF
+[general]
+apiurl = https://build.openeuler.org
+[https://build.openeuler.org]
+user = tester
+pass = Huawei12#$
+EOF
+osc service remote run home:tester:branches:openEuler:Mainline kernel</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

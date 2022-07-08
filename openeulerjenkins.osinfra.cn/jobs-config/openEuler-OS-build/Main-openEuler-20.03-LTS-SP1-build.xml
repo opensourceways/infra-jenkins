@@ -1,0 +1,275 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.42">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:chemingdao</permission>
+      <permission>hudson.model.Item.Build:chemingdao</permission>
+      <permission>hudson.model.Item.Cancel:chemingdao</permission>
+      <permission>hudson.model.Item.Configure:chemingdao</permission>
+      <permission>hudson.model.Item.Delete:chemingdao</permission>
+      <permission>hudson.model.Item.Discover:chemingdao</permission>
+      <permission>hudson.model.Item.Move:chemingdao</permission>
+      <permission>hudson.model.Item.Read:chemingdao</permission>
+      <permission>hudson.model.Item.Workspace:chemingdao</permission>
+      <permission>hudson.model.Run.Delete:chemingdao</permission>
+      <permission>hudson.model.Run.Replay:chemingdao</permission>
+      <permission>hudson.model.Run.Update:chemingdao</permission>
+      <permission>hudson.scm.SCM.Tag:chemingdao</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>45</daysToKeep>
+        <numToKeep>150</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty>
+      <abortPrevious>false</abortPrevious>
+    </org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>set_release_dir</name>
+          <description>1表示构建；0表示不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>update_release_info</name>
+          <description>1表示构建；0表示不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>0</string>
+              <string>1</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>make_iso</name>
+          <description>1表示构建；0表示不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>make_docker_image</name>
+          <description>1表示构建；0表示不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>make_iso_everything</name>
+          <description>1表示构建；0表示不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>make_iso_everysrc</name>
+          <description>1表示构建；0表示不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>make_debug_everything</name>
+          <description>1表示构建；0表示不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>make_hmi</name>
+          <description>1表示构建；0表示不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>make_netinst_iso</name>
+          <description>1表示构建；0表示不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>make_raspi_image</name>
+          <description>1表示构建；0表示不构建</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_standard_prj</name>
+          <defaultValue>openEuler:20.03:LTS:SP1</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_epol_prj</name>
+          <defaultValue>openEuler:20.03:LTS:SP1:Epol</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_extras_prj</name>
+          <defaultValue>openEuler:20.03:LTS:SP1:Extras</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>vm_ip</name>
+          <defaultValue>172.16.1.32</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers/>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
+    <script>def createVersion() {
+    return new Date().format(&apos;yyyy-MM-dd HH:mm:ss&apos;)
+}
+pipeline {
+    agent none
+    environment {
+        _start = createVersion()
+    }
+    stages {
+        stage(&apos;prepare&apos;) {
+            steps {
+                build job: &apos;openEuler-build-01-set_release_dir&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.set_release_dir), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+            }
+        }
+        stage(&apos;update_release_info&apos;) {
+            steps {
+                build job: &apos;openEuler-build-02-update_release_info&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.update_release_info), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+            }
+        }
+        stage(&apos;make_version&apos;) {
+            steps {
+                parallel(
+                    &quot;get_epol_rpms_aarch64&quot;: {
+                        build job: &apos;openEuler-build-aarch64-03-get_epol_rpms&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_iso), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;get_epol_rpms_x86_64&quot;: {
+                        build job: &apos;openEuler-build-x86_64-03-get_epol_rpms&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_iso), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_iso_aarch64&quot;: {
+                        build job: &apos;openEuler-build-aarch64-03-make_iso&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_iso), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_iso_x86_64&quot;: {
+                        build job: &apos;openEuler-build-x86_64-03-make_iso&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_iso), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_debug_everything_aarch64&quot;: {
+                        build job: &apos;openEuler-build-aarch64-03-make_debug_everything&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_debug_everything), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_debug_everything_x86_64&quot;: {
+                        build job: &apos;openEuler-build-x86_64-03-make_debug_everything&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_debug_everything), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_docker_image_aarch64&quot;: {
+                        build job: &apos;openEuler-build-aarch64-03-make_docker_image&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_docker_image), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_docker_image_x86_64&quot;: {
+                        build job: &apos;openEuler-build-x86_64-03-make_docker_image&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_docker_image), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_iso_everything_aarch64&quot;: {
+                        build job: &apos;openEuler-build-aarch64-03-make_iso_everything&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_iso_everything), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_iso_everything_x86_64&quot;: {
+                        build job: &apos;openEuler-build-x86_64-03-make_iso_everything&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_iso_everything), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_iso_everysrc_x86_64&quot;: {
+                        build job: &apos;openEuler-build-x86_64-03-make_iso_everysrc&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_iso_everysrc), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_hmi_aarch64&quot;: {
+                        build job: &apos;openEuler-build-aarch64-03-make_hmi&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_hmi), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false                        
+                    },
+                    &quot;make_hmi_x86_64&quot;: {
+                        build job: &apos;openEuler-build-x86_64-03-make_hmi&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_hmi), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false                        
+                    },
+                    &quot;make_netinst_iso_aarch64&quot;: {
+                        build job: &apos;openEuler-build-aarch64-03-make_netinst_iso&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_netinst_iso), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_netinst_iso_x86_64&quot;: {
+                        build job: &apos;openEuler-build-x86_64-03-make_netinst_iso&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_netinst_iso), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_microvm_image_aarch64&quot;: {
+                        build job: &apos;openEuler-build-aarch64-03-make_microvm_image&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_netinst_iso), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_microvm_image_x86_64&quot;: {
+                        build job: &apos;openEuler-build-x86_64-03-make_microvm_image&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_netinst_iso), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                    &quot;make_raspi_image_aarch64&quot;: {
+                        build job: &apos;openEuler-build-aarch64-03-make_raspi_image&apos;, parameters: [string(name: &apos;isbuild&apos;, value: params.make_raspi_image), string(name: &apos;OBS_STANDARD_PROJECT&apos;, value: params.obs_standard_prj), string(name: &apos;OBS_EPOL_PROJECT&apos;, value: params.obs_epol_prj), string(name: &apos;OBS_EXTRAS_PROJECT&apos;, value: params.obs_extras_prj),string(name: &apos;vm_ip&apos;, value: params.vm_ip)], propagate: false
+                    },
+                )
+            }
+        }
+        stage(&apos;post_build_time&apos;) {
+            steps {
+                build job: &apos;post_build_info&apos;, parameters: [string(name: &apos;obs_start&apos;, value: &quot;${_start}&quot;), string(name: &apos;obs_end&apos;, value: &quot;${_start}&quot;), string(name: &apos;iso_start&apos;, value: &quot;${_start}&quot;), string(name: &apos;obs_project&apos;, value: params.obs_standard_prj)], propagate: false
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

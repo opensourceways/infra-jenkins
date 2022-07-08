@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>ScanOSSAPIURL</name>
+          <defaultValue>https://shenzhen.scanoss.com/api/scan/direct</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ScanOSSResultRepo</name>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>UPDATE_TIME</name>
+          <defaultValue>20211019</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>BRANCH</name>
+          <defaultValue>openEuler-20.03-LTS-SP1</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PKG_NAME</name>
+          <defaultValue>transfig</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ARCH</name>
+          <defaultValue>aarch64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.PasswordParameterDefinition>
+          <name>AK</name>
+          <defaultValue>{AQAAABAAAAAgZuYDDQXU83nMxpgw6MmZhg/Piei8fVLoMePnOiMJnVQTvKWhxotYUAclTbN42gOx}</defaultValue>
+        </hudson.model.PasswordParameterDefinition>
+        <hudson.model.PasswordParameterDefinition>
+          <name>SK</name>
+          <defaultValue>{AQAAABAAAAAw1Q625FqeKN0dj/O9iiu2/X16q3XlrqOjU51yoOTjkaDJAL8KX9PgzXxkKKCv7G224Dp7g4Sefn/tnWb62FW+nQ==}</defaultValue>
+        </hudson.model.PasswordParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler-20.03-lts-sp1</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <org.jenkinsci.plugins.gwt.GenericTrigger plugin="generic-webhook-trigger@1.67">
+      <spec/>
+      <genericVariables>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>full_name</key>
+          <value>repository.full_name</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>body</key>
+          <value>comment.body</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>label_name</key>
+          <value>issue.labels.name</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>issue_state</key>
+          <value>issue.state</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+      </genericVariables>
+      <regexpFilterText>$full_name $body $issue_state</regexpFilterText>
+      <regexpFilterExpression>angela7/release-management /start-update open</regexpFilterExpression>
+      <printPostContent>false</printPostContent>
+      <printContributedVariables>false</printContributedVariables>
+      <causeString>Generic Cause</causeString>
+      <token>12345678</token>
+      <silentResponse>false</silentResponse>
+      <overrideQuietPeriod>false</overrideQuietPeriod>
+    </org.jenkinsci.plugins.gwt.GenericTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>repodir=""
+
+echo ${BRANCH}
+
+if [[ $BRANCH = "openEuler-20.03-LTS-SP2" ]]; then
+    echo "the branch is openEuler-20.03-LTS-SP2"
+	repodir="main/"
+fi
+
+echo ${repodir}
+
+sudo su - root &lt;&lt; EOF
+cd /root
+if [ -d /root/check_pkg_install_uninstall_function_service ]; then
+	rm -rf /root/check_pkg_install_uninstall_function_service
+fi
+git clone https://gitee.com/angela7/check_pkg_install_uninstall_function_service.git
+cd check_pkg_install_uninstall_function_service
+
+# yum repo
+&gt; /root/update-release-src.repo
+cat &gt; /root/update-release-src.repo &lt;&lt; FEOF4
+[OS]
+name=OS
+baseurl=https://repo.openeuler.org/${BRANCH}/OS/${ARCH}/
+enabled=1
+gpgcheck=0
+
+[everything]
+name=everything
+baseurl=https://repo.openeuler.org/${BRANCH}/everything/${ARCH}/
+enabled=1
+gpgcheck=0
+
+[epol]
+name=epol
+baseurl=https://repo.openeuler.org/${BRANCH}/EPOL/${repodir}${ARCH}/
+enabled=1
+gpgcheck=0
+
+[update]
+name=update
+baseurl=https://repo.openeuler.org/${BRANCH}/update/${ARCH}/
+enabled=1
+gpgcheck=0
+
+[update-epol]
+name=update-epol
+baseurl=https://repo.openeuler.org/${BRANCH}/EPOL/update/${repodir}${ARCH}/
+enabled=1
+gpgcheck=0
+
+[update_${UPDATE_TIME}]
+name=update_${UPDATE_TIME}
+baseurl=http://121.36.84.172/repo.openeuler.org/${BRANCH}/update_${UPDATE_TIME}/${ARCH}/
+enabled=1
+gpgcheck=0
+
+[update_${UPDATE_TIME}-src]
+name=update_${UPDATE_TIME}-src
+baseurl=http://121.36.84.172/repo.openeuler.org/${BRANCH}/update_${UPDATE_TIME}/source/
+enabled=1
+gpgcheck=0
+
+FEOF4
+
+# EPOL/update_${UPDATE_TIME} may not exist
+yum install wget -y
+wget http://121.36.84.172/repo.openeuler.org/${BRANCH}/EPOL/update_${UPDATE_TIME}/${repodir}source/repodata/repomd.xml
+if [ -f repomd.xml ]; then
+	cat &gt;&gt; /root/update-release-src.repo &lt;&lt; FEOF5
+[update_${UPDATE_TIME}-epol]
+name=update_${UPDATE_TIME}-epol
+baseurl=http://121.36.84.172/repo.openeuler.org/${BRANCH}/EPOL/update_${UPDATE_TIME}/${repodir}${ARCH}/
+enabled=1
+gpgcheck=0
+
+[update_${UPDATE_TIME}-epol-src]
+name=update_${UPDATE_TIME}-epol-src
+baseurl=http://121.36.84.172/repo.openeuler.org/${BRANCH}/EPOL/update_${UPDATE_TIME}/${repodir}source/
+enabled=1
+gpgcheck=0
+FEOF5
+fi
+
+cat /root/update-release-src.repo
+bash build_indocker.sh --package ${PKG_NAME}
+ll /root 
+
+# install esdk-obs-python
+yum install wget -y
+wget https://repo.huaweicloud.com/repository/pypi/packages/89/b1/a1361a2a1a115fbe33a4d423d48637aecf05c48f533c28b9adb3b4953639/esdk-obs-python-3.20.11.tar.gz#sha256=1446d25aca18fec95823b3e9e5eaff4426f227b23a6fd2244b5ef582a9698f4c
+tar -zxvf esdk-obs-python-3.20.11.tar.gz
+cd esdk-obs-python-3.20.11/
+python3 setup.py install
+
+cd
+if [ -d /root/release-tools-test ]; then
+	rm -rf /root/release-tools-test
+fi
+git clone https://gitee.com/angela7/release-tools-test.git
+export PYTHONPATH=/root/release-tools-test/release-assistant/
+#export AK=${AK}
+#export SK=${SK}
+echo "xxxx"
+ls /root/build_result
+
+python3 release-tools-test/release-assistant/javcra/api/obscloud.py --choice build_result --ak ${AK} --sk ${SK} --branch ${BRANCH} --path /root
+
+EOF</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.3.0">
+      <info/>
+    </EnvInjectBuilder>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>openeuler-ci-bot</credentialsId>
+          <variable>GiteeToken</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <variable>GiteeUserPassword</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>scanoss-api-key</credentialsId>
+          <variable>ScanOSSAPIKey</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PASSWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

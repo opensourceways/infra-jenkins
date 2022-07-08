@@ -1,0 +1,232 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>30</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo</name>
+          <description>码云中仓库名称</description>
+          <defaultValue>vmtop</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>pr 源分支</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tbranch</name>
+          <description>pr 目标分支</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prid</name>
+          <description>pull request id</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>committer</name>
+          <description>提交者</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>cpu框架</description>
+          <defaultValue>x86_64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>结果保存地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/${prid}/MERGE:refs/pull/${prid}/MERGE</refspec>
+        <url>https://gitee.com/openeuler/${repo}.git</url>
+        <credentialsId>openeuler_ci_bot</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>pull/${prid}/MERGE</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+        <deleteUntrackedNestedRepositories>false</deleteUntrackedNestedRepositories>
+      </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>${repo}</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.CloneOption>
+        <shallow>true</shallow>
+        <noTags>true</noTags>
+        <reference></reference>
+        <depth>1</depth>
+        <honorRefspec>true</honorRefspec>
+      </hudson.plugins.git.extensions.impl.CloneOption>
+    </extensions>
+  </scm>
+  <assignedNode>k8s-x86-virt</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>sudo yum install -y \
+  gdb \
+  make \
+  audit-libs-devel \
+  augeas \
+  autoconf \
+  automake \
+  bash-completion \
+  cyrus-sasl-devel \
+  dbus-devel \
+  device-mapper-devel \
+  dnsmasq \
+  ebtables \
+  firewalld-filesystem \
+  gawk \
+  gcc \
+  gettext \
+  gettext-devel \
+  git \
+  glib2-devel \
+  glusterfs-api-devel \
+  glusterfs-devel \
+  gnutls-devel \
+  iptables \
+  iscsi-initiator-utils \
+  libacl-devel \
+  libattr-devel \
+  libblkid-devel \
+  libcap-ng-devel \
+  libiscsi-devel \
+  libnl3-devel \
+  libpcap-devel \
+  libpciaccess-devel \
+  librados-devel \
+  librbd-devel \
+  libselinux-devel \
+  libssh-devel \
+  libssh2-devel \
+  libtasn1-devel \
+  libtirpc-devel \
+  libtool \
+  libxml2-devel \
+  libxslt \
+  lvm2 \
+  module-init-tools \
+  ncurses-devel \
+  netcf-devel \
+  nfs-utils \
+  numactl-devel \
+  numad \
+  parted-devel \
+  perl-interpreter \
+  polkit \
+  python3 \
+  python3-docutils \
+  qemu-img \
+  radvd \
+  readline-devel \
+  rpcgen \
+  sanlock-devel \
+  scrub \
+  systemd-devel \
+  systemd-units \
+  systemtap-sdt-devel \
+  util-linux \
+  wireshark-devel \
+  xfsprogs-devel \
+  yajl-devel \
+  --downloadonly --downloaddir=./ --allowerasing --skip-broken --nobest
+ 
+sudo rpm -ivh --force --nodeps *.rpm
+
+cd ${repo}
+autoreconf --verbose --force --install
+
+mkdir x86_64-openEuler-linux-gnu
+cd x86_64-openEuler-linux-gnu
+  
+../configure \
+  --build=x86_64-openEuler-linux-gnu \
+  --host=x86_64-openEuler-linux-gnu \
+  --program-prefix= \
+  --disable-dependency-tracking \
+  --prefix=/usr \
+  --exec-prefix=/usr \
+  --bindir=/usr/bin \
+  --sbindir=/usr/sbin \
+  --sysconfdir=/etc \
+  --datadir=/usr/share \
+  --includedir=/usr/include \
+  --libdir=/usr/lib64 \
+  --libexecdir=/usr/libexec \
+  --localstatedir=/var \
+  --sharedstatedir=/var/lib \
+  --mandir=/usr/share/man \
+  --infodir=/usr/share/info \
+  --enable-dependency-tracking || (cat config.log; exit 1)
+
+sudo cp config.h ../
+make -j$(getconf _NPROCESSORS_ONLN) V=1
+timeout 120 make -j$(getconf _NPROCESSORS_ONLN) check VIR_TEST_DEBUG=1 || (cat tests/test-suite.log; exit 1)</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeUserName</usernameVariable>
+          <passwordVariable>GiteePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,165 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.42">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers/>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
+    <script>pipeline {
+    agent none
+    stages(&quot;check all&quot;){
+        stage(&quot;Begin&quot;){
+                parallel{
+                    stage(&quot;2203-LTS-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.03:LTS:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.03_lts_standard_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2203-LTS-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.03:LTS:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.03_lts_standard_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2203-LTS-Epol-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Epol&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.03:LTS:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.03_lts_epol_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2203-LTS-Epol-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Epol&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.03:LTS:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.03_lts_epol_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2203-LTS-Next-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Next&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.03:LTS:Next:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.03_lts_next_standard_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.155&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2203-LTS-Next-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Next&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.03:LTS:Next:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.03_lts_next_standard_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.155&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2203-LTS-Next-Epol-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Next:Epol&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.03:LTS:Next:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.03_lts_next_epol_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.155&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2203-LTS-Next-Epol-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS:Next:Epol&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.03:LTS:Next:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.03_lts_next_epol_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.155&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2003-LTS-SP1-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP1&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:20.03:LTS:SP1:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_20.03_lts_sp1_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.32&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2003-LTS-SP1-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP1&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:20.03:LTS:SP1:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_20.03_lts_sp1_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.32&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2003-LTS-SP1-Epol-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP1:Epol&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:20.03:LTS:SP1:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_20.03_lts_sp1_epol_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.32&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2003-LTS-SP1-Epol-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP1:Epol&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:20.03:LTS:SP1:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_20.03_lts_sp1_epol_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.32&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2003-LTS-SP3-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:20.03:LTS:SP3:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_20.03_lts_sp3_standard_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.32&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2003-LTS-SP3-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:20.03:LTS:SP3:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_20.03_lts_sp3_standard_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.32&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2003-LTS-SP3-Epol-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3:Epol&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:20.03:LTS:SP3:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_20.03_lts_sp3_epol_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.32&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2003-LTS-SP3-Epol-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:20.03:LTS:SP3:Epol&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:20.03:LTS:SP3:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_20.03_lts_sp3_epol_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.32&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;mainline-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Mainline&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;mainline_standard_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;mainline-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Mainline&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;mainline_standard_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;Factory-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Factory&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;factory_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;Factory-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Factory&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;factory_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;Epol-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Epol&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;epol_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;Epol-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Epol&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;epol_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                }
+        }
+    }
+}
+
+
+
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

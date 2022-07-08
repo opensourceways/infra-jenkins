@@ -1,0 +1,210 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>gitee代码提交release-management的pr检测其pckg-mgmt.yaml内容</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>OBS_SOURCE_IP</name>
+          <defaultValue>172.16.1.89</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.2.7">
+      <spec></spec>
+      <triggerOnPush>false</triggerOnPush>
+      <triggerOnCommitComment>false</triggerOnCommitComment>
+      <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+      <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+      <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+      <triggerOnUpdatePullRequest>0</triggerOnUpdatePullRequest>
+      <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+      <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+      <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+      <triggerOnNoteRequest>true</triggerOnNoteRequest>
+      <noteRegex>/retest</noteRegex>
+      <buildInstructionFilterType>NONE</buildInstructionFilterType>
+      <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+      <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+      <skipLastCommitHasBeenBuild>true</skipLastCommitHasBeenBuild>
+      <setBuildDescription>true</setBuildDescription>
+      <branchFilterType>All</branchFilterType>
+      <includeBranchesSpec></includeBranchesSpec>
+      <excludeBranchesSpec></excludeBranchesSpec>
+      <targetBranchRegex></targetBranchRegex>
+      <secretToken>{AQAAABAAAAAwglE3tZb/w+BMET7bSskywqPAcjlu0CDq50OqWUm/xuOzAWHO514KIbNK+RNSpZmXWMmtPLDXkzWroPi4TKXGXQ==}</secretToken>
+      <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+      <cancelIncompleteBuildOnSamePullRequest>false</cancelIncompleteBuildOnSamePullRequest>
+      <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
+    </com.gitee.jenkins.trigger.GiteePushTrigger>
+  </triggers>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+
+git config --global http.postBuffer 52428800
+
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; FEOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+FEOF
+
+
+cat ~/.oscrc
+
+if [ -d $WORKSPACE/obs_meta ];then
+	sudo rm -rf $WORKSPACE/obs_meta
+fi
+
+if [ -d $WORKSPACE/release-management ];then
+	sudo rm -rf $WORKSPACE/release-management
+fi
+
+if [ ! -d $WORKSPACE/obs_meta ];then
+    cd $WORKSPACE
+    for((i=1;i&lt;=5;i++));
+    do
+    	set +e
+        git clone -b master https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/dong-jie_1/obs_meta
+        set -e
+        if [ -d obs_meta ];then
+            if [ &quot;`ls -A obs_meta`&quot; != &quot;&quot; ];then 
+        		break
+			else
+            	sudo rm -rf obs_meta
+            fi
+        fi
+    done
+    cd -
+fi
+
+
+if [ ! -d $WORKSPACE/release-management ];then
+    cd $WORKSPACE
+    for((i=1;i&lt;=5;i++));
+    do
+    	set +e
+        git clone -b master https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/dong-jie_1/release-management
+
+        set -e
+        if [ -d release-management ];then
+            if [ &quot;`ls -A release-management`&quot; != &quot;&quot; ];then 
+        		break
+			else
+            	sudo rm -rf release-management
+            fi
+        fi
+    done
+    cd -
+fi
+
+sudo su - root &lt;&lt;EOF
+
+git config --global user.email &quot;17621827400@163.com&quot;
+git config --global user.name &quot;dongjie110&quot;
+git config --global pull.ff only
+set +e
+rm -rf openeuler_obs-*
+set -
+wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.6.2-aarch64.tar.gz
+tar -xvf openeuler_obs-v1.6.2-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v1.6.2-aarch64
+echo &apos;test&apos;
+./openeuler_obs  -cpm true -o $WORKSPACE/obs_meta -rm $WORKSPACE/release-management -prid $giteePullRequestIid  -guser ${GiteeCloneUserName} -gpwd ${GiteeClonePassword}
+EOF
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <com.gitee.jenkins.publisher.GiteeMessagePublisher plugin="gitee@1.2.7">
+      <onlyForFailure>false</onlyForFailure>
+      <replaceSuccessNote>false</replaceSuccessNote>
+      <replaceFailureNote>false</replaceFailureNote>
+      <replaceAbortNote>false</replaceAbortNote>
+      <replaceUnstableNote>false</replaceUnstableNote>
+      <successNoteText>&lt;img alt=&quot;:white_check_mark:&quot; class=&quot;emoji&quot; height=&quot;14&quot; src=&quot;https://gitee.com/assets/emoji/white_check_mark-9e8cafa6efd2d43e3f6651898be25e75.png&quot; style=&quot;vertical-align: middle&quot; width=&quot;14&quot;&gt;       obs_meta  check :  SUCCESS
+
+Results available at:  &lt;a href=&quot;${BUILD_URL}/console&quot; &gt;check_obs_service_resilt&lt;/a&gt;</successNoteText>
+      <failureNoteText>&lt;img alt=&quot;:x:&quot; class=&quot;emoji&quot; height=&quot;14&quot; src=&quot;https://gitee.com/assets/emoji/x-c7f8694f70e339c194324671e39080c2.png&quot; style=&quot;vertical-align: middle&quot; width=&quot;14&quot;&gt;       obs_meta  check :  FAILURE
+
+Results available at:  &lt;a href=&quot;${BUILD_URL}/console&quot; &gt;check_obs_service_resilt&lt;/a&gt;
+</failureNoteText>
+      <abortNoteText></abortNoteText>
+      <unstableNoteText></unstableNoteText>
+    </com.gitee.jenkins.publisher.GiteeMessagePublisher>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>d06a4ace-be97-4230-9acd-95c48d6971ad</credentialsId>
+          <usernameVariable>OBS_USERNAME</usernameVariable>
+          <passwordVariable>OBS_PASSWORD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>dongjie_gitee</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>5a700b90-012d-48a8-b6c6-64a5ebaf82e9</credentialsId>
+          <usernameVariable>OBS_BACKEND</usernameVariable>
+          <passwordVariable>OBS_BACKEND_PASSWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>d06a4ace-be97-4230-9acd-95c48d6971ad</credentialsId>
+          <usernameVariable>dogsheng89</usernameVariable>
+          <passwordVariable>dogshengpwd89</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>openeuler-ci-bot</credentialsId>
+          <variable>access_token</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

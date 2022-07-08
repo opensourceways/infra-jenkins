@@ -1,0 +1,98 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>上报osc构建失败信息</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection></giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_projects</name>
+          <description>obs项目，用空格分隔</description>
+          <defaultValue>openEuler:Mainline</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_build_states</name>
+          <description>obs构建状态，用空格分隔</description>
+          <defaultValue>failed</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-obs</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+function config_osc()
+{
+  cat &gt; /home/jenkins/.oscrc &lt;&lt; EOF
+[general]
+apiurl = http://117.78.1.88
+no_verify = 1
+build-root = /home/jenkins/agent/buildroot
+  
+[http://117.78.1.88]
+user = $OBSUserName
+pass = $OBSPassword
+EOF
+}
+
+set +x
+config_osc
+#rm -rf /home/jenkins/ci_check
+#cd /home/jenkins/
+#git clone https://miao_kaibo:Feng1987%40me@gitee.com/openeuler/openeuler-jenkins ci_check
+export PYTHONPATH=/home/jenkins/ci_check
+#sed -i &apos;s/(branch)/(\&quot;master\&quot;)/g&apos; /home/jenkins/ci_check/src/tools/obs_package_build_report.py
+#cat /home/jenkins/ci_check/src/tools/obs_package_build_report.py
+python /home/jenkins/ci_check/src/tools/obs_package_build_report.py -p ${obs_projects} -s ${obs_build_states} -c ${gitee_real_name_mapping_file} -t ${giteetoken}
+set -x
+
+#cat ${gitee_real_name_mapping_file}</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBSUserName</usernameVariable>
+          <passwordVariable>OBSPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>openeuler-ci-bot</credentialsId>
+          <variable>giteetoken</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>6fa7183f-c7d5-4aca-95ef-a83e7295a6f2</credentialsId>
+          <variable>gitee_real_name_mapping_file</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

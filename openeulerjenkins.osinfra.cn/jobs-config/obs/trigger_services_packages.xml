@@ -1,0 +1,133 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>触发trigger services，从源码服务器拉取openEuler:22.03:LTS:LoongArch工程的最新代码</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:dongjie</permission>
+      <permission>hudson.model.Item.Build:dongjie</permission>
+      <permission>hudson.model.Item.Cancel:dongjie</permission>
+      <permission>hudson.model.Item.Configure:dongjie</permission>
+      <permission>hudson.model.Item.Delete:dongjie</permission>
+      <permission>hudson.model.Item.Discover:dongjie</permission>
+      <permission>hudson.model.Item.Move:dongjie</permission>
+      <permission>hudson.model.Item.Read:dongjie</permission>
+      <permission>hudson.model.Item.Workspace:dongjie</permission>
+      <permission>hudson.model.Run.Delete:dongjie</permission>
+      <permission>hudson.model.Run.Replay:dongjie</permission>
+      <permission>hudson.model.Run.Update:dongjie</permission>
+      <permission>hudson.scm.SCM.Tag:dongjie</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>project</name>
+          <description>工程名</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>package</name>
+          <description>软件包包名</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>pack</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch_in_service</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#sudo su - root&lt;&lt;FEOF
+set -e
+cat &gt; ~/.oscrc &lt;&lt;EOF
+[general]
+apiurl=http://117.78.1.88
+no_verify=yes
+[http://117.78.1.88]
+user=${OBS_USER}
+pass=${OBS_PWD}
+EOF
+
+if [[ &quot;${project}&quot; == &quot;openEuler-22.03-LTS&quot; ]] || [[ &quot;${project}&quot; == &quot;openEuler-22.03-LTS-LoongArch&quot; ]];then
+  pack=`osc list openEuler:22.03:LTS:LoongArch | grep &quot;^${package}$&quot;`
+  if [ -z ${pack} ];then
+  	echo &quot;openEuler:22.03:LTS:LoongArch has no package: ${package}&quot;
+    exit 0
+  fi
+  [ -d openEuler:22.03:LTS:LoongArch ] &amp;&amp; rm -rf openEuler:22.03:LTS:LoongArch
+  osc co openEuler:22.03:LTS:LoongArch ${package}
+  branch_in_service=`cat openEuler\:22.03\:LTS\:LoongArch/${package}/_service | grep &apos;url&apos; | head -n 1 | awk -F&apos;/&apos; &apos;{print $2}&apos;`
+  if [[ &quot;${branch_in_service}&quot; == ${project} ]];then
+      osc service remoterun openEuler:22.03:LTS:LoongArch ${package}
+      if [[ $? -eq 0 ]];then
+          echo &quot;${package} sync successed.&quot;
+      else
+          echo &quot;${package} sync failed.&quot;
+          exit 1
+      fi
+  else
+      echo &quot;_service branch of ${package} is ${branch_in_service},different with ${project},so no need sync.&quot;
+  fi
+else
+	echo &quot;branch ${project} no need to handle for openEuler:22.03:LTS:LoongArch.&quot;
+fi
+
+#FEOF
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

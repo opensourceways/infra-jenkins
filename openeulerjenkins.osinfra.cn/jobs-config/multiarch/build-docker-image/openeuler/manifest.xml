@@ -1,0 +1,109 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>多arch镜像支持</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>arch_x86</name>
+          <description>amd64框架</description>
+          <defaultValue>x86-64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch_aarch64</name>
+          <description>arm/v8框架</description>
+          <defaultValue>aarch64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>name</name>
+          <description>镜像名称</description>
+          <defaultValue>openeuler</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tag</name>
+          <description>镜像版本号</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-inbound</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+set +x 
+
+name=${name,,}
+tag=${tag,,}	# 从环境变量中取 $(date +%Y%m%d)
+
+# build image manifest for multi arch
+echo ${name}---${tag}
+
+image=swr.cn-north-4.myhuaweicloud.com/openeuler/${name}:${tag}
+image_x86_64=swr.cn-north-4.myhuaweicloud.com/openeuler/${arch_x86}/${name}:${tag}
+image_aarch64=swr.cn-north-4.myhuaweicloud.com/openeuler/${arch_aarch64}/${name}:${tag}
+
+AreaProject=&quot;cn-north-4&quot;
+
+docker login -u ${DockerRegistryUserName} -p ${DockerRegistryPassword} swr.${AreaProject}.myhuaweicloud.com  &amp;&gt;/dev/null
+
+# config support manifest, dirty work... 
+sed -i &apos;$s/}/,&quot;experimental&quot;:&quot;enabled&quot;}/&apos; /home/jenkins/.docker/config.json
+
+echo &quot;create manifest&quot;
+docker manifest create --amend ${image} ${image_x86_64} ${image_aarch64} &amp;&gt;/dev/null
+
+echo &quot;annotate manifest of arch ${arch_x86}&quot;
+docker manifest annotate ${image} ${image_x86_64} --os linux --arch amd64 &amp;&gt;/dev/null
+
+echo &quot;annotate manifest of arch ${arch_aarch64}&quot;
+docker manifest annotate ${image} ${image_aarch64} --os linux --arch arm64 &amp;&gt;/dev/null
+
+echo &quot;push manifest&quot;
+docker manifest push --purge ${image} &amp;&gt;/dev/null
+echo &quot;build image manifest for multi arch ... ok&quot;
+
+set -x</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>docker_registry_ci_bot</credentialsId>
+          <usernameVariable>DockerRegistryUserName</usernameVariable>
+          <passwordVariable>DockerRegistryPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

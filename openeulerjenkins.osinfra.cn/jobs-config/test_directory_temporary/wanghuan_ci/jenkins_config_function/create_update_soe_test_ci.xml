@@ -1,0 +1,115 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>以multiarch/src-openeuler下某个仓为模板，创建或更新multiarch-ci-test/src-openeuler下的测试工程</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>action</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>create</string>
+              <string>update</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>job</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_owner</name>
+          <defaultValue>zhengyaohui</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-soe-zhengyaohui</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>cat &gt; hotfix.py &lt;&lt; EOF
+#!/usr/bin/python3
+from src.proxy.jenkins_proxy import JenkinsProxy
+import xml.etree.ElementTree as ET
+import re
+import os
+jp = JenkinsProxy(&quot;http://jenkins.jenkins&quot;, &quot;$user&quot;, &quot;$token&quot;)
+path_list = [&quot;trigger&quot;, &quot;x86-64&quot;, &quot;aarch64&quot;, &quot;comment&quot;]
+
+for item in path_list:
+    template_job = os.path.join(&quot;multiarch/src-openeuler/&quot;, item, &quot;$job&quot;)
+    target_job = os.path.join(&quot;multiarch-ci-test/src-openeuler/&quot;, item, &quot;$job&quot;)
+    print(template_job)
+    config = jp.get_config(template_job)
+    root = ET.fromstring(config)
+    ele = root.findall(&quot;builders/hudson.tasks.Shell/command&quot;)
+    if ele:
+        replaced_text = re.sub(r&quot;#!/bin/bash&quot;, &quot;#!/bin/bash\nrepo_owner={}&quot;.format(&quot;&apos;$repo_owner&apos;&quot;), ele[0].text)
+        if replaced_text == ele[0].text:
+            replaced_text = &quot;\n&quot;.join(&quot;repo_owner=&apos;$repo_owner&apos;&quot;, ele[0].text)
+        ele[0].text = replaced_text
+    ele = root.find(&quot;triggers//regexpFilterExpression&quot;)
+    if ele is not None:
+        ele.text = re.sub(r&quot;src-openeuler&quot;, &quot;$repo_owner&quot;, ele.text)
+    ele = root.find(&quot;publishers/hudson.plugins.parameterizedtrigger.BuildTrigger//projects&quot;)
+    if ele is not None:
+        ele.text = re.sub(r&quot;multiarch/src-openeuler/&quot;, &quot;multiarch-ci-test/src-openeuler/&quot;, ele.text)
+    ele = root.find(&quot;publishers/join.JoinTrigger//projects&quot;)
+    if ele is not None:
+        ele.text = re.sub(r&quot;multiarch/src-openeuler/&quot;, &quot;multiarch-ci-test/src-openeuler/&quot;, ele.text)
+    config = ET.tostring(root).decode(&quot;utf-8&quot;)
+    if &quot;${action}&quot; == &quot;create&quot;:
+        jp.create_job(target_job, config)
+    else:
+        jp.update_job(target_job, config)
+
+EOF
+
+
+rm -rf /home/jenkins/ci_check2
+git clone -b master https://gitee.com/openeuler/openeuler-jenkins /home/jenkins/ci_check2
+
+export PYTHONPATH=/home/jenkins/ci_check2
+python3 hotfix.py</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>be1d7d09-4ab8-44da-ad52-82b3dcc795b0</credentialsId>
+          <usernameVariable>user</usernameVariable>
+          <passwordVariable>token</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

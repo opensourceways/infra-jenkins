@@ -1,0 +1,103 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>使用updateinfo.xml文件，更新发布版本的repo源的repodata数据</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.2.7">
+      <spec></spec>
+      <triggerOnPush>true</triggerOnPush>
+      <triggerOnCommitComment>false</triggerOnCommitComment>
+      <triggerOnOpenPullRequest>false</triggerOnOpenPullRequest>
+      <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+      <triggerOnAcceptedPullRequest>true</triggerOnAcceptedPullRequest>
+      <triggerOnUpdatePullRequest>0</triggerOnUpdatePullRequest>
+      <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+      <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+      <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+      <triggerOnNoteRequest>true</triggerOnNoteRequest>
+      <noteRegex>/retest</noteRegex>
+      <buildInstructionFilterType>CI_SKIP</buildInstructionFilterType>
+      <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+      <ciSkipFroTestNotRequired>true</ciSkipFroTestNotRequired>
+      <skipLastCommitHasBeenBuild>true</skipLastCommitHasBeenBuild>
+      <setBuildDescription>true</setBuildDescription>
+      <branchFilterType>All</branchFilterType>
+      <includeBranchesSpec></includeBranchesSpec>
+      <excludeBranchesSpec></excludeBranchesSpec>
+      <targetBranchRegex></targetBranchRegex>
+      <secretToken>{AQAAABAAAAAwD9ae+rBYC2/w7vVxAmQQGggJuD6DpAWhvevIsv+Ik2t/23MwbdFnq3QuGGhevce0P73vefCJZyBK1v6ef9ACFg==}</secretToken>
+      <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+      <cancelIncompleteBuildOnSamePullRequest>false</cancelIncompleteBuildOnSamePullRequest>
+      <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
+    </com.gitee.jenkins.trigger.GiteePushTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+tmpdir=`mktemp`
+rm -rf $tmpdir
+#git clone https://${GiteeUSER}:${GiteePWD}@gitee.com/unsunghero/repodata_update_files $tmpdir
+git clone https://${GiteeUSER}:${GiteePWD}@gitee.com/unsunghero/repodata_update_files $tmpdir
+cd $tmpdir
+#git reset --hard f731f75d517ed58ff10fda3403ff253374c0eb2e
+
+release_version=`git diff --name-status HEAD~1 HEAD~0 | awk &apos;{print $2}&apos; | xargs dirname`
+xmlfile=`git diff --name-status HEAD~1 HEAD~0 | awk &apos;{print $2}&apos; | xargs basename`
+
+echo ${release_version}
+for ver in ${release_version}
+do
+    bash -x $tmpdir/tools/sshscp.sh -s $tmpdir/${ver}/$xmlfile -d 121.36.97.194:/repo/ -k $pubkey
+    bash -x $tmpdir/tools/sshcmd.sh -c &quot;ls /repo&quot; -m 121.36.97.194 -u root -k $pubkey
+    bash -x $tmpdir/tools/sshcmd.sh -c &quot;modifyrepo /repo/$xmlfile /repo/openeuler/${ver}/update/aarch64/repodata&quot; -m 121.36.97.194 -u root -k $pubkey
+    bash -x $tmpdir/tools/sshcmd.sh -c &quot;modifyrepo /repo/$xmlfile /repo/openeuler/${ver}/update/x86_64/repodata&quot; -m 121.36.97.194 -u root -k $pubkey
+    bash -x $tmpdir/tools/sshcmd.sh -c &quot;modifyrepo /repo/$xmlfile /repo/openeuler/${ver}/update/source/repodata&quot; -m 121.36.97.194 -u root -k $pubkey
+done
+
+cd /
+rm -rf $tmpdir</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>7dad2839-7421-4f1b-af57-753b707c49c8</credentialsId>
+          <usernameVariable>API_USER</usernameVariable>
+          <passwordVariable>API_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeUSER</usernameVariable>
+          <passwordVariable>GiteePWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>update-publish-key</credentialsId>
+          <variable>pubkey</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

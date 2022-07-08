@@ -1,0 +1,82 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-soe</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>function config_maven()
+{
+  cat &gt; /home/jenkins/.m2 &lt;&lt; EOF
+&lt;settings&gt;
+    &lt;mirrors&gt;
+        &lt;mirror&gt;
+            &lt;id&gt;huaweimaven&lt;/id&gt;
+      		&lt;name&gt;huaweicloud maven&lt;/name&gt;
+      		&lt;url&gt;https://mirrors.huaweicloud.com/repository/maven/&lt;/url&gt;
+      		&lt;mirrorOf&gt;central&lt;/mirrorOf&gt; 
+        &lt;/mirror&gt;
+    &lt;/mirrors&gt;
+&lt;/settings&gt;
+EOF
+}
+
+function config_gradle()
+{
+  cat &gt; /home/jenkins/.gradle &lt;&lt; EOF
+allprojects {
+    buildscript {
+        repositories {
+            mavenLocal()
+            maven { url &quot;https://mirrors.huaweicloud.com/repository/maven/&quot; }
+        }
+    }
+    repositories {
+        mavenLocal()
+        maven { url &quot;https://mirrors.huaweicloud.com/repository/maven/&quot; }
+    }
+}
+EOF
+}
+
+config_maven
+config_gradle
+sudo yum install maven -y
+
+mvn help:effective-settings
+
+
+cat /home/jenkins/.gradle
+cat /home/jenkins/.m2
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

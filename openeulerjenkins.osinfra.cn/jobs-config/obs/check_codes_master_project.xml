@@ -1,0 +1,142 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.42">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>master分支的所有OBS分层工程的gitee_to_obs代码同步</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.TimerTrigger>
+          <spec>H */12 * * *</spec>
+        </hudson.triggers.TimerTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
+    <script>pipeline {
+    agent none
+    stages(&quot;check master all projects code&quot;){
+        stage(&quot;check obs codes&quot;){
+            parallel{
+                stage(&quot;BaseTools&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:BaseTools&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;KernelSpace&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:KernelSpace&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Common_Languages_Dependent_Tools&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Common_Languages_Dependent_Tools&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;C&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:C&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Java&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Java&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Python&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Python&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Perl&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Perl&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Ruby&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Ruby&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Erlang&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Erlang&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Meson&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Meson&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Nodejs&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Nodejs&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Qt&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Qt&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Ocaml&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Ocaml&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Lua&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Lua&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Golang&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Golang&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;MultiLanguage&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:MultiLanguage&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Mainline&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Mainline&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Epol&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Epol&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+                stage(&quot;Factory&quot;){
+                    steps{
+                        build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:Testing:Factory&apos;),string(name: &apos;branch&apos;,value: &apos;master&apos;)], propagate: false
+                    }
+                }
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

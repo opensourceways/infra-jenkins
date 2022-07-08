@@ -1,0 +1,149 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>gitee分支新增tag</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>project</name>
+          <description>工程名</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>分支名</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.TextParameterDefinition>
+          <name>pkgs</name>
+          <description>若为空即为工程全量打tag，否则为单包或多包打tag。
+请参照如下格式（备注：分隔符支持英文逗号，空格和换行）：
+package1，pacakge2
+或者：
+package1
+pacakge2
+...</description>
+          <trim>false</trim>
+        </hudson.model.TextParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tag_name</name>
+          <description>要打的tag名称</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>tag_manage_type</name>
+          <description>tag处理方式：新增或者删除</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string></string>
+              <string>add</string>
+              <string>delete</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>if [[ -z $tag_manage_type ]];then
+    exit 0
+fi
+
+
+sudo su - root &lt;&lt;EOF
+
+echo &quot;nameserver 114.114.114.114&quot; &gt;&gt; /etc/resolv.conf
+
+git config --global http.sslVerify false
+git config --global http.postBuffer 52428800
+git config --global user.email &quot;80474298@qq.com&quot;
+git config --global user.name &quot;openeuler-ci-bot&quot;
+git config --global pull.ff only
+
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; FEOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+FEOF
+cat ~/.oscrc
+
+cd $WORKSPACE
+
+wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.4.5_test-aarch64.tar.gz
+tar -xvf openeuler_obs-v1.4.5_test-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v1.4.5_test-aarch64/tools
+
+set -e
+if [ -z $pkgs ];then
+    ./gitee_tag_manager -u ${GiteeCloneUserName} -p ${GiteeClonePassword} -proj ${project} -br ${branch} -tag_n ${tag_name} -tag_t ${tag_manage_type}
+else		
+    ./gitee_tag_manager -u ${GiteeCloneUserName} -p ${GiteeClonePassword} -proj ${project} -br ${branch} -tag_n ${tag_name} -tag_t ${tag_manage_type} -pkgs $pkgs
+fi
+
+
+#wget http://172.16.1.95:88/mkb/openeuler-obs/test/gitee_tag_manager.py
+#if [ -z $pkgs ];then
+#    python3 gitee_tag_manager.py -u ${GiteeCloneUserName} -p ${GiteeClonePassword} -proj ${project} -br ${branch} -tag_n ${tag_name} -tag_t ${tag_manage_type}
+#else		
+#    python3 gitee_tag_manager.py -u ${GiteeCloneUserName} -p ${GiteeClonePassword} -proj ${project} -br ${branch} -tag_n ${tag_name} -tag_t ${tag_manage_type} -pkgs $pkgs
+#fi
+
+
+EOF
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

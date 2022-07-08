@@ -1,0 +1,50 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:liujingjing</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:liujingjing</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:liujingjing</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:liujingjing</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:liujingjing</permission>
+      <permission>hudson.model.Item.Build:liujingjing</permission>
+      <permission>hudson.model.Item.Cancel:liujingjing</permission>
+      <permission>hudson.model.Item.Configure:liujingjing</permission>
+      <permission>hudson.model.Item.Delete:liujingjing</permission>
+      <permission>hudson.model.Item.Discover:liujingjing</permission>
+      <permission>hudson.model.Item.Move:liujingjing</permission>
+      <permission>hudson.model.Item.Read:liujingjing</permission>
+      <permission>hudson.model.Item.Workspace:liujingjing</permission>
+      <permission>hudson.model.Run.Delete:liujingjing</permission>
+      <permission>hudson.model.Run.Update:liujingjing</permission>
+      <permission>hudson.scm.SCM.Tag:liujingjing</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders/>
+  <publishers/>
+  <buildWrappers/>
+</project>

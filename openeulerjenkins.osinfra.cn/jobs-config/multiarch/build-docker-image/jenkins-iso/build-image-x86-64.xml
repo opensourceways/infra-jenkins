@@ -1,0 +1,199 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>构建x86 64 平台镜像</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>cpu架构</description>
+          <defaultValue>x86-64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>name</name>
+          <defaultValue>iso</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tag</name>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-inbound</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+
+set +x
+
+function config_dockerfile()
+{
+  cat &gt; Dockerfile &lt;&lt; &quot;FEOF&quot;
+#FROM swr.cn-north-4.myhuaweicloud.com/openeuler/openjdk/11-jdk-stretch:20.03-lts-sp3
+FROM swr.cn-north-4.myhuaweicloud.com/openeuler/openjdk/11-jdk-stretch:22.03-lts
+
+RUN set -eux; \
+	yum install -y curl sudo expect openssh shadow git python3 osc python openssh-clients tar wget bc
+
+ARG VERSION=4.3
+ARG user=jenkins
+ARG group=jenkins
+ARG uid=1000
+ARG gid=1000
+ARG AGENT_WORKDIR=/home/${user}/agent
+
+RUN curl --create-dirs -fsSLo /usr/share/jenkins/agent.jar https://repo.jenkins-ci.org/public/org/jenkins-ci/main/remoting/${VERSION}/remoting-${VERSION}.jar \
+    &amp;&amp; chmod 755 /usr/share/jenkins \
+    &amp;&amp; chmod 644 /usr/share/jenkins/agent.jar \
+    &amp;&amp; ln -sf /usr/share/jenkins/agent.jar /usr/share/jenkins/slave.jar
+
+RUN curl --create-dirs -fsSLo /usr/local/bin/jenkins-agent http://121.36.53.23/AdoptOpenJDK/jenkins-agent
+#COPY jenkins-agent /usr/local/bin/jenkins-agent
+
+RUN chmod a+rx /usr/local/openjdk-11 \
+     &amp;&amp; chmod a+rx /usr/local/bin/jenkins-agent \
+     &amp;&amp; ln -s /usr/local/bin/jenkins-agent /usr/local/bin/jenkins-slave
+
+RUN groupadd -g ${gid} ${group}
+RUN useradd -c &quot;Jenkins user&quot; -d /home/${user} -u ${uid} -g ${gid} -m ${user}
+RUN echo &quot;${user} ALL=(ALL) NOPASSWD:ALL&quot; &gt;&gt; /etc/sudoers
+
+
+USER ${user}
+ENV AGENT_WORKDIR=${AGENT_WORKDIR}
+RUN mkdir /home/${user}/.jenkins &amp;&amp; mkdir -p ${AGENT_WORKDIR}
+
+VOLUME /home/${user}/.jenkins
+VOLUME ${AGENT_WORKDIR}
+WORKDIR ${AGENT_WORKDIR}
+
+
+ENTRYPOINT [&quot;jenkins-agent&quot;]
+FEOF
+}
+
+config_obs_dockerfile()
+{
+   cat &gt; Dockerfile &lt;&lt; &quot;FEOF&quot;
+#FROM swr.cn-north-4.myhuaweicloud.com/openeuler/openjdk/11-jdk-stretch:20.03-lts-sp3
+FROM swr.cn-north-4.myhuaweicloud.com/openeuler/openjdk/11-jdk-stretch:22.03-lts
+
+RUN cat /etc/yum.repos.d/openEuler.repo
+RUN sed -i &quot;s/repo.huaweicloud.com\/openeuler/repo.openeuler.org/g&quot; /etc/yum.repos.d/openEuler.repo &amp;&amp; sed -i &quot;s#http#https#g&quot; /etc/yum.repos.d/openEuler.repo
+RUN sed -i &quot;s/gpgcheck=1/gpgcheck=0/g&quot; /etc/yum.repos.d/openEuler.repo &amp;&amp; sed -i &quot;/gpgkey=/d&quot; /etc/yum.repos.d/openEuler.repo
+RUN cat /etc/yum.repos.d/openEuler.repo
+RUN yum install python3-pip binutils sshpass openssh-clients sudo git tar bc osc -y
+RUN pip3 install pyinstaller pexpect configparser requests lxml beautifulsoup4 threadpool pyyaml uuid kafka python-jenkins argparse xlwt paramiko -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+ARG VERSION=4.3
+ARG user=jenkins
+ARG group=jenkins
+ARG uid=1000
+ARG gid=1000
+ARG AGENT_WORKDIR=/home/${user}/agent
+
+RUN curl --create-dirs -fsSLo /usr/share/jenkins/agent.jar https://repo.jenkins-ci.org/public/org/jenkins-ci/main/remoting/${VERSION}/remoting-${VERSION}.jar \
+    &amp;&amp; chmod 755 /usr/share/jenkins \
+    &amp;&amp; chmod 644 /usr/share/jenkins/agent.jar \
+    &amp;&amp; ln -sf /usr/share/jenkins/agent.jar /usr/share/jenkins/slave.jar
+
+RUN curl --create-dirs -fsSLo /usr/local/bin/jenkins-agent http://121.36.53.23/AdoptOpenJDK/jenkins-agent
+#COPY jenkins-agent /usr/local/bin/jenkins-agent
+
+RUN chmod a+rx /usr/local/openjdk-11 \
+     &amp;&amp; chmod a+rx /usr/local/bin/jenkins-agent \
+     &amp;&amp; ln -s /usr/local/bin/jenkins-agent /usr/local/bin/jenkins-slave
+
+RUN groupadd -g ${gid} ${group}
+RUN useradd -c &quot;Jenkins user&quot; -d /home/${user} -u ${uid} -g ${gid} -m ${user}
+RUN echo &quot;${user} ALL=(ALL) NOPASSWD:ALL&quot; &gt;&gt; /etc/sudoers
+
+
+USER ${user}
+ENV AGENT_WORKDIR=${AGENT_WORKDIR}
+RUN mkdir /home/${user}/.jenkins &amp;&amp; mkdir -p ${AGENT_WORKDIR}
+
+VOLUME /home/${user}/.jenkins
+VOLUME ${AGENT_WORKDIR}
+WORKDIR ${AGENT_WORKDIR}
+
+
+ENTRYPOINT [&quot;jenkins-agent&quot;]
+FEOF
+}
+
+#config_dockerfile
+config_obs_dockerfile
+set -x</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <com.nirima.jenkins.plugins.docker.builder.DockerBuilderPublisher plugin="docker-plugin@1.2.2">
+      <dockerFileDirectory></dockerFileDirectory>
+      <fromRegistry plugin="docker-commons@1.17">
+        <url>swr.cn-north-4.myhuaweicloud.com/</url>
+        <credentialsId>docker_registry_ci_bot</credentialsId>
+      </fromRegistry>
+      <tags>
+        <string>swr.cn-north-4.myhuaweicloud.com/openeuler/${arch}/${name}:${tag}</string>
+      </tags>
+      <pushOnSuccess>true</pushOnSuccess>
+      <pushCredentialsId>docker_registry_ci_bot</pushCredentialsId>
+      <cleanImages>true</cleanImages>
+      <cleanupWithJenkinsJobDelete>true</cleanupWithJenkinsJobDelete>
+      <cloud>dockerd-x86-22.03</cloud>
+      <noCache>true</noCache>
+      <pull>true</pull>
+    </com.nirima.jenkins.plugins.docker.builder.DockerBuilderPublisher>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>docker_registry_ci_bot</credentialsId>
+          <usernameVariable>DockerRegistryUserName</usernameVariable>
+          <passwordVariable>DockerRegistryPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>chong_w_gitee</credentialsId>
+          <usernameVariable>mygituser</usernameVariable>
+          <passwordVariable>mygitpwd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

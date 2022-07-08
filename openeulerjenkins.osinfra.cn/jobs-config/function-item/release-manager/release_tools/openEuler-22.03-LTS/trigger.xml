@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><flow-definition plugin="workflow-job@2.40">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.87">
+    <script>pipeline {
+    agent none
+    stages{
+    stage('obs_build') {
+            steps {
+                parallel(
+'self_build_0': { build job: 'function-item/release-manager/release_tools/openEuler-22.03-LTS/aarch64/selfbuild_1', propagate: false},
+'self_build_1': { build job: 'function-item/release-manager/release_tools/openEuler-22.03-LTS/aarch64/selfbuild_2', propagate: false},
+'self_build_2': { build job: 'function-item/release-manager/release_tools/openEuler-22.03-LTS/aarch64/selfbuild_3', propagate: false},
+'self_build_3': { build job: 'function-item/release-manager/release_tools/openEuler-22.03-LTS/aarch64/selfbuild_4', propagate: false},
+'self_build_4': { build job: 'function-item/release-manager/release_tools/openEuler-22.03-LTS/aarch64/selfbuild_5', propagate: false},
+'self_build_5': { build job: 'function-item/release-manager/release_tools/openEuler-22.03-LTS/x86_64/selfbuild_1', propagate: false},
+'self_build_6': { build job: 'function-item/release-manager/release_tools/openEuler-22.03-LTS/x86_64/selfbuild_2', propagate: false},
+'self_build_7': { build job: 'function-item/release-manager/release_tools/openEuler-22.03-LTS/x86_64/selfbuild_3', propagate: false},
+'self_build_8': { build job: 'function-item/release-manager/release_tools/openEuler-22.03-LTS/x86_64/selfbuild_4', propagate: false},
+'self_build_9': { build job: 'function-item/release-manager/release_tools/openEuler-22.03-LTS/x86_64/selfbuild_5', propagate: false}
+                )
+            }
+    }
+}
+}
+    </script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

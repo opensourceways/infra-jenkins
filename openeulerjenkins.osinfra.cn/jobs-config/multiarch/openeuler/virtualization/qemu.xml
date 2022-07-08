@@ -1,0 +1,376 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:wsf0824</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:YoriFang</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:zdchen</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:wsf0824</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:YoriFang</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:zdchen</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:wsf0824</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:YoriFang</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:zdchen</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:wsf0824</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:YoriFang</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:zdchen</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:wsf0824</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:YoriFang</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:zdchen</permission>
+      <permission>hudson.model.Item.Build:wsf0824</permission>
+      <permission>hudson.model.Item.Build:YoriFang</permission>
+      <permission>hudson.model.Item.Build:zdchen</permission>
+      <permission>hudson.model.Item.Cancel:wsf0824</permission>
+      <permission>hudson.model.Item.Cancel:YoriFang</permission>
+      <permission>hudson.model.Item.Cancel:zdchen</permission>
+      <permission>hudson.model.Item.Configure:wsf0824</permission>
+      <permission>hudson.model.Item.Configure:YoriFang</permission>
+      <permission>hudson.model.Item.Configure:zdchen</permission>
+      <permission>hudson.model.Item.Delete:wsf0824</permission>
+      <permission>hudson.model.Item.Delete:YoriFang</permission>
+      <permission>hudson.model.Item.Delete:zdchen</permission>
+      <permission>hudson.model.Item.Discover:wsf0824</permission>
+      <permission>hudson.model.Item.Discover:YoriFang</permission>
+      <permission>hudson.model.Item.Discover:zdchen</permission>
+      <permission>hudson.model.Item.Move:wsf0824</permission>
+      <permission>hudson.model.Item.Move:YoriFang</permission>
+      <permission>hudson.model.Item.Move:zdchen</permission>
+      <permission>hudson.model.Item.Read:wsf0824</permission>
+      <permission>hudson.model.Item.Read:YoriFang</permission>
+      <permission>hudson.model.Item.Read:zdchen</permission>
+      <permission>hudson.model.Item.Workspace:wsf0824</permission>
+      <permission>hudson.model.Item.Workspace:YoriFang</permission>
+      <permission>hudson.model.Item.Workspace:zdchen</permission>
+      <permission>hudson.model.Run.Delete:wsf0824</permission>
+      <permission>hudson.model.Run.Delete:YoriFang</permission>
+      <permission>hudson.model.Run.Delete:zdchen</permission>
+      <permission>hudson.model.Run.Replay:wsf0824</permission>
+      <permission>hudson.model.Run.Replay:YoriFang</permission>
+      <permission>hudson.model.Run.Replay:zdchen</permission>
+      <permission>hudson.model.Run.Update:wsf0824</permission>
+      <permission>hudson.model.Run.Update:YoriFang</permission>
+      <permission>hudson.model.Run.Update:zdchen</permission>
+      <permission>hudson.scm.SCM.Tag:wsf0824</permission>
+      <permission>hudson.scm.SCM.Tag:YoriFang</permission>
+      <permission>hudson.scm.SCM.Tag:zdchen</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>300</daysToKeep>
+        <numToKeep>300</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo</name>
+          <description>gitee仓库名称（不包含src-前缀）</description>
+          <defaultValue>qemu</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>minimum_prid</name>
+          <description>pull requests最小ID（不包含）</description>
+          <defaultValue>265</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>git_user_name</name>
+          <description>spec修改git账号(Euler Robot)</description>
+          <defaultValue>Chen Qun</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>git_user_email</name>
+          <description>spec修改git邮箱(euler.robot@huawei.com)</description>
+          <defaultValue>kuhn.chenqun@huawei.com</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>maxmum_prid</name>
+          <description>pull requests最大ID（不包含）</description>
+          <defaultValue>1000</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H 21,11,16 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -x
+# - repo
+# - minimum_prid
+# - git_user_name
+# - git_user_email
+## - gitee_username
+## - gitee_password
+## - gitee_token
+
+rpms=(python3)
+sudo rm -f *.rpm
+sudo yum downgrade -y &quot;${rpms[@]}&quot; --downloadonly --downloaddir=./ --allowerasing --skip-broken --nobest || true
+sudo yum install -y &quot;${rpms[@]}&quot; --downloadonly --downloaddir=./ --allowerasing --skip-broken --nobest
+sudo rpm -Uvh --force --nodeps *.rpm || true
+sudo ln -s python3 /usr/bin/python || true
+
+get_branches()
+{
+    local owner=$1
+    local repo=$2
+    curl -X GET --header &quot;Content-Type: application/json;charset=UTF-8&quot; &quot;https://gitee.com/api/v5/repos/$owner/$repo/branches?access_token=$gitee_token1&quot; --insecure | python -c &quot;import sys, json; print(&apos;\n&apos;.join([&apos;%s&apos; % (b[&apos;name&apos;],) for b in json.load(sys.stdin)]))&quot;
+}
+
+get_pulls_prid_branch()
+{
+    local owner=$1
+    local repo=$2
+    local state=$3
+    curl -X GET --header &quot;Content-Type: application/json;charset=UTF-8&quot; &quot;https://gitee.com/api/v5/repos/$owner/$repo/pulls?state=$state&amp;sort=updated&amp;direction=desc&amp;page=1&amp;per_page=20&amp;access_token=$gitee_token1&quot; --insecure | python -c &quot;import sys, json; print(&apos;\n&apos;.join([&apos;%s %s %s&apos; % (pr[&apos;merged_at&apos;], pr[&apos;number&apos;], pr[&apos;base&apos;][&apos;ref&apos;]) for pr in json.load(sys.stdin)]))&quot; | sort | awk &apos;{print$2,$3}&apos;
+}
+
+get_commits_hash()
+{
+    local owner=$1
+    local repo=$2
+    local prid=$3
+    curl -X GET --header &quot;Content-Type: application/json;charset=UTF-8&quot; &quot;https://gitee.com/api/v5/repos/$owner/$repo/pulls/$prid/commits?access_token=$gitee_token1&quot; --insecure | python -c &quot;import sys, json; print(&apos;\n&apos;.join([&apos;%s&apos; % (c[&apos;sha&apos;],) for c in json.load(sys.stdin)]))&quot; | tac
+}
+
+create_pull()
+{
+    local owner=$1
+    local repo=$2
+    local branch=$3
+    local tbranch=$4
+    local title=$5
+    local body=$6
+    curl -X POST --header &quot;Content-Type: application/json;charset=UTF-8&quot; &quot;https://gitee.com/api/v5/repos/$owner/$repo/pulls&quot; -d &quot;{\&quot;access_token\&quot;:\&quot;$gitee_token1\&quot;,\&quot;title\&quot;:\&quot;$title\&quot;,\&quot;head\&quot;:\&quot;$gitee_username1:$branch\&quot;,\&quot;base\&quot;:\&quot;$tbranch\&quot;,\&quot;body\&quot;:\&quot;$body\&quot;}&quot;
+}
+
+fetch_git()
+{
+    local repo=$1
+    [ $fetch_git -eq 0 ] || return 0
+
+    git config --global user.name &quot;$git_user_name&quot;
+    git config --global user.email &quot;$git_user_email&quot;
+
+    # rm -rf &quot;src-$repo&quot; &quot;$repo&quot;
+    rm -rf &quot;src-$repo&quot; &quot;$repo&quot;
+    [ -d &quot;src-$repo&quot; ] || git clone &quot;https://$gitee_username1:$gitee_password1@gitee.com/$gitee_username1/src-$repo.git&quot; &quot;src-$repo&quot;
+    [ -d &quot;$repo&quot; ] || git clone &quot;https://gitee.com/openeuler/$repo.git&quot; &quot;$repo&quot;
+
+    cd &quot;src-$repo&quot;
+    git remote add upstream &quot;https://gitee.com/src-openeuler/$repo.git&quot; || true
+    git fetch upstream
+    git clean -fdx
+
+    cd &quot;../$repo&quot;
+    sed -i &quot;/fetch = +refs\/pull\/.*\/head/d&quot; .git/config
+    git config --add remote.origin.fetch &quot;+refs/pull/*/head:refs/pull/*/head&quot;
+    git fetch
+
+    fetch_git=1
+}
+
+# 暂时关闭同步脚本
+exit 0
+
+fetch_git=0
+tbranches=&quot;&quot;
+branches=$(get_branches src-openeuler &quot;$repo&quot;)
+open_pulls=$(get_pulls_prid_branch src-openeuler &quot;$repo&quot; open)
+
+while read line
+do
+    prid=${line%% *}
+    tbranch=${line#* }  #openEuler 的 branch， 目标分支；
+    echo &quot;XXCCCCC1$tbranches&quot;
+    if [ &quot;$tbranch&quot; == &quot;qemu-4.1.0&quot; ];then
+    	tbranch=&quot;master&quot;
+    elif [ &quot;$tbranch&quot; == &quot;qemu-6.2.0&quot; ];then
+    	tbranch=&quot;openEuler-22.03-LTS&quot;
+    fi
+    [ -n &quot;$prid&quot; ] || continue
+    [ -n &quot;$tbranch&quot; ] || continue
+	echo &quot;XXCCCCC2$tbranches&quot;
+    [ $prid -gt $minimum_prid ] || continue
+    #[ $prid -lt $maxmum_prid ] || continue
+    echo &quot;XXCCCCC3$tbranches $open_pulls&quot;
+    echo &quot;$open_pulls&quot;
+    
+    echo &quot;$branches&quot; | grep -q &quot;^$tbranch$&quot; || continue
+    echo &quot;XXCCCCC4$tbranches&quot;
+    echo &quot;$open_pulls&quot; | grep &quot; $tbranch$&quot; &amp;&amp; continue || true
+    fetch_git &quot;$repo&quot;
+  
+    #From openeuler &quot;openEuler-20.03-LTS-Next&quot; branch to src-openeuler &quot;openEuler-20.03-LTS-Next and openEuler-20.03-LTS-SP2&quot; branch
+    #openEuler repo            -&gt;  src-openEuler
+    #openEuler-20.03-LTS-SP1   -&gt;  openEuler-20.03-LTS-SP1
+    
+    #openEuler-20.03-LTS-Next  -&gt;  openEuler-20.03-LTS-Next/openEuler-20.03-LTS-SP2
+    #qemu-4.1.0                -&gt;  master/openEuler-21.09
+    #openEuler-21.03           -&gt;  openEuler-21.03
+    #qemu-6.2.0                -&gt;  openEuler-22.03-LTS-Next/openEuler-22.03-LTS
+    
+    echo &quot;XXCCCCC$tbranches&quot;
+    if [ &quot;$tbranch&quot; == &quot;openEuler-20.03-LTS-Next&quot; ];then
+          more_tbranchs=&quot;$tbranch openEuler-20.03-LTS-SP2 openEuler-20.03-LTS-SP3&quot;
+    elif [ &quot;$tbranch&quot; == &quot;master&quot; ];then
+          more_tbranchs=&quot;$tbranch openEuler-21.09&quot;
+    elif [ &quot;$tbranch&quot; == &quot;openEuler-22.03-LTS&quot; ];then
+          more_tbranchs=&quot;openEuler-22.03-LTS-Next openEuler-22.03-LTS&quot;
+    else
+          more_tbranchs=$tbranch
+    fi
+    
+    echo &quot;XXCCCCChello&quot;
+    for tbranch in $more_tbranchs   #for openEuler-20.03-LTS-SP2+ branch and 21.09+ branch
+    do
+        
+        cd &quot;../src-$repo&quot;
+        git checkout -f &quot;$tbranch&quot; || git checkout -b &quot;$tbranch&quot;
+    
+        echo &quot;$tbranches &quot; | grep &quot; $tbranch &quot; || git reset --hard &quot;upstream/$tbranch&quot;
+        git log | grep -w &quot;spec: Update patch and changelog with !$prid&quot; &amp;&amp; continue || true
+        echo &quot;$tbranches &quot; | grep &quot; $tbranch &quot; || tbranches=&quot;$tbranches $tbranch&quot;
+
+        cd &quot;../$repo&quot;
+        if [ &quot;$tbranch&quot; == &quot;master&quot; ] || [ &quot;$tbranch&quot; == &quot;openEuler-21.09&quot; ];then
+             tbranch=&quot;qemu-4.1.0&quot;
+        elif [ &quot;$tbranch&quot; == &quot;openEuler-22.03-LTS-Next&quot; ] || [ &quot;$tbranch&quot; == &quot;openEuler-22.03-LTS&quot; ];then
+             tbranch=&quot;qemu-6.2.0&quot;
+        elif [ &quot;$tbranch&quot; == &quot;openEuler-20.03-LTS-SP2&quot; ] || [ &quot;$tbranch&quot; == &quot;openEuler-20.03-LTS-SP3&quot; ];then
+             tbranch=&quot;openEuler-20.03-LTS-Next&quot;
+        fi
+       
+        git checkout $tbranch
+        pr_message=$(git log --author openeuler-ci-bot --format=%s | awk -F &apos;From&apos; &apos;{print $1}&apos;| grep &quot;\!$prid&quot;)
+        
+        git checkout -f &quot;pull/$prid/head&quot;
+        git reset --hard &quot;pull/$prid/head&quot;
+
+        cd &quot;../src-$repo&quot;
+        from_hash=$(git show -s --format=%H)
+        changelog=$(awk &apos;/^%changelog/{print NR}&apos; &quot;$repo.spec&quot; | tail -n 1)
+        patch_line=$(awk &apos;/^[Pp][Aa][Tt][Cc][Hh][0-9]+: /{print NR}&apos; &quot;$repo.spec&quot; | tail -n 1)
+        patch_id=$(awk -F: -v line=$patch_line &apos;NR==line{print$1}&apos; &quot;$repo.spec&quot; | sed &quot;s/^[^0]*0*//&quot;)
+        while read hash
+        do
+            patch_file=$(cd &quot;../$repo&quot; &amp;&amp; git format-patch -1 &quot;$hash&quot;)
+            mv &quot;../$repo/$patch_file&quot; &quot;${patch_file#0001-}&quot;
+            patch_file=${patch_file#0001-}
+            git add &quot;$patch_file&quot;
+    
+            author_name=&quot;Chen Qun&quot;
+            author_email=&quot;kuhn.chenqun@huawei.com&quot;
+            author_date=$(cd &quot;../$repo&quot; &amp;&amp; git show -s --format=%ad &quot;$hash&quot;)
+            subject=$(cd &quot;../$repo&quot; &amp;&amp; git show -s --format=%s &quot;$hash&quot;)
+            message=$(cd &quot;../$repo&quot; &amp;&amp; git show -s --format=%s%n%n%b &quot;$hash&quot;)
+            git commit --author=&quot;$author_name &lt;$author_email&gt;&quot; --date=&quot;$author_date&quot; --message=&quot;$message&quot;
+            ((patch_id++))
+            sed -i &quot;$patch_line a Patch$(printf &quot;%04d&quot; $patch_id): ${patch_file#0001-}&quot; &quot;$repo.spec&quot;
+            ((patch_line++))
+    
+            [ $patch_line -le $changelog ] &amp;&amp; ((changelog++)) || true
+            sed -i &quot;$changelog a - $subject&quot; &quot;$repo.spec&quot;
+            ((changelog++))
+        done &lt;&lt;&lt; &quot;$(get_commits_hash openeuler &quot;$repo&quot; &quot;$prid&quot;)&quot;
+
+        now_date=$(date &quot;+%a %b %d %H:%M:%S %Y %z&quot;)
+        sed -i &quot;$changelog G&quot; &quot;$repo.spec&quot;
+        sed -i &quot;/^%changelog/a * $(echo &quot;$now_date&quot; | awk &apos;{print$1,$2,$3,$5}&apos;) $author_name &lt;$author_email&gt;&quot; &quot;$repo.spec&quot;
+        spec_subject=&quot;spec: Update patch and changelog with $pr_message !$prid&quot;
+        spec_body=$(git show -s --format=%s &quot;$from_hash..HEAD&quot; | tac)
+
+        spec_signoff=&quot;Signed-off-by: Chen Qun&lt;kuhn.chenqun@huawei.com&gt;&quot;
+        spec_message=&quot;$spec_subject&quot;$&apos;\n\n&apos;&quot;$spec_body&quot;$&apos;\n\n&apos;&quot;$spec_signoff&quot;
+        git commit --message=&quot;$spec_message&quot; &quot;$repo.spec&quot;
+    done
+done &lt;&lt;&lt; &quot;$(get_pulls_prid_branch openeuler &quot;$repo&quot; merged)&quot;
+
+for tbranch in $tbranches
+do
+    cd &quot;../src-$repo&quot;
+    git checkout &quot;$tbranch&quot;
+    release=$(awk &apos;/^Release: /{print$2}&apos; &quot;$repo.spec&quot;)
+    sed -i &quot;s/^Release: .*/Release: $((release+1))/&quot; &quot;$repo.spec&quot;
+    prids=$(git show -s --format=%s &quot;upstream/$tbranch..HEAD&quot; | awk &apos;/spec: Update patch and changelog with ![0-9]+/{print$NF}&apos; | tac | xargs)
+    spec_message=&quot;spec: Update release version with $prids&quot;$&apos;\n\n&apos;&quot;increase release verison by one&quot;
+    git commit --signoff --message=&quot;$spec_message&quot; &quot;$repo.spec&quot;
+
+    git push --force origin &quot;$tbranch&quot;
+    pull_body=$(git show -s --format=%s &quot;upstream/$tbranch..HEAD&quot; | sed &quot;/spec: Update patch and changelog with ![0-9]\+/{x;p;x;}&quot;)
+    create_pull src-openeuler &quot;$repo&quot; &quot;$tbranch&quot; &quot;$tbranch&quot; &quot;Automatically generate code patches with openeuler $prids&quot; &quot;&lt;pre&gt;$pull_body&lt;/pre&gt;&quot;
+done</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+    <EnvInjectPasswordWrapper plugin="envinject@2.3.0">
+      <injectGlobalPasswords>true</injectGlobalPasswords>
+      <maskPasswordParameters>true</maskPasswordParameters>
+      <passwordEntries>
+        <EnvInjectPasswordEntry>
+          <name>gitee_username</name>
+          <value>{AQAAABAAAAAQ5FNSHs3WZ2sB3KSQzaJm5fJXv+sAr/BTjElaKR2L9Zs=}</value>
+        </EnvInjectPasswordEntry>
+        <EnvInjectPasswordEntry>
+          <name>gitee_password</name>
+          <value>{AQAAABAAAAAQmOOrxVTTfD5EchOCetP/G7Nj7R8WVPLyUdz1/nYo3M8=}</value>
+        </EnvInjectPasswordEntry>
+        <EnvInjectPasswordEntry>
+          <name>gitee_token</name>
+          <value>{AQAAABAAAAAwsOnItWHVOYNFSVZug2Q6iyKUOh1Xs8HWb9a/IBOxfqbVdqaJ/75tfoGBVNuKot9k4t53A9i2vceGadUaXmSZTA==}</value>
+        </EnvInjectPasswordEntry>
+        <EnvInjectPasswordEntry>
+          <name>gitee_username1</name>
+          <value>{AQAAABAAAAAQvXGPzPRLEh28Ok+UXzGF88Jz9q5nsz0Z+H0sXN42Kto=}</value>
+        </EnvInjectPasswordEntry>
+        <EnvInjectPasswordEntry>
+          <name>gitee_password1</name>
+          <value>{AQAAABAAAAAQP0TFzchx2QGCix6y+2dqXe+SIS4sGiusZJmJt+PLBRE=}</value>
+        </EnvInjectPasswordEntry>
+        <EnvInjectPasswordEntry>
+          <name>gitee_token1</name>
+          <value>{AQAAABAAAAAwLvhbX8RImLQFuIXh1wQAFp5dvcxy34+4T1slEWyj19ozsbeRmJ5H8iekdvpOe2ROEZjnUjesrgkq7SzowxtQ2Q==}</value>
+        </EnvInjectPasswordEntry>
+      </passwordEntries>
+    </EnvInjectPasswordWrapper>
+  </buildWrappers>
+</project>

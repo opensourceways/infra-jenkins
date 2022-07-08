@@ -1,0 +1,345 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+    </hudson.security.AuthorizationMatrixProperty>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>30</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo</name>
+          <description>码云中仓库名称</description>
+          <defaultValue>python-scss</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>pr 源分支</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tbranch</name>
+          <description>pr 目标分支</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prid</name>
+          <description>pull request id</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>committer</name>
+          <description>提交者</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>cpu框架</description>
+          <defaultValue>aarch64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>package</name>
+          <description>所属包，支持多个，用“,”分割</description>
+          <defaultValue>python-scss</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>buddy</name>
+          <description>兄弟repo，支持多个，用“,”分割</description>
+          <defaultValue>python-scss</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>结果保存地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>pkgship_notify_url</name>
+          <description>notify pkgship url</description>
+          <defaultValue>https://jenkins.osinfra.cn/job/openEuler_APPs/build-package-manage-image/build</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>pkgship_notify_token</name>
+          <description>notify pkgship token</description>
+          <defaultValue>openeuler4321</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_rpm_host</name>
+          <description>obs 归档地址</description>
+          <defaultValue>http://119.3.219.20:82</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_webui_host</name>
+          <description>obs webui地址</description>
+          <defaultValue>http://117.78.1.88/</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.11.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/${prid}/MERGE:refs/pull/${prid}/MERGE</refspec>
+        <url>https://gitee.com/src-openeuler/${repo}.git</url>
+        <credentialsId>openeuler_ci_bot</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>pull/${prid}/MERGE</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>${repo}</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.CloneOption>
+        <shallow>true</shallow>
+        <noTags>true</noTags>
+        <reference></reference>
+        <depth>1</depth>
+        <honorRefspec>true</honorRefspec>
+      </hudson.plugins.git.extensions.impl.CloneOption>
+    </extensions>
+  </scm>
+  <assignedNode>k8s-aarch64-obs</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+. /home/jenkins/ci_check/src/lib/lib.sh
+
+function config_osc()
+{
+  cat &gt; /home/jenkins/.oscrc &lt;&lt; EOF
+[general]
+apiurl = http://117.78.1.88
+no_verify = 1
+build-root = /home/jenkins/agent/buildroot
+  
+[http://117.78.1.88]
+user = $OBSUserName
+pass = $OBSPassword
+trusted_prj = openEuler:selfbuild:BaseOS openEuler:20.03:LTS:selfbuild:BaseOS openEuler:selfbuild:function openEuler:20.09:selfbuild:BaseOS # 不用输0,1,2了
+EOF
+}
+
+function download_buddy_repo()
+{
+  # download buddy repo
+  for item in $(echo ${buddy} |sed &apos;s/,/ /g&apos;)
+  do
+ 
+      if [[ &quot;x$item&quot; == &quot;xopenEuler_kernel&quot; || &quot;x$item&quot; == &quot;xopenEuler-20.09_kernel&quot; ]]
+      then
+          download_kernel_repo
+      elif [ &quot;x$item&quot; != &quot;x$repo&quot; ]
+      then
+          log_info &quot;clone ${item} of branch $tbranch&quot;
+          git clone -b $tbranch --depth 1 https://${GiteeUserName}:${GiteePassword}@gitee.com/src-openeuler/${item}
+      fi
+  done
+}
+
+download_kernel_times=0	# 避免下载多次kernel
+function download_kernel_repo()
+{
+  if [[ $download_kernel_times -gt 0 ]]
+  then
+      log_info &quot;already clone kernel source&quot;
+      return
+  fi
+  
+  (( download_kernel_times += 1 ))
+  
+  # 复用pod
+  if [[ -d code/kernel ]]
+  then
+      rm -rf code/kernel
+  fi
+  
+  if [ &quot;x$repo&quot; = &quot;xkernel&quot; ]
+  then
+      kernel_tag=$(cat kernel/SOURCE)
+      log_info &quot;now clone kernel source of tag ${kernel_tag} to code/kernel&quot;
+      git clone -b $kernel_tag --depth 1 https://${GiteeUserName}:${GiteePassword}@gitee.com/openeuler/kernel code/kernel
+  else
+      log_info &quot;now clone kernel source of branch ${tbranch}&quot;
+      git clone -b $tbranch --depth 1 https://${GiteeUserName}:${GiteePassword}@gitee.com/openeuler/kernel code/kernel
+  fi
+  
+  # 处理 &quot;Installed (but unpackaged) file&quot; 异常
+  rm -rf $WORKSPACE/code/kernel/.git
+}
+
+# 复用pod，暴力清除
+function drop_pod_cache()
+{
+  rm -rf /tmp/local_code/xdf/repo
+  
+  # 第一次使用时，没有mount文件系统
+  set +e
+  mount | grep buildroot | awk &apos;{print $3}&apos; | sudo xargs umount &amp;&gt; /dev/null
+  set -e
+  
+  if [[ -d /home/jenkins/agent/buildroot ]]
+  then
+    sudo chmod -R 777 /home/jenkins/agent/buildroot		# buildroot mode is 444, owner and group is root
+    rm -rf /home/jenkins/agent/buildroot
+  fi
+  
+  # check abi comment
+  if [[ -e $WORKSPACE/${repo}_${arch}_comment ]]
+  then
+      rm $WORKSPACE/${repo}_${arch}_comment
+  fi
+}
+
+function build_packages()
+{
+  for item in $(echo ${package} |sed &apos;s/,/ /g&apos;)
+  do
+      log_info &quot;start build package $item&quot;
+      log_debug &quot;params are [$repo, $branch, $prid, $committer, $arch, $package, $buddy, $WORKSPACE]&quot; 
+      
+      export PYTHONPATH=/home/jenkins/ci_check
+      python /home/jenkins/ci_check/src/build/osc_build_k8s.py -p $item -a $arch -c $WORKSPACE -b $tbranch
+      
+      log_debug &quot;check abi&quot;
+      output=&quot;${item}_check_abi_${BUILD_ID}.md&quot;
+      comment=&quot;${repo}_${arch}_comment&quot;
+      python3 /home/jenkins/ci_check/src/build/extra_work.py -r $tbranch -b $obs_rpm_host -s $obs_webui_host -f checkabi -p ${item} -c ${committer} -a ${arch} -l &quot;http://${repo_server}&quot; -o $WORKSPACE/${output} -e $WORKSPACE/${comment} || echo &quot;continue although run check abi failed&quot;
+  	  # run before save rpm, arch dir not exist for first compile 
+      ssh -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR root@${repo_server} &quot;mkdir -p /repo/openeuler/${committer}/${item}/${arch}/noarch&quot;
+	  if [[ -e  $output ]]
+      then
+          scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR ${output} root@${repo_server}:/repo/openeuler/${committer}/${item}/${arch}/${output}
+      fi
+      if [[ -e  $comment ]]
+      then
+          scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR ${comment} root@${repo_server}:/repo/soe/check_abi/${comment}
+      fi
+      
+      log_debug &quot;save result&quot;
+      save_build_result $package
+      
+      log_debug &quot;pkgship notify&quot;
+      if [[ &quot;x$item&quot; == &quot;xpkgship&quot; ]]
+      then
+          scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:/repo/soe/pkgship pkgship_notify
+          python /home/jenkins/ci_check/src/build/extra_work.py -f notify -p ${item} -a ${arch} -n ${pkgship_notify_url} -t ${pkgship_notify_token} -l &quot;http://${repo_server}&quot; -m pkgship_notify -u ${PkgShipUserName} -w ${PkgShipPassword} || echo &quot;continue although run pkgship notify error&quot;
+      fi
+  done
+}
+
+function save_build_result()
+{
+  ssh -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR root@${repo_server} &quot;mkdir -p /repo/openeuler/${committer}/${1}/${arch}/noarch&quot;
+  if [[ -d /home/jenkins/agent/buildroot/home/abuild/rpmbuild/RPMS/${arch} &amp;&amp; &quot;$(ls -A /home/jenkins/agent/buildroot/home/abuild/rpmbuild/RPMS/${arch})&quot; ]]
+  then
+  	  scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR /home/jenkins/agent/buildroot/home/abuild/rpmbuild/RPMS/${arch}/* root@${repo_server}:/repo/openeuler/${committer}/${1}/${arch}
+      
+      # last build packages soft link
+      for rpm in $(ls -A /home/jenkins/agent/buildroot/home/abuild/rpmbuild/RPMS/${arch})
+      do
+           linker=${rpm%%-[0-9]*m}	# 获取包名，去掉版本号后的内容
+           ssh -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR root@${repo_server} &quot;ln -sf /repo/openeuler/${committer}/${1}/${arch}/$rpm /repo/openeuler/0X080480000XC0000000/${arch}/${linker}&quot;
+      done
+  fi
+  
+  if [[ -d /home/jenkins/agent/buildroot/home/abuild/rpmbuild/RPMS/noarch &amp;&amp; &quot;$(ls -A /home/jenkins/agent/buildroot/home/abuild/rpmbuild/RPMS/noarch)&quot; ]]
+  then
+  	  scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR /home/jenkins/agent/buildroot/home/abuild/rpmbuild/RPMS/noarch/* root@${repo_server}:/repo/openeuler/${committer}/${1}/${arch}/noarch
+      
+      # last build packages soft link
+      for rpm in $(ls -A /home/jenkins/agent/buildroot/home/abuild/rpmbuild/RPMS/noarch)
+      do
+           linker=${rpm%%-[0-9]*m}
+           ssh -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR root@${repo_server} &quot;ln -sf /repo/openeuler/${committer}/${1}/noarch/$rpm /repo/openeuler/0X080480000XC0000000/${arch}/${linker}&quot;
+      done
+  fi
+}
+
+set +x
+set -e
+config_osc
+download_buddy_repo
+drop_pod_cache
+build_packages
+set +e
+set -x</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBSUserName</usernameVariable>
+          <passwordVariable>OBSPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeUserName</usernameVariable>
+          <passwordVariable>GiteePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>93245f7d-4603-405d-b056-4c1d6316c05f</credentialsId>
+          <usernameVariable>PkgShipUserName</usernameVariable>
+          <passwordVariable>PkgShipPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

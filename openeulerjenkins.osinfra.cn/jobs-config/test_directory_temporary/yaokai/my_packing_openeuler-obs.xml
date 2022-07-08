@@ -1,0 +1,184 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>打包openeuler-obs仓库代码，并上传到http://119.3.219.20:88/mkb/openeuler-obs/</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:senlin</permission>
+      <permission>hudson.model.Item.Build:senlin</permission>
+      <permission>hudson.model.Item.Cancel:senlin</permission>
+      <permission>hudson.model.Item.Configure:senlin</permission>
+      <permission>hudson.model.Item.Delete:senlin</permission>
+      <permission>hudson.model.Item.Discover:senlin</permission>
+      <permission>hudson.model.Item.Move:senlin</permission>
+      <permission>hudson.model.Item.Read:senlin</permission>
+      <permission>hudson.model.Item.Workspace:senlin</permission>
+      <permission>hudson.model.Run.Delete:senlin</permission>
+      <permission>hudson.model.Run.Replay:senlin</permission>
+      <permission>hudson.model.Run.Update:senlin</permission>
+      <permission>hudson.scm.SCM.Tag:senlin</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>OBS_SERVER_IP</name>
+          <defaultValue>172.16.1.95</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>version</name>
+          <description>工具的版本号，如1.4.4</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler-ci-obs</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>if [[ -z &quot;$version&quot; ]];then
+	echo &quot;version is empty.&quot;
+	exit 1
+fi
+
+sudo su - root &lt;&lt;EOF
+echo &quot;nameserver 114.114.114.114&quot; &gt;&gt; /etc/resolv.conf
+rm -rf openeuler-obs
+EOF
+
+set -e
+for((i=1;i&lt;=5;i++));
+do
+	#git clone --depth=1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/openeuler/openeuler-obs.git
+    #git clone --depth=1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/dongjie110/openeuler-obs.git
+    #git clone --depth=1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/wangchong1995924/openeuler-obs
+    #git clone --depth=1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/dong-jie_1/openeuler-obs.git
+    git clone --depth=1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/zhouxiaxiang/openeuler-obs.git
+    set -e
+    if [ -d openeuler-obs ];then
+       		break
+    fi
+done
+
+sudo su - root &lt;&lt;EOF
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; FEOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+FEOF
+
+#yum install python3-pip binutils -y --repo OS
+#pip3 install pyinstaller pexpect configparser requests lxml beautifulsoup4 threadpool pyyaml uuid kafka python-jenkins argparse
+
+cd  ${WORKSPACE}/openeuler-obs/
+# add pull
+#git fetch origin pull/181/head:test &amp;&amp; git checkout test &amp;&amp; git log
+
+pyinstaller -F openeuler_obs.py -p core/check_meta_service.py -p core/check_release_management.py -p core/getdate.py -p core/gitee_to_obs.py -p core/obs_mail_notice.py -p core/package_manager.py -p core/project_manager.py -p core/runner.py -p core/save.py -p core/sync_pckg_mgmt.py -p core/update_obs_repos.py -p common/common.py -p common/log_obs.py -p common/parser_config.py --clean
+cd ${WORKSPACE}/openeuler-obs/tools/
+pyinstaller -F build_obs_iso.py
+pyinstaller -F create_pckg_mgmt_yaml.py
+pyinstaller -F modify_src_openeuler_yaml.py
+pyinstaller -F gitee_tag_manager.py
+cp baseos.list ./dist/
+rm -fr tools &amp;&amp; mv dist tools &amp;&amp; cp -rf tools ${WORKSPACE}/openeuler-obs/dist/
+cd ${WORKSPACE}/openeuler-obs/
+cp -rf config ./dist/
+
+cd dist
+./openeuler_obs -h
+if [[ $? -ne 0 ]];then
+	echo &quot;openeuler_obs is not available!!!&quot;
+	exit 1
+fi
+
+cd ${WORKSPACE}/openeuler-obs/
+mv dist openeuler_obs-&quot;v$version&quot;-aarch64
+tar -zcvf openeuler_obs-&quot;v$version&quot;-aarch64.tar.gz openeuler_obs-&quot;v$version&quot;-aarch64
+
+
+rm -rf home:zhouxiaxiang
+osc co home:zhouxiaxiang testing
+cp openeuler_obs-&quot;v$version&quot;-aarch64.tar.gz ./home\:zhouxiaxiang/testing/
+cd ./home\:zhouxiaxiang/testing/
+osc addremove
+osc ci -n
+
+
+#sshpass -p $OBS_PASSWORD scp -o StrictHostKeyChecking=no -o LogLevel=ERROR openeuler_obs-&quot;v$version&quot;-aarch64.tar.gz $OBS_USERNAME@${OBS_SERVER_IP}:/srv/obs/mkiso/mkb/openeuler-obs/
+#if [ $? -eq 0 ];then
+#	echo &quot;scp succeed!&quot;
+#else
+#	echo &quot;scp failed!&quot;
+#    exit 1
+#fi
+
+
+EOF
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>5a700b90-012d-48a8-b6c6-64a5ebaf82e9</credentialsId>
+          <usernameVariable>OBS_USERNAME</usernameVariable>
+          <passwordVariable>OBS_PASSWORD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

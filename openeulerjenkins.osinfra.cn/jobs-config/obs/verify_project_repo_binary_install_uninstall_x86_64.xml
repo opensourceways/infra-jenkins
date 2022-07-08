@@ -1,0 +1,213 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:senlin</permission>
+      <permission>hudson.model.Item.Build:senlin</permission>
+      <permission>hudson.model.Item.Cancel:senlin</permission>
+      <permission>hudson.model.Item.Configure:senlin</permission>
+      <permission>hudson.model.Item.Delete:senlin</permission>
+      <permission>hudson.model.Item.Discover:senlin</permission>
+      <permission>hudson.model.Item.Move:senlin</permission>
+      <permission>hudson.model.Item.Read:senlin</permission>
+      <permission>hudson.model.Item.Workspace:senlin</permission>
+      <permission>hudson.model.Run.Delete:senlin</permission>
+      <permission>hudson.model.Run.Replay:senlin</permission>
+      <permission>hudson.model.Run.Update:senlin</permission>
+      <permission>hudson.scm.SCM.Tag:senlin</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.TextParameterDefinition>
+          <name>repo_project</name>
+          <description>设置yum源的工程名</description>
+          <defaultValue>openEuler:Testing:BaseTools
+openEuler:Testing:KernelSpace
+openEuler:Testing:Common_Languages_Dependent_Tools
+openEuler:Testing:C
+openEuler:Testing:Java
+openEuler:Testing:Python
+openEuler:Testing:Perl
+openEuler:Testing:Ruby
+openEuler:Testing:Erlang
+openEuler:Testing:Meson
+openEuler:Testing:Nodejs
+openEuler:Testing:Qt
+openEuler:Testing:Ocaml
+openEuler:Testing:Lua
+openEuler:Testing:Golang
+openEuler:Testing:MultiLanguage
+openEuler:Testing:Mainline</defaultValue>
+          <trim>false</trim>
+        </hudson.model.TextParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>branch</name>
+          <description>分支名</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>master</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>check_project_name</name>
+          <description>obs工程名
+proj1,proj2...</description>
+          <defaultValue>openEuler:Testing:Ocaml</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>架构</description>
+          <defaultValue>x86_64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>OBS_BACKEND_SERVER_IP</name>
+          <description>工程所在的服务器ip地址</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>172.16.1.124</string>
+              <string>172.16.1.95</string>
+              <string>172.16.1.32</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>email_addr</name>
+          <description>邮箱地址
+email1,email2...</description>
+          <defaultValue>wangchong56@huawei.com</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-64-openeuler-ci-2203</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>sudo su - root &lt;&lt;FEOF
+echo &quot;nameserver 114.114.114.114&quot; &gt;&gt; /etc/resolv.conf
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; EOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+EOF
+
+set +e
+git config --global user.email &quot;80474298@qq.com&quot;
+git config --global user.name &quot;openeuler-ci-bot&quot;
+git config --global pull.ff only
+
+if [[ ${arch} != &quot;x86_64&quot; ]];then
+	echo &quot;arch must be x86_64&quot;
+    exit 1
+fi
+
+if [[ &quot;${email_addr}&quot; == &quot;&quot; ]];then
+	echo &quot;email_addr is empty!&quot;
+    exit 1
+fi
+
+if [[ &quot;${branch}&quot; == &quot;&quot; ]];then
+	echo &quot;branch is empty!&quot;
+    exit 1
+fi
+
+if [[ &quot;${repo_project}&quot; == &quot;&quot; ]];then
+	echo &quot;repo_project is empty!&quot;
+    exit 1
+fi
+
+if [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;&quot; ];then
+	echo &quot;OBS_BACKEND_SERVER_IP is empty!&quot;
+    exit 1
+fi
+
+rm -rf openeuler-obs
+for ((i=1;i&lt;=5;i++));
+do
+    if [ ! -d openeuler-obs ];then
+    	set +e
+        #git clone --depth 1 https://gitee.com/wangchong1995924/openeuler-obs
+        git clone --depth 1 https://gitee.com/openeuler/openeuler-obs
+        set -e
+    else
+        break
+    fi
+done
+
+cd openeuler-obs/tools/
+
+if [ -z ${check_project_name} ];then
+	python3 verify_repo_binary_install_uninstall.py  -br ${branch} -a ${arch} -ip ${OBS_BACKEND_SERVER_IP} -eu ${email_user} -epwd ${email_pwd} -tu ${email_addr} -rp &quot;${repo_project}&quot;
+else
+	python3 verify_repo_binary_install_uninstall.py  -br ${branch} -a ${arch} -ip ${OBS_BACKEND_SERVER_IP} -eu ${email_user} -epwd ${email_pwd} -tu ${email_addr} -rp &quot;${repo_project}&quot; -cp ${check_project_name}
+fi
+FEOF</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>chong_w_163_email</credentialsId>
+          <usernameVariable>email_user</usernameVariable>
+          <passwordVariable>email_pwd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,94 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>更新PXE服务器上lts版本repo文件</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:liujingjing</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:liujingjing</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:liujingjing</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:liujingjing</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:liujingjing</permission>
+      <permission>hudson.model.Item.Build:liujingjing</permission>
+      <permission>hudson.model.Item.Cancel:liujingjing</permission>
+      <permission>hudson.model.Item.Configure:liujingjing</permission>
+      <permission>hudson.model.Item.Delete:liujingjing</permission>
+      <permission>hudson.model.Item.Discover:liujingjing</permission>
+      <permission>hudson.model.Item.Move:liujingjing</permission>
+      <permission>hudson.model.Item.Read:liujingjing</permission>
+      <permission>hudson.model.Item.Workspace:liujingjing</permission>
+      <permission>hudson.model.Run.Delete:liujingjing</permission>
+      <permission>hudson.model.Run.Update:liujingjing</permission>
+      <permission>hudson.scm.SCM.Tag:liujingjing</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>http://123.60.114.22:9480/OET/jenkins_project.git</url>
+        <credentialsId>oet-ci</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/main</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>build-docker-aarch64</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <jenkins.triggers.ReverseBuildTrigger>
+      <spec></spec>
+      <upstreamProjects>../openEuler-OS-build/Main-openEuler-20.03-LTS-SP2-build</upstreamProjects>
+      <threshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+        <completeBuild>true</completeBuild>
+      </threshold>
+    </jenkins.triggers.ReverseBuildTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>cd $WORKSPACE/script_for_jenkins 
+sh -x update_openeuler_lts3_SP2_repo.sh $LoginPXEUserName $LoginPXEPassword</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>login_pxe</credentialsId>
+          <usernameVariable>LoginPXEUserName</usernameVariable>
+          <passwordVariable>LoginPXEPassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

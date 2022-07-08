@@ -1,0 +1,164 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>拷贝开源软件声明到指定的iso目录的OS下</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:senlin</permission>
+      <permission>hudson.model.Item.Build:senlin</permission>
+      <permission>hudson.model.Item.Cancel:senlin</permission>
+      <permission>hudson.model.Item.Configure:senlin</permission>
+      <permission>hudson.model.Item.Delete:senlin</permission>
+      <permission>hudson.model.Item.Discover:senlin</permission>
+      <permission>hudson.model.Item.Move:senlin</permission>
+      <permission>hudson.model.Item.Read:senlin</permission>
+      <permission>hudson.model.Item.Workspace:senlin</permission>
+      <permission>hudson.model.Run.Delete:senlin</permission>
+      <permission>hudson.model.Run.Replay:senlin</permission>
+      <permission>hudson.model.Run.Update:senlin</permission>
+      <permission>hudson.scm.SCM.Tag:senlin</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>branch</name>
+          <description>版本分支名</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler-22.03-LTS</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>iso_dir</name>
+          <description>iso目录名
+如：openeuler-2021-09-08-10-15-36</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ip</name>
+          <description>dailybuild服务器ip</description>
+          <defaultValue>121.36.84.172</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>set -e
+git config --global http.postBuffer 52428800
+
+if [[ ${branch} == &quot;&quot; ]];then
+    echo &quot;分支名为空！！！&quot;
+    exit 1
+fi
+if [[ ${iso_dir} == &quot;&quot; ]];then
+    echo &quot;目录名为空！！！&quot;
+    exit 1
+fi
+
+if [ -d $WORKSPACE/docs ];then
+	rm -rf $WORKSPACE/docs
+fi
+cd $WORKSPACE
+for((i=1;i&lt;=5;i++));
+do
+    git clone --depth=1 https://gitee.com/openeuler/docs.git -b stable2-22.03_LTS
+    if [ -d docs ];then
+        break
+	else
+        rm -rf docs
+    fi
+done
+cd docs/docs/zh/docs/Open-Source-Software-Notice/
+
+function check_iso_dir()
+{
+	iso_path=&quot;/repo/openeuler/dailybuild/${branch}/${iso_dir}&quot;
+	res=$(ssh -i ${update_key} -o StrictHostKeyChecking=no -o LogLevel=ERROR -o ServerAliveInterval=60 root@${ip} &quot;
+if [ -d ${iso_path} ];then
+	if [ ! -d ${iso_path}/OS/aarch64/docs ];then
+    	echo &quot;ERROR: ${iso_path}/OS/aarch64/docs is not exists!&quot;
+    fi
+    if [ ! -d ${iso_path}/OS/x86_64/docs ];then
+    	echo &quot;ERROR: ${iso_path}/OS/x86_64/docs is not exists!&quot;
+    fi
+else
+	echo &quot;ERROR: ${iso_path} is not exists, please check your iso dir!&quot;
+fi
+&quot;)
+	if [ -n &quot;$res&quot; ];then
+		echo $res
+	    exit 1
+	fi
+}
+
+function copy_file()
+{
+	os_path=&quot;/repo/openeuler/dailybuild/${branch}/${iso_dir}/OS&quot;
+    path_list=&quot;aarch64 x86_64&quot;
+    for path in ${path_list}
+    do
+    	scp -i ${update_key} -o StrictHostKeyChecking=no -o LogLevel=ERROR -o ServerAliveInterval=60 ./openEuler-Open-Source-Software-Notice.zip root@${ip}:${os_path}/${path}/docs/
+        if [ $? -ne 0 ];then
+			echo &quot;[ERROR]: scp openEuler-Open-Source-Software-Notice.zip to ${os_path}/${path}/docs/ failed.&quot;
+			exit 1
+		else
+			echo &quot;[INFO]: scp openEuler-Open-Source-Software-Notice.zip to ${os_path}/${path}/docs/ succeed.&quot;
+		fi
+	done
+}
+
+check_iso_dir
+copy_file</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>update-publish-key</credentialsId>
+          <variable>update_key</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

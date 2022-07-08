@@ -1,0 +1,56 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:chemingdao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:chemingdao</permission>
+      <permission>hudson.model.Item.Build:chemingdao</permission>
+      <permission>hudson.model.Item.Cancel:chemingdao</permission>
+      <permission>hudson.model.Item.Configure:chemingdao</permission>
+      <permission>hudson.model.Item.Delete:chemingdao</permission>
+      <permission>hudson.model.Item.Discover:chemingdao</permission>
+      <permission>hudson.model.Item.Move:chemingdao</permission>
+      <permission>hudson.model.Item.Read:chemingdao</permission>
+      <permission>hudson.model.Item.Workspace:chemingdao</permission>
+      <permission>hudson.model.Run.Delete:chemingdao</permission>
+      <permission>hudson.model.Run.Replay:chemingdao</permission>
+      <permission>hudson.model.Run.Update:chemingdao</permission>
+      <permission>hudson.scm.SCM.Tag:chemingdao</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders/>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings class="empty-list"/>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

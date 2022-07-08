@@ -1,0 +1,113 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.39">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection></giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_aarch64</name>
+          <description></description>
+          <defaultValue>standard_aarch64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_x86</name>
+          <description></description>
+          <defaultValue>standard_x86_64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>aarch</name>
+          <description></description>
+          <defaultValue>aarch64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>x86</name>
+          <description></description>
+          <defaultValue>x86_64</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_mainline</name>
+          <description></description>
+          <defaultValue>openEuler:Mainline</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_2009</name>
+          <description></description>
+          <defaultValue>openEuler:20.09</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_2003lts</name>
+          <description></description>
+          <defaultValue>openEuler:20.03:LTS</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_2003lts_next</name>
+          <description></description>
+          <defaultValue>openEuler:20.03:LTS:Next</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_2003lts_sp1</name>
+          <description></description>
+          <defaultValue>openEuler:20.03:LTS:SP1</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.81">
+    <script>pipeline {
+    agent none
+    stages {
+        stage(&apos;history&apos;) {
+            steps {
+                    build job: &apos;obs-build-history&apos;, parameters: [string(name: &apos;obs_project&apos;,value: params.obs_mainline),string(name: &apos;obs_project_repo&apos;,value: params.repo_aarch64),string(name: &apos;arch&apos;,value: params.aarch)], propagate: false
+                    build job: &apos;obs-build-history&apos;, parameters: [string(name: &apos;obs_project&apos;,value: params.obs_mainline),string(name: &apos;obs_project_repo&apos;,value: params.repo_x86),string(name: &apos;arch&apos;,value: params.x86)], propagate: false
+					
+					build job: &apos;obs-build-history&apos;, parameters: [string(name: &apos;obs_project&apos;,value: params.obs_2009),string(name: &apos;obs_project_repo&apos;,value: params.repo_aarch64),string(name: &apos;arch&apos;,value: params.aarch)], propagate: false
+                    build job: &apos;obs-build-history&apos;, parameters: [string(name: &apos;obs_project&apos;,value: params.obs_2009),string(name: &apos;obs_project_repo&apos;,value: params.repo_x86),string(name: &apos;arch&apos;,value: params.x86)], propagate: false
+					
+					build job: &apos;obs-build-history&apos;, parameters: [string(name: &apos;obs_project&apos;,value: params.obs_2003lts),string(name: &apos;obs_project_repo&apos;,value: params.repo_aarch64),string(name: &apos;arch&apos;,value: params.aarch)], propagate: false
+                    build job: &apos;obs-build-history&apos;, parameters: [string(name: &apos;obs_project&apos;,value: params.obs_2003lts),string(name: &apos;obs_project_repo&apos;,value: params.repo_x86),string(name: &apos;arch&apos;,value: params.x86)], propagate: false
+					
+					build job: &apos;obs-build-history&apos;, parameters: [string(name: &apos;obs_project&apos;,value: params.obs_2003lts_next),string(name: &apos;obs_project_repo&apos;,value: params.repo_aarch64),string(name: &apos;arch&apos;,value: params.aarch)], propagate: false
+                    build job: &apos;obs-build-history&apos;, parameters: [string(name: &apos;obs_project&apos;,value: params.obs_2003lts_next),string(name: &apos;obs_project_repo&apos;,value: params.repo_x86),string(name: &apos;arch&apos;,value: params.x86)], propagate: false
+					
+					build job: &apos;obs-build-history&apos;, parameters: [string(name: &apos;obs_project&apos;,value: params.obs_2003lts_sp1),string(name: &apos;obs_project_repo&apos;,value: params.repo_aarch64),string(name: &apos;arch&apos;,value: params.aarch)], propagate: false
+                    build job: &apos;obs-build-history&apos;, parameters: [string(name: &apos;obs_project&apos;,value: params.obs_2003lts_sp1),string(name: &apos;obs_project_repo&apos;,value: params.repo_x86),string(name: &apos;arch&apos;,value: params.x86)], propagate: false
+
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

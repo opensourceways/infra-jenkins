@@ -1,0 +1,292 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>hudson.model.Item.Build:lixiang</permission>
+      <permission>hudson.model.Item.Cancel:lixiang</permission>
+      <permission>hudson.model.Item.Configure:lixiang</permission>
+      <permission>hudson.model.Item.Read:lixiang</permission>
+      <permission>hudson.scm.SCM.Tag:lixiang</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>30</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo</name>
+          <description>码云中仓库名称</description>
+          <defaultValue>isula-build</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>pr 源分支</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tbranch</name>
+          <description>pr 目标分支</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prid</name>
+          <description>pull request id</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>committer</name>
+          <description>提交者</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>arch</name>
+          <description>cpu框架</description>
+          <defaultValue>aarch64</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>结果保存地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <refspec>+refs/pull/${prid}/MERGE:refs/pull/${prid}/MERGE</refspec>
+        <url>https://gitee.com/openeuler/${repo}.git</url>
+        <credentialsId>openeuler_ci_bot</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>pull/${prid}/MERGE</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+        <deleteUntrackedNestedRepositories>false</deleteUntrackedNestedRepositories>
+      </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>src/isula.org/${repo}</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.CloneOption>
+        <shallow>true</shallow>
+        <noTags>true</noTags>
+        <reference></reference>
+        <depth>1</depth>
+        <honorRefspec>true</honorRefspec>
+      </hudson.plugins.git.extensions.impl.CloneOption>
+    </extensions>
+  </scm>
+  <assignedNode>isula-ci-aarch64</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+export GOPATH=${WORKSPACE}
+cd ${WORKSPACE}/src/isula.org/isula-build
+
+function commit_info() {
+	echo &quot;git commit: $GIT_COMMIT&quot;
+	echo &quot;git branch: $GIT_BRANCH&quot;
+	echo &quot;git source branch: $gitlabSourceBranch&quot;
+	echo &quot;git target branch: $gitlabTargetBranch&quot;
+    echo &quot;git log: $(git log -1)&quot;
+}
+
+function compile_check() {
+    echo &quot;========================Compile Check========================&quot;
+	export GO111MODULE=on
+	export GOPROXY=https://goproxy.io,direct
+	export GONOSUMDB=*
+
+    make safe
+    if [ $? -eq 0 ]; then
+        echo &quot;PASS&quot;
+    else
+        echo &quot;FAILED&quot;
+        return 1
+    fi
+
+    make install
+    echo &quot;Compile Check PASS&quot;
+}
+
+function function_check() {
+    systemctl stop isula-build
+    pkill isula-builder
+    echo &quot;========================Function Check========================&quot;
+    ps -aux | grep isula-build
+    #SKIP_REG=true make tests
+    if make help | grep &quot;test-cover&quot;; then
+    	SKIP_REG=true GOFLAGS=&quot;-mod=vendor&quot; make test-cover
+        result=$?
+    else
+    	SKIP_REG=true GOFLAGS=&quot;-mod=vendor&quot; make test-unit
+    fi
+    
+    if [ $result -eq 0 ]; then
+        echo &quot;PASS&quot;
+    else
+        echo &quot;FAILED&quot;
+        if [ -f /tmp/buildlog-client ]; then
+        	echo &quot;--------------------client log--------------------&quot;
+        	cat /tmp/buildlog-client
+        fi
+        if [ -f /tmp/buildlog-daemon ]; then
+        	echo &quot;--------------------daemon log--------------------&quot;
+        	cat /tmp/buildlog-daemon
+        fi
+        if [ -f ${WORKSPACE}/src/isula.org/isula-build/unit_test_log ]; then
+        	echo &quot;--------------------go test log--------------------&quot;
+        	cat ${WORKSPACE}/src/isula.org/isula-build/unit_test_log
+        fi
+        if [ -f ${WORKSPACE}/src/isula.org/isula-build/cover_integration_test_all_client.log ]; then
+        	echo &quot;--------------------integration test client log--------------------&quot;
+        	cat ${WORKSPACE}/src/isula.org/isula-build/cover_integration_test_all_client.log
+        fi
+        if [ -f cat ${WORKSPACE}/src/isula.org/isula-build/cover_integration_test_all_daemon.log ]; then
+        	echo &quot;--------------------integration test daemon log--------------------&quot;
+        	cat ${WORKSPACE}/src/isula.org/isula-build/cover_integration_test_all_daemon.log
+        fi
+        return 1
+    fi
+    echo &quot;Function Check PASS&quot;
+}
+
+function static_check() {
+    echo &quot;========================Static Check========================&quot;
+    make check
+    if [ $? -eq 0 ]; then
+        echo &quot;PASS&quot;
+    else
+        echo &quot;FAILED&quot;
+        return 1
+    fi
+    echo &quot;Static Check PASS&quot;
+}
+
+function copyright_check() {
+    echo &quot;========================Copyright Check========================&quot;
+    no_cp_flag=0
+    new_files=$(git diff --name-status HEAD~ HEAD | grep &quot;\&lt;A\&gt;&quot; | awk &apos;{print $2}&apos; | grep -Ev &quot;^vendor&quot; | grep -E &quot;.go$&quot;)
+    if [ -z &quot;$new_files&quot; ]; then
+        echo &quot;no new files, PASS&quot;
+        return $no_cp_flag
+    fi
+    while IFS= read -r file; do
+        if ! grep -E &quot;Copyright.*Huawei Technologies Co., Ltd. 2020. All rights reserved.&quot; &quot;$file&quot; &gt; /dev/null 2&gt;&amp;1; then
+            echo &quot;NO Copyright Found in : $file&quot;
+            no_cp_flag=1
+        fi
+    done &lt; &lt;(echo &quot;$new_files&quot;)
+    if [ &quot;$no_cp_flag&quot; -ne 0 ]; then
+        return $no_cp_flag
+    fi
+    echo &quot;Copyright Check PASS&quot;
+}
+
+function fileformat_check() {
+    echo &quot;========================FileFormat Check========================&quot;
+    wrong_file_format=0
+    diff_files=$(git diff --name-status HEAD~ HEAD | awk &apos;{print $2}&apos; | grep -Ev &quot;^vendor&quot; | grep -E &quot;.go$&quot;)
+    if [ -z &quot;$diff_files&quot; ]; then
+    	echo &quot;no new go file found, PASS&quot;
+    	return $wrong_file_format
+    fi
+    while IFS= read -r file; do
+        if file $file | grep -E &quot;CRLF&quot; &gt; /dev/null 2&gt;&amp;1; then
+            echo &quot;Wrong file format found in: $file&quot;
+            echo &quot;Please use \&quot;dos2unix\&quot; command to fix it&quot;
+            wrong_file_format=1
+        fi
+    done &lt; &lt;(echo &quot;$diff_files&quot;)
+    if [ &quot;$wrong_file_format&quot; -ne 0 ]; then
+        return $wrong_file_format
+    fi
+    echo &quot;FileFormat Check PASS&quot;
+}
+
+function filemode_check() {
+    echo &quot;========================FileMode Check========================&quot;
+    wrongFile=$(find . -name &quot;*.go&quot; | grep -v vendor | xargs ls -l | awk &apos;{print $1 $9}&apos; | grep rwx)
+    if [ $? -eq 0 ]; then
+    	echo &quot;Wrong file mode found!&quot;
+        echo $wrongFile
+        return 1
+    fi
+    echo &quot;FileMode Check PASS&quot;
+}
+
+echo &quot;========================iSula-Build CI Begin========================&quot;
+#commit_info || exit 1
+filemode_check || exit 1
+#copyright_check || exit 1
+fileformat_check || exit 1
+#static_check || exit 1
+compile_check || exit 1
+function_check || exit 1
+echo &quot;========================iSula-Build CI End========================&quot;
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.39">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeUserName</usernameVariable>
+          <passwordVariable>GiteePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

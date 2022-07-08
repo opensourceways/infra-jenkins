@@ -1,0 +1,121 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
+      <giteeConnection></giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; EOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+EOF
+
+function rebuild(){
+	osc rebuild --all $1
+}
+
+
+proj=&quot;openEuler:mytest:old&quot;
+while true;
+do
+	rm -f my_list
+    osc r --csv &quot;$proj&quot; -r standard_aarch64 &gt; my_list
+    set +e
+	res=`cat my_list | grep &quot;building&quot;`
+    set -e
+	if [ ! -n &quot;$res&quot; ];then
+		echo &quot;$proj have no pkgs build&quot;
+        rebuild $proj
+        sleep 2400
+	else
+		echo &quot;$proj have some pkgs building&quot;
+		sleep 300
+        continue
+	fi
+done
+exit 0
+
+proj=&quot;openEuler:mytest&quot;
+rebuild $proj
+echo &quot;$proj build begin at `date`&quot;
+start_time=`date +%s`
+sleep 5400
+i=0
+while true;
+do
+	rm -f my_list
+    osc r --csv &quot;$proj&quot; -r standard_aarch64 &gt; my_list
+    set +e
+	res=`cat my_list | grep &quot;building&quot;`
+    set -e
+	if [ ! -n &quot;$res&quot; ];then
+		echo &quot;$1 have no pkgs build&quot;
+        res2=0
+	else
+		echo &quot;$1 have some pkgs building&quot;
+		res2=1
+	fi
+	if [ $res2 -eq 1 ];then
+		sleep 180
+		continue
+	fi
+    end_time=`date +%s`
+    echo &quot;$proj build finish at `date`&quot;
+    let cost_time=${end_time}-${start_time}
+    echo &quot;$proj build all cost ${cost_time}&quot;
+	if [ $proj == &quot;openEuler:mytest&quot; ];then
+		proj=&quot;openEuler:mytest:old&quot;
+	elif [ $proj == &quot;openEuler:mytest:old&quot; ];then
+		proj=&quot;openEuler:mytest&quot;
+	fi
+    i=`expr $i + 1`
+    if [[ $i -eq 6 ]];then
+    	echo &quot;over...&quot;
+    	exit 0
+    fi
+	rebuild $proj
+    echo &quot;$proj build begin at `date`&quot;
+    start_time=`date +%s`
+    sleep 1800
+done
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

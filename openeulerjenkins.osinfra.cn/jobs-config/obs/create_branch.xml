@@ -1,0 +1,141 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>创建软件包的码云分支</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>10</daysToKeep>
+        <numToKeep>500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.TextParameterDefinition>
+          <name>packagename</name>
+          <description>包名
+pkg1
+pkg2
+.
+.</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.TextParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>branch_name</name>
+          <description>以该分支的代码为基础创建新代码分支</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>master</string>
+              <string>openEuler-20.09</string>
+              <string>openEuler-20.03-LTS</string>
+              <string>openEuler-20.03-LTS-Next</string>
+              <string>openEuler-21.03</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>new_branch</name>
+          <description>新的分支名</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler-20.09</string>
+              <string>openEuler-20.03-LTS</string>
+              <string>openEuler-20.03-LTS-Next</string>
+              <string>openEuler-20.03-LTS-SP1</string>
+              <string>openEuler-21.03</string>
+              <string>openEuler-20.03-LTS-SP2</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_project</name>
+          <description>将据该工程的软件包在码云上对应的软件仓库拉取一个新的分支</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>xdf</authToken>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>set +e
+
+git config --global http.postBuffer 52428800
+git config --global http.sslVerify &quot;false&quot;
+
+if [ &quot;$packagename&quot; == &quot;&quot; ] &amp;&amp; [ &quot;${obs_project}&quot; != &quot;&quot; ] ;then
+    packagename=`osc list ${obs_project}`
+fi
+
+
+for p in $packagename
+do
+    for((i=1;i&lt;=5;i++));
+    do
+        #git clone https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/src-openEuler/$p -b ${branch_name}
+        git clone https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/src-openEuler/$p
+       	if [ -d $p ];then
+       		break
+       	fi
+        
+    done
+
+    if [ ! -d $p ];then
+    	continue
+    fi
+    cd $p
+    br=`git branch -a`
+    if [[ &quot;$br&quot; =~ &quot;${new_branch}&quot; ]];then
+        git checkout ${new_branch}
+        git reset --hard origin/${branch_name}
+        git push -f
+    else
+        git branch ${new_branch}
+        git checkout ${new_branch}
+        git push origin ${new_branch}:${new_branch}
+    fi
+    cd -
+    rm -rf $p
+done</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

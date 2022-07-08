@@ -1,0 +1,77 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>每周定期同步gitee仓库到gitlab</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>infra-check</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>1 0 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/sh -e
+
+test -f sync.py &amp;&amp; rm -f sync.py
+test -f sync_missing_to_gitlab.py &amp;&amp; rm -f sync_missing_to_gitlab.py
+test -f sync.log &amp;&amp; rm -f sync.log
+test -f sync_conf.yaml &amp;&amp; rm -f sync_conf.yaml
+#wget https://gitee.com/openeuler/infrastructure/raw/master/ci/tools/sync_repos_to_gitlab/sync.py
+wget https://gitee.com/wh-pkgs/infrastructure/raw/master/ci/tools/sync_repos_to_gitlab/sync.py
+wget https://gitee.com/wh-pkgs/infrastructure/raw/master/ci/tools/sync_repos_to_gitlab/sync_missing_to_gitlab.py
+wget https://gitee.com/for_test_job/infrastructure/raw/master/ci/tools/sync_repos_to_gitlab/sync_conf.yaml
+python3 sync.py &quot;wanghao&quot; $gitlab_pwd $gitlab_token $GITEE_TOKEN $wh_github_token
+python3 sync_missing_to_gitlab.py &quot;wanghao&quot; $gitlab_pwd $gitlab_token</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>sync_repos_gitee_token</credentialsId>
+          <variable>GITEE_TOKEN</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>71fa2762-701b-4d9f-80a0-b86e9b185878</credentialsId>
+          <variable>gitlab_pwd</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>9cdffc27-9644-4b1f-9e4a-ef9a8647af55</credentialsId>
+          <variable>gitlab_token</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>0d0eb7e1-cc21-4051-b1a4-1830ae2f6937</credentialsId>
+          <variable>wh_gitee_token</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>f9f0468f-b15e-4532-ac02-3e2571d60eb3</credentialsId>
+          <variable>wh_github_token</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>
