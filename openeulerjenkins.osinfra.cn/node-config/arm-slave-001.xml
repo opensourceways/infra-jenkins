@@ -1,7 +1,7 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <slave>
   <name>arm-slave-001</name>
-  <description></description>
+  <description>ecs-node</description>
   <remoteFS>/jenkins_home</remoteFS>
   <numExecutors>2</numExecutors>
   <mode>NORMAL</mode>

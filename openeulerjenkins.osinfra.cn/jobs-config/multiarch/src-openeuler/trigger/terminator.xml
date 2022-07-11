@@ -3,55 +3,29 @@
   <description/>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.security.AuthorizationMatrixProperty>
-      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
-    </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
     <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.12">
       <giteeConnection>Gitee</giteeConnection>
     </com.gitee.jenkins.connection.GiteeConnectionProperty>
-    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
-      <optOut>false</optOut>
-    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>repo地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.11.0">
-    <configVersion>2</configVersion>
-    <userRemoteConfigs>
-      <hudson.plugins.git.UserRemoteConfig>
-        <name>origin</name>
-        <refspec>+refs/pull/${giteePullRequestIid}/MERGE:refs/pull/${giteePullRequestIid}/MERGE</refspec>
-        <url>https://gitee.com/openeuler/${giteeRepoName}.git</url>
-        <credentialsId>openeuler_ci_bot</credentialsId>
-      </hudson.plugins.git.UserRemoteConfig>
-    </userRemoteConfigs>
-    <branches>
-      <hudson.plugins.git.BranchSpec>
-        <name>pull/${giteePullRequestIid}/MERGE</name>
-      </hudson.plugins.git.BranchSpec>
-    </branches>
-    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-    <submoduleCfg class="list"/>
-    <extensions>
-      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
-      <hudson.plugins.git.extensions.impl.CloneOption>
-        <shallow>true</shallow>
-        <noTags>true</noTags>
-        <reference/>
-        <depth>2</depth>
-        <honorRefspec>true</honorRefspec>
-      </hudson.plugins.git.extensions.impl.CloneOption>
-      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-        <relativeTargetDir>${giteeRepoName}</relativeTargetDir>
-      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-    </extensions>
-  </scm>
-  <assignedNode>k8s-x86-oe</assignedNode>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-soe</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -83,6 +57,13 @@
         </org.jenkinsci.plugins.gwt.GenericVariable>
         <org.jenkinsci.plugins.gwt.GenericVariable>
           <expressionType>JSONPath</expressionType>
+          <key>giteePullRequestTitle</key>
+          <value>pull_request.title</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
           <key>giteeTargetBranch</key>
           <value>pull_request.base.ref</value>
           <regexpFilter/>
@@ -106,6 +87,13 @@
           <expressionType>JSONPath</expressionType>
           <key>giteeCommitter</key>
           <value>pull_request.user.login</value>
+          <regexpFilter/>
+          <defaultValue/>
+        </org.jenkinsci.plugins.gwt.GenericVariable>
+        <org.jenkinsci.plugins.gwt.GenericVariable>
+          <expressionType>JSONPath</expressionType>
+          <key>prUrl</key>
+          <value>pull_request.html_url</value>
           <regexpFilter/>
           <defaultValue/>
         </org.jenkinsci.plugins.gwt.GenericVariable>
@@ -146,28 +134,14 @@
         </org.jenkinsci.plugins.gwt.GenericVariable>
         <org.jenkinsci.plugins.gwt.GenericVariable>
           <expressionType>JSONPath</expressionType>
-          <key>PULL_NUMBER</key>
-          <value>pull_request.number</value>
-          <regexpFilter/>
-          <defaultValue/>
-        </org.jenkinsci.plugins.gwt.GenericVariable>
-        <org.jenkinsci.plugins.gwt.GenericVariable>
-          <expressionType>JSONPath</expressionType>
-          <key>REPO_OWNER</key>
-          <value>repository.namespace</value>
-          <regexpFilter/>
-          <defaultValue/>
-        </org.jenkinsci.plugins.gwt.GenericVariable>
-        <org.jenkinsci.plugins.gwt.GenericVariable>
-          <expressionType>JSONPath</expressionType>
-          <key>REPO_NAME</key>
-          <value>repository.name</value>
+          <key>commentAction</key>
+          <value>action</value>
           <regexpFilter/>
           <defaultValue/>
         </org.jenkinsci.plugins.gwt.GenericVariable>
       </genericVariables>
-      <regexpFilterText>$giteeTargetNamespace $giteeRepoName $commentEOF</regexpFilterText>
-      <regexpFilterExpression>^openeuler yocto-meta-openeuler ([\s]*Hi[\s\S]*|/retest)EOF</regexpFilterExpression>
+      <regexpFilterText>$giteeTargetNamespace $giteeRepoName $commentAction $commentEOF</regexpFilterText>
+      <regexpFilterExpression>src-openeuler terminator comment ([\s]*Hi[\s\S]*|/retest)EOF</regexpFilterExpression>
       <printPostContent>false</printPostContent>
       <printContributedVariables>false</printContributedVariables>
       <causeString>"$giteeRepoName" trigger by pull request $giteePullRequestIid  [$giteeSourceNamespace:$giteeSourceBranch -&gt; $giteeTargetNamespace:$giteeTargetBranch]</causeString>
@@ -180,45 +154,18 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-set +x
-curl -X DELETE --header 'Content-Type: application/json;charset=UTF-8' https://gitee.com/api/v5/repos/${giteeTargetNamespace}/${giteeRepoName}/pulls/${giteePullRequestIid}/labels/ci_failed?access_token=${GiteeToken} 2&gt;&amp;1 &gt; /dev/null
-curl -X DELETE --header 'Content-Type: application/json;charset=UTF-8' https://gitee.com/api/v5/repos/${giteeTargetNamespace}/${giteeRepoName}/pulls/${giteePullRequestIid}/labels/ci_successful?access_token=${GiteeToken} 2&gt;&amp;1 &gt; /dev/null
-curl -X POST --header 'Content-Type: application/json;charset=UTF-8' https://gitee.com/api/v5/repos/${giteeTargetNamespace}/${giteeRepoName}/pulls/${giteePullRequestIid}/labels?access_token=${GiteeToken} -d [\"ci_processing\"] 2&gt;&amp;1 &gt; /dev/null
-sudo cp -r /home/jenkins/.local/lib/python3.9/site-packages/* /usr/lib/python3.9/site-packages 2&gt;&amp;1 &gt; /dev/null
-sudo cp /home/jenkins/.local/bin/scanoss-py /usr/bin 2&gt;&amp;1 &gt; /dev/null;
-shell_path="/home/jenkins/ci_check"
-export PYTHONPATH=${shell_path}
-python3 ${shell_path}/src/utils/scanoss_sbom_generator.py --repo $giteeRepoName --organization openeuler --target_path /home/jenkins/deny_list.sbom
-cat /home/jenkins/deny_list.sbom
-set -x
-</command>
-      <configuredLocalRules/>
-    </hudson.tasks.Shell>
-    <com.huawei.scanoss.business.SCABuilder plugin="scanosspr-jenkins@1.1.5-SNAPSHOT">
-      <method>API</method>
-      <methodChoose>1</methodChoose>
-      <urlChoose>1</urlChoose>
-      <credentialsId/>
-      <scanossCredentials/>
-      <url>https://api.osinfra.cn</url>
-      <sbomFile>/home/jenkins/deny_list.sbom</sbomFile>
-      <authCode>eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RANDMyMS5jb20ifQ.1WBjnBDgNsPfAVqxQyXDl-PS7r3L_h4OR45rNKPLJeE</authCode>
-      <sourceFile/>
-      <sudoOrder>sudo</sudoOrder>
-    </com.huawei.scanoss.business.SCABuilder>
-    <hudson.tasks.Shell>
-      <command>#!/bin/bash
+shell_path=/home/jenkins/ci_check
+# 调测可使用以下代码
+# shell_path=/home/jenkins/ci_check2
+# mkdir -p ${shell_path}
+# rm -rf ${shell_path}/*
+# git clone -b use-for-pr1 https://gitee.com/zhengyaohui/openeuler-jenkins.git ${shell_path}
+
+. ${shell_path}/src/lib/trigger.sh "$repo" "$SaveBuildRPM2Repo" "$repo_server" "$giteeRepoName" "$giteeTargetBranch" "$GiteeUserName" "$GiteePassword" "$GiteeToken" "$GiteeUserPassword" "$giteePullRequestIid" "$prCreateTime" "$giteeCommitter" "$commentID" "$comment" "$jobTriggerTime" "$triggerLink" "$jenkins_user" "$jenkins_api_token" "https://jenkins.openeuler.org/"
 
 set +x
-pip3 install gitlint
-owner="openeuler"
-export PYTHONPATH=/home/jenkins/ci_check
-export PATH=$PATH:/home/jenkins/.local/bin
-output="scanoss_result_"${BUILD_NUMBER}".json"
-CodeCheckAPIKEY="q28abtBDCnrcsXeVRxulPEIeYwWdcM5g"
-python3 /home/jenkins/ci_check/src/ac/framework/ac.py -w ${WORKSPACE} -r ${giteeRepoName} -o acfile -t ${GiteeToken} -p ${giteePullRequestIid} -b ${giteeTargetBranch} -a ${GiteeUserPassword} -x ${prCreateTime} -l ${triggerLink} -z ${jobTriggerTime} -m "${comment}" -i ${commentID} -e ${giteeCommitter} -c ${owner} --scanoss-output ${output} --codecheck-api-key ${CodeCheckAPIKEY}
+main
 set -x
-
 </command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
@@ -243,7 +190,7 @@ commentid=${commentID}</properties>
               <textParamValueOnNewLine>false</textParamValueOnNewLine>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>multiarch/openeuler/aarch64/yocto-meta-openeuler(qemu-image-tiny),multiarch/openeuler/arm/yocto-meta-openeuler(qemu-image-standard),multiarch/openeuler/aarch64/yocto-meta-openeuler(qemu-image-standard)</projects>
+          <projects>multiarch/src-openeuler/x86-64/terminator,multiarch/src-openeuler/aarch64/terminator</projects>
           <condition>FAILED_OR_BETTER</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
           <triggerFromChildProjects>false</triggerFromChildProjects>
@@ -264,11 +211,16 @@ tbranch=${giteeTargetBranch}
 prid=${giteePullRequestIid}
 committer=${giteeCommitter}
 commentid=${commentID}
+prtitle=${giteePullRequestTitle}
+jobtriggertime=${jobTriggerTime}
+prcreatetime=${prCreateTime}
+prurl=${prUrl}
+triggerbuildid=${BUILD_ID}
 ACL=${ACL}</properties>
                   <textParamValueOnNewLine>false</textParamValueOnNewLine>
                 </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               </configs>
-              <projects> multiarch/openeuler/comment/yocto-meta-openeuler</projects>
+              <projects>multiarch/src-openeuler/comment/terminator</projects>
               <condition>ALWAYS</condition>
               <triggerWithNoParameters>false</triggerWithNoParameters>
               <triggerFromChildProjects>false</triggerFromChildProjects>
@@ -287,26 +239,23 @@ ACL=${ACL}</properties>
   <buildWrappers>
     <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.23">
       <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>be1d7d09-4ab8-44da-ad52-82b3dcc795b0</credentialsId>
+          <usernameVariable>jenkins_user</usernameVariable>
+          <passwordVariable>jenkins_api_token</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
         <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
           <credentialsId>openeuler-ci-bot</credentialsId>
           <variable>GiteeToken</variable>
-        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
-        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
-          <credentialsId>openeuler_ci_bot</credentialsId>
-          <variable>GiteeUserPassword</variable>
-        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
-        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
-          <credentialsId>scanoss-api-key</credentialsId>
-          <variable>ScanOSSAPIKey</variable>
-        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
-        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
-          <credentialsId>codecheck_static_key</credentialsId>
-          <variable>CodeCheckAPIKEY</variable>
         </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
         <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
           <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
           <variable>SaveBuildRPM2Repo</variable>
         </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <variable>GiteeUserPassword</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
       </bindings>
     </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
     <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">

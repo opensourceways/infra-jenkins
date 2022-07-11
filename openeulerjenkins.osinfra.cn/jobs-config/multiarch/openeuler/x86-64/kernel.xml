@@ -6,37 +6,21 @@
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
       <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:18683791700</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:linyuyao</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:18683791700</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:linyuyao</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:18683791700</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:linyuyao</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:18683791700</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:linyuyao</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:18683791700</permission>
       <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:linyuyao</permission>
-      <permission>hudson.model.Item.Build:18683791700</permission>
       <permission>hudson.model.Item.Build:linyuyao</permission>
-      <permission>hudson.model.Item.Cancel:18683791700</permission>
       <permission>hudson.model.Item.Cancel:linyuyao</permission>
-      <permission>hudson.model.Item.Configure:18683791700</permission>
       <permission>hudson.model.Item.Configure:linyuyao</permission>
-      <permission>hudson.model.Item.Delete:18683791700</permission>
       <permission>hudson.model.Item.Delete:linyuyao</permission>
-      <permission>hudson.model.Item.Discover:18683791700</permission>
       <permission>hudson.model.Item.Discover:linyuyao</permission>
-      <permission>hudson.model.Item.Move:18683791700</permission>
       <permission>hudson.model.Item.Move:linyuyao</permission>
-      <permission>hudson.model.Item.Read:18683791700</permission>
       <permission>hudson.model.Item.Read:linyuyao</permission>
-      <permission>hudson.model.Item.Workspace:18683791700</permission>
       <permission>hudson.model.Item.Workspace:linyuyao</permission>
-      <permission>hudson.model.Run.Delete:18683791700</permission>
       <permission>hudson.model.Run.Delete:linyuyao</permission>
-      <permission>hudson.model.Run.Update:18683791700</permission>
       <permission>hudson.model.Run.Update:linyuyao</permission>
-      <permission>hudson.scm.SCM.Tag:18683791700</permission>
       <permission>hudson.scm.SCM.Tag:linyuyao</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
