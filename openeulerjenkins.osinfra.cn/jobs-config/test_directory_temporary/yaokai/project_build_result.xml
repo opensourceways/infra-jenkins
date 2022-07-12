@@ -107,20 +107,20 @@ fi
 # https://gitee.com/openeuler/pkgship
 # https://pkgmanage.openeuler.org/Packagemanagement
 
-osc r openEuler:Mainline --xml &gt; openeuler_mainline_result_20220711.xml
-osc r openEuler:Epol --xml &gt; openeuler_epol_result_20220711.xml
+osc r openEuler:Mainline --xml &gt; openeuler_mainline_result_20220712.xml
+osc r openEuler:Epol --xml &gt; openeuler_epol_result_20220712.xml
 
 rm -rf home:zhouxiaxiang
 osc co home:zhouxiaxiang project_build_result
 cp ./home\:zhouxiaxiang/project_build_result/build_result.py .
 
 
-python3 build_result.py -c &quot;build_result_20220711.csv&quot; -l &quot;117.78.1.88:82&quot; -p ${project}
+python3 build_result.py -c &quot;build_result_20220712.csv&quot; -l &quot;117.78.1.88:82&quot; -p ${project}
 
 
-cp openeuler_mainline_result_20220711.xml ./home\:zhouxiaxiang/project_build_result
-cp openeuler_epol_result_20220711.xml ./home\:zhouxiaxiang/project_build_result
-cp build_result_20220711.csv ./home\:zhouxiaxiang/project_build_result
+cp openeuler_mainline_result_20220712.xml ./home\:zhouxiaxiang/project_build_result
+cp openeuler_epol_result_20220712.xml ./home\:zhouxiaxiang/project_build_result
+cp build_result_20220712.csv ./home\:zhouxiaxiang/project_build_result
 cd ./home\:zhouxiaxiang/project_build_result
 osc addremove
 osc ci -n

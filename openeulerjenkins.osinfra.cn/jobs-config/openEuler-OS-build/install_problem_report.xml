@@ -60,7 +60,7 @@ a,b,c......</description>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>k8s-aarch64-openeuler-ci-obs</assignedNode>
+  <assignedNode>k8s-aarch64-openeuler-ci-sp3</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>

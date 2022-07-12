@@ -130,9 +130,12 @@ RUN cd /home/\${user} \
     &amp;&amp; sudo yum install -y python-gevent \
     &amp;&amp; pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple python-jenkins \
     &amp;&amp; pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple prettytable \
+    &amp;&amp; pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple pymysql \
+    &amp;&amp; pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple sqlalchemy \
+    &amp;&amp; pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple sqlalchemy-utils \
     &amp;&amp; git clone https://gitee.com/zhengyaohui/japi-compliance-checker.git japi-compliance-checker \
     &amp;&amp; cd japi-compliance-checker &amp;&amp; sudo make install prefix=/usr &amp;&amp; cd .. \
-    &amp;&amp; git clone -b openeuler-jenkins-ci-0520 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/openeuler-customization/oecp.git oecp
+    &amp;&amp; git clone -b br_symbol https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/openeuler-customization/oecp.git oecp
 
 # time zone UTC +8
 RUN sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
@@ -144,7 +147,6 @@ RUN sudo sed -i &apos;/ttmpfs/a \    mount -n -tsysfs none \$BUILD_ROOT/sys 2&gt
 COPY build-extra /usr/lib/build/build-extra
 RUN sudo sed -i &apos;/BUILD_USER_ABUILD_USED=true/i bash /usr/lib/build/build-extra&apos; /usr/lib/build/build
 RUN sudo sed -i &apos;/test -n &quot;\$VM_ROOT&quot; -a/i umount -n \$BUILD_ROOT/home/abuild/.ccache 2&gt;/dev/null || true&apos; /usr/lib/build/build
-ENV PATH=&quot;/home/jenkins/.local/bin:${PATH}&quot;
 
 WORKDIR \${AGENT_WORKDIR}
 ENTRYPOINT [&quot;jenkins-agent&quot;]

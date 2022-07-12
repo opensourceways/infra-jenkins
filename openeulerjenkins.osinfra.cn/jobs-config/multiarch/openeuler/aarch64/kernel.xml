@@ -120,7 +120,7 @@
       </hudson.plugins.git.extensions.impl.CloneOption>
     </extensions>
   </scm>
-  <assignedNode>docker-aarch64-soe-kernel</assignedNode>
+  <assignedNode>k8s-aarch64-openeuler-20.09</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -130,26 +130,38 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-echo $WORKSPACE
-shell_path=/home/jenkins/ci_check
-# 调测可使用以下代码
-# shell_path=/home/jenkins/ci_check2
-# mkdir -p ${shell_path}
-# rm -rf ${shell_path}/*
-# git clone https://gitee.com/xxx/openeuler-jenkins.git ${shell_path}
-export PYTHONPATH=${shell_path}
+src_path=/usrl/openeuler/src
+sudo mkdir -p $src_path
 
-. ${shell_path}/src/lib/main_process.sh 
-
-set +x
-set -e
-if [ `uname -r` = &quot;4.19.36&quot; ];then
-	echo &quot;The current kernel version is an earlier version: `uname -r`&quot;
+#script
+#下载构建脚本
+build_script=/usrl/scripts
+if [! -d &quot;$build_script&quot; ]; then
+    sudo git clone https://gitee.com/openeuler/openeuler-os-build.git -b master -v $build_script
 else
-	main
+	pushd $build_script
+	git status
+	sudo git config pull.ff.only
+	sudo git reset --hard HEAD^ || echo &quot;&quot;
+	sudo git reset --hard HEAD
+	sudo git clean -dfx
+	sudo git pull
+	popd
 fi
-set +e
-set -x</command>
+
+#安装构建环境，下载代码
+sudo rm -rf $src_path/${repo}
+sudo sh $build_script/script/embedded/compile/download.src_path
+
+#使用pr的代码替换本地源码
+sudo rm -rf $src_path/${repo}
+sudo cp -r $WORKSPACE/${repo} $src_path
+
+#执行构建脚本
+sudo sh $build_script/script/embedded/compile/build.sh &quot;aarch64-std&quot; &quot;yes&quot; &quot;no&quot;
+
+#删除修改过的代码
+sudo rm -rf $src_path/${repo}</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>

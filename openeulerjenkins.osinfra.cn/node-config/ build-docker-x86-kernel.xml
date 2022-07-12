@@ -16,6 +16,6 @@
     <sshHostKeyVerificationStrategy class="hudson.plugins.sshslaves.verifiers.NonVerifyingKeyVerificationStrategy"/>
     <tcpNoDelay>true</tcpNoDelay>
   </launcher>
-  <label>docker-build-node</label>
+  <label>docker-x86-build-kernel</label>
   <nodeProperties/>
 </slave>

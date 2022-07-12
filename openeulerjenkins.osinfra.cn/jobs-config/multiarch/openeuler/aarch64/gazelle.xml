@@ -6,11 +6,15 @@
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
       <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.NonInheritingStrategy"/>
+      <permission>hudson.model.Item.Build:linyuyao</permission>
       <permission>hudson.model.Item.Build:wuchangsheng</permission>
+      <permission>hudson.model.Item.Cancel:linyuyao</permission>
       <permission>hudson.model.Item.Cancel:wuchangsheng</permission>
+      <permission>hudson.model.Item.Configure:linyuyao</permission>
       <permission>hudson.model.Item.Configure:wuchangsheng</permission>
       <permission>hudson.model.Item.Read:anonymous</permission>
       <permission>hudson.model.Item.Read:authenticated</permission>
+      <permission>hudson.model.Item.Read:linyuyao</permission>
       <permission>hudson.model.Item.Read:wuchangsheng</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">

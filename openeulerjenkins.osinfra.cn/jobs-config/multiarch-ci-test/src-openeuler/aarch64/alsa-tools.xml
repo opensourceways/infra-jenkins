@@ -115,17 +115,28 @@
 # mkdir -p ${shell_path}
 # rm -rf ${shell_path}/*
 # git clone https://gitee.com/xxx/openeuler-jenkins.git ${shell_path}
- shell_path=/home/jenkins/ci_check2
- mkdir -p ${shell_path}
- rm -rf ${shell_path}
- git clone -b for_test https://gitee.com/MementoMoriCheng/openeuler-jenkins.git ${shell_path}
- repo_owner=&quot;MementoMoriCheng&quot;
+cat &gt; hotfix.py &lt;&lt; EOF
+import requests
 
-. ${shell_path}/src/lib/main_process.sh 
+# 发送请求
+x = requests.get(&apos;http://120.46.140.206:82/openEuler:/22.03:/LTS:/Next/standard_x86_64/&apos;)
+
+# 返回网页内容
+print(x.status_code)
+EOF
+
+python3 hotfix.py
+#shell_path=/home/jenkins/ci_check2
+# mkdir -p ${shell_path}
+# rm -rf ${shell_path}
+# git clone -b for_test https://gitee.com/MementoMoriCheng/openeuler-jenkins.git ${shell_path}
+# repo_owner=&quot;MementoMoriCheng&quot;
+
+#. ${shell_path}/src/lib/main_process.sh 
 
 set +x
 set -e
-main
+#main
 set +e
 set -x</command>
       <configuredLocalRules/>
