@@ -178,10 +178,6 @@ set -x</command>
         </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
       </bindings>
     </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
-    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.20">
-      <strategy class="hudson.plugins.build_timeout.impl.LikelyStuckTimeOutStrategy"/>
-      <operationList/>
-    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
     <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
       <colorMapName>vga</colorMapName>
     </hudson.plugins.ansicolor.AnsiColorBuildWrapper>

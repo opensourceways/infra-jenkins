@@ -1,0 +1,178 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:senlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:senlin</permission>
+      <permission>hudson.model.Item.Build:senlin</permission>
+      <permission>hudson.model.Item.Cancel:senlin</permission>
+      <permission>hudson.model.Item.Configure:senlin</permission>
+      <permission>hudson.model.Item.Delete:senlin</permission>
+      <permission>hudson.model.Item.Discover:senlin</permission>
+      <permission>hudson.model.Item.Move:senlin</permission>
+      <permission>hudson.model.Item.Read:senlin</permission>
+      <permission>hudson.model.Item.Workspace:senlin</permission>
+      <permission>hudson.model.Run.Delete:senlin</permission>
+      <permission>hudson.model.Run.Replay:senlin</permission>
+      <permission>hudson.model.Run.Update:senlin</permission>
+      <permission>hudson.scm.SCM.Tag:senlin</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>OBS_STANDARD_PROJECT</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler:Mainline</string>
+              <string>openEuler:21.09</string>
+              <string>openEuler:21.09:Epol</string>
+              <string>openEuler:20.03:LTS:SP1</string>
+              <string>openEuler:20.03:LTS:SP1:Epol</string>
+              <string>openEuler:20.03:LTS:SP2</string>
+              <string>openEuler:20.03:LTS:SP2:Epol</string>
+              <string>openEuler:20.03:LTS:SP3</string>
+              <string>openEuler:20.03:LTS:SP3:Epol</string>
+              <string>openEuler:20.03:LTS:Next</string>
+              <string>openEuler:20.03:LTS:Next:Epol</string>
+              <string>openEuler:22.03:LTS:Next</string>
+              <string>openEuler:22.03:LTS:Next:Epol</string>
+              <string>openEuler:22.03:LTS</string>
+              <string>openEuler:22.03:LTS:Epol</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>OBS_SERVER_IP</name>
+          <defaultValue>172.16.1.95</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler-iso</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>sudo su - root &lt;&lt;FEOF
+
+echo &quot;nameserver 114.114.114.114&quot; &gt;&gt; /etc/resolv.conf
+
+yum install dnf-plugins-core -y --repo OS
+
+FEOF
+
+set +e
+git config --global user.email &quot;80474298@qq.com&quot;
+git config --global user.name &quot;openeuler-ci-bot&quot;
+git config --global pull.ff only
+
+rm -rf ~/check_rpm_dep
+
+for ((i=1;i&lt;=5;i++));
+do
+    if [ ! -d ~/check_rpm_dep ];then
+    	set +e
+        git clone --depth 1 https://gitee.com/wangchong1995924/openeuler-os-build ~/check_rpm_dep
+        set -e
+    else
+        break
+    fi
+done
+
+if [[ ${OBS_STANDARD_PROJECT} =~ &quot;Epol&quot; ]];then
+	p=${OBS_STANDARD_PROJECT%:*}
+    stand_repo_url=&quot;$(echo ${p//:/:\/})&quot;
+    st_repo_url=&quot;http://${OBS_SERVER_IP}:82/${stand_repo_url}/standard_x86_64&quot;
+    st_repo=`echo ${st_repo_url//\//\\\/}`
+    epol_repo_url=&quot;$(echo ${OBS_STANDARD_PROJECT//:/:\/})&quot;
+    ep_repo_url=&quot;http://${OBS_SERVER_IP}:82/${epol_repo_url}/standard_x86_64&quot;
+    ep_repo=`echo ${ep_repo_url//\//\\\/}`
+    sed -i &quot;27cbaseurl=${st_repo}&quot; ~/check_rpm_dep/script/config/repo_conf/obs-repo.conf
+    sed -i &quot;39cbaseurl=${ep_repo}&quot; ~/check_rpm_dep/script/config/repo_conf/obs-repo.conf
+    repo_name=&quot;obs-Epol&quot;
+else
+	stand_repo_url=&quot;$(echo ${OBS_STANDARD_PROJECT//:/:\/})&quot;
+    st_repo_url=&quot;http://${OBS_SERVER_IP}:82/${stand_repo_url}/standard_x86_64&quot;
+    st_repo=`echo ${st_repo_url//\//\\\/}`
+    sed -i &quot;s/baseurl=.*/baseurl=${st_repo}/g&quot; ~/check_rpm_dep/script/config/repo_conf/obs-repo.conf
+    repo_name=&quot;obs-standard&quot;
+fi
+#cat ~/check_rpm_dep/script/config/repo_conf/obs-repo.conf
+date
+python3 ~/check_rpm_dep/script/tools/check_dep.py -d ~/check_rpm_dep/ -l ~/check_rpm_dep/allist -f ~/check_rpm_dep/check_dep.log -e ~/check_rpm_dep/script/config/unable_install_list -c ~/check_rpm_dep/script/config/repo_conf/obs-repo.conf -r ${repo_name}
+date
+
+sudo su - root &lt;&lt;FEOF2
+touch /root/.oscrc
+cat &gt; /root/.oscrc &lt;&lt; EOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $OBS_USER
+pass = $OBS_PWD
+EOF
+
+if [[ -s /home/jenkins/check_rpm_dep/script/config/unable_install_list ]];then
+    rm -rf home:Admin:ISO
+    osc co home:Admin:ISO
+    cd home:Admin:ISO
+    if [[ ${OBS_STANDARD_PROJECT} =~ &quot;Epol&quot; ]];then
+    	if [[ ! -d `echo ${OBS_STANDARD_PROJECT%:*} | sed s/:/-/g` ]];then
+        	mkdir `echo ${OBS_STANDARD_PROJECT%:*} | sed s/:/-/g`
+        fi
+        mv /home/jenkins/check_rpm_dep/script/config/unable_install_list ./`echo ${OBS_STANDARD_PROJECT%:*} | sed s/:/-/g`/unable_install_list_epol_x86_64
+        cd `echo ${OBS_STANDARD_PROJECT%:*} | sed s/:/-/g` &amp;&amp; osc add unable_install_list_epol_x86_64 &amp;&amp; osc update
+        osc ci -n || osc update &amp;&amp; osc ci -n
+    else
+    	if [[ ! -d ${OBS_STANDARD_PROJECT//:/-} ]];then
+        	mkdir ${OBS_STANDARD_PROJECT//:/-}
+        fi
+        mv /home/jenkins/check_rpm_dep/script/config/unable_install_list ./${OBS_STANDARD_PROJECT//:/-}/unable_install_list_standard_x86_64
+    	cd ${OBS_STANDARD_PROJECT//:/-} &amp;&amp; osc add unable_install_list_standard_x86_64 &amp;&amp; osc update
+    	osc ci -n || osc update &amp;&amp; osc ci -n
+    fi
+
+fi
+FEOF2</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

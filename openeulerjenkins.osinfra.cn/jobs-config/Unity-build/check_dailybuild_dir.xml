@@ -1,0 +1,160 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>daily build页面所构建的目录完整性检查工具</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:dongjie</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:dongjie</permission>
+      <permission>hudson.model.Item.Build:dongjie</permission>
+      <permission>hudson.model.Item.Cancel:dongjie</permission>
+      <permission>hudson.model.Item.Configure:dongjie</permission>
+      <permission>hudson.model.Item.Delete:dongjie</permission>
+      <permission>hudson.model.Item.Discover:dongjie</permission>
+      <permission>hudson.model.Item.Move:dongjie</permission>
+      <permission>hudson.model.Item.Read:dongjie</permission>
+      <permission>hudson.model.Item.Workspace:dongjie</permission>
+      <permission>hudson.model.Run.Delete:dongjie</permission>
+      <permission>hudson.model.Run.Replay:dongjie</permission>
+      <permission>hudson.model.Run.Update:dongjie</permission>
+      <permission>hudson.scm.SCM.Tag:dongjie</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>rooturl</name>
+          <description>daily build页面根目录url链接地址 </description>
+          <defaultValue>http://121.36.84.172/dailybuild</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>branch</name>
+          <description>选择需要检查的分支目录</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler-20.03-LTS</string>
+              <string>openEuler-20.03-LTS-Next</string>
+              <string>openEuler-20.03-LTS-SP1</string>
+              <string>openEuler-20.03-LTS-SP2</string>
+              <string>openEuler-20.03-LTS-SP2-oepkg-IPC</string>
+              <string>openEuler-20.03-LTS-SP3</string>
+              <string>openEuler-20.09</string>
+              <string>openEuler-21.03</string>
+              <string>openEuler-21.09</string>
+              <string>openEuler-22.03-LTS</string>
+              <string>openEuler-22.03-LTS-Next</string>
+              <string>openEuler-Mainline</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>datebranch</name>
+          <description>选择需要检查的上面分支目录下的某个日期的目录</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>mountflag</name>
+          <description>待检查目录是否已挂载，1：已挂载 0：未挂载</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler-ci-obs</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>sudo su - root&lt;&lt;FEOF
+(
+cat &lt;&lt;EOF
+[general]
+apiurl=http://117.78.1.88
+no_verify=yes
+[http://117.78.1.88]
+user=${OBS_USER}
+pass=${OBS_PWD}
+EOF
+) &gt; ~/.oscrc
+
+git config --global http.postBuffer 52428800
+
+if [ -d $WORKSPACE/daily_build_check/ ];then  
+    rm -rf $WORKSPACE/daily_build_check/
+fi
+
+mkdir -p $WORKSPACE/daily_build_check
+cd $WORKSPACE/daily_build_check/
+
+git clone --depth 1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/dongjie110/openeuler-os-build.git
+echo &quot;clone success&quot;
+
+cd $WORKSPACE/daily_build_check/openeuler-os-build/script/tools
+
+python3 daily_build_check.py --rooturl ${rooturl} --branch ${branch} --datebranch ${datebranch} --mountflag ${mountflag}
+
+#yum install osc build wget sudo perl-TimeDate -y$WORKSPACE/daily_build_check/openeuler-os-build/script/tools
+
+#osc co home:Admin:ISO/${branch}
+#cp ${branch}-epol-src-rpm-compare-result.xls $WORKSPACE/daily_build_check/openeuler-os-build/script/tools/home:Admin:ISO/${branch}
+#cd home:Admin:ISO/${branch}
+#osc status
+#osc add ${branch}-epol-src-rpm-compare-result.xls
+#osc ci -m1</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

@@ -130,38 +130,26 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-src_path=/usrl/openeuler/src
-sudo mkdir -p $src_path
-
-#script
-#下载构建脚本
-build_script=/usrl/scripts
-if [! -d &quot;$build_script&quot; ]; then
-    sudo git clone https://gitee.com/openeuler/openeuler-os-build.git -b master -v $build_script
+build_script=/usrl/kernel
+yum -y install gcc automake autoconf libtool make
+sudo rm -rf /usrl/kernel/
+if [ ! -d &quot;$build_script&quot; ]; then
+    sudo git clone https://gitee.com/openeuler/${repo}.git -b master -v $build_script
 else
-	pushd $build_script
-	git status
-	sudo git config pull.ff.only
-	sudo git reset --hard HEAD^ || echo &quot;&quot;
-	sudo git reset --hard HEAD
-	sudo git clean -dfx
-	sudo git pull
-	popd
+    pushd $build_script
 fi
 
-#安装构建环境，下载代码
-sudo rm -rf $src_path/${repo}
-sudo sh $build_script/script/embedded/compile/download.src_path
+pushd $build_script
+git status
+sudo git config pull.ff only
+sudo git reset --hard HEAD^ || echo &quot;&quot;
+sudo git reset --hard HEAD
+sudo git clean -dfx
+sudo git pull
+popd
 
-#使用pr的代码替换本地源码
-sudo rm -rf $src_path/${repo}
-sudo cp -r $WORKSPACE/${repo} $src_path
-
-#执行构建脚本
-sudo sh $build_script/script/embedded/compile/build.sh &quot;aarch64-std&quot; &quot;yes&quot; &quot;no&quot;
-
-#删除修改过的代码
-sudo rm -rf $src_path/${repo}</command>
+sudo make ARCH=arm64 CROSS_COMPILE=arm-linux- menuconfig
+sudo make ARCH=arm64 CROSS_COMPILE=arm-linux- -j100</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>

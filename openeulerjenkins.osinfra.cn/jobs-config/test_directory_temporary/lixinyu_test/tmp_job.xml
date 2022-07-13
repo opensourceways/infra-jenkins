@@ -2,7 +2,7 @@
 <project>
   <actions/>
   <description></description>
-  <keepDependencies>false</keepDependencies>
+  <keepDependencies>true</keepDependencies>
   <properties>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
@@ -27,9 +27,16 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>echo  &quot;aaaaaaaaa&quot;</command>
+      <command>sleep 20s
+
+echo build_res=&quot;[{&apos;name&apos;: &apos;build&apos;, &apos;result&apos;: &apos;SUCCESS&apos;}, {&apos;name&apos;: &apos;test&apos;, &apos;result&apos;: &apos;FAULD&apos;}]&quot; &gt; log_${BUILD_ID}</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.3.0">
+      <info>
+        <propertiesFilePath>log_${BUILD_ID}</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
   </builders>
   <publishers/>
   <buildWrappers/>

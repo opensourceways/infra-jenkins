@@ -160,6 +160,7 @@ function function_check() {
         result=$?
     else
     	SKIP_REG=true GOFLAGS=&quot;-mod=vendor&quot; make test-unit
+        result=$?
     fi
     
     if [ $result -eq 0 ]; then

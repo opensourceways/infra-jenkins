@@ -1,0 +1,215 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>巡检软件包安装问题的jenkins任务，并发邮件。</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>90</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>branch</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string></string>
+              <string>openEuler-Mainline</string>
+              <string>openEuler-20.03-LTS-SP1</string>
+              <string>openEuler-20.03-LTS-SP3</string>
+              <string>openEuler-22.03-LTS</string>
+              <string>openEuler-22.03-LTS-Next</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>to_addr</name>
+          <description>收件人邮箱地址
+a,b,c......</description>
+          <defaultValue>wangchong56@huawei.com</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>buildnumber</name>
+          <description>check-rpm-install-dependence-xxx任务的job号
+注意：若不填写，程序默认取最后一次job号。</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-aarch64-openeuler-ci-obs</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>set -e
+if [[ &quot;x${branch}&quot; == &quot;x&quot; ]];then
+	echo &quot;分支不能为空！&quot;
+    exit 1
+fi
+
+if [[ &quot;x${to_addr}&quot; == &quot;x&quot; ]];then
+	echo &quot;收件人不能为空！&quot;
+    exit 1
+fi
+
+sudo su - root&lt;&lt;FEOF
+(
+cat &lt;&lt;EOF
+[general]
+apiurl=http://117.78.1.88
+no_verify=yes
+[http://117.78.1.88]
+user=${OBS_USER}
+pass=${OBS_PWD}
+EOF
+) &gt; ~/.oscrc
+
+
+(
+cat &lt;&lt;EOF2
+[sp1]
+name=sp1
+baseurl=http://121.36.94.113:82/openEuler:/20.03:/LTS:/SP1/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[sp1-epol]
+name=sp1-epol
+baseurl=http://121.36.94.113:82/openEuler:/20.03:/LTS:/SP1:/Epol/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[sp3]
+name=sp3
+baseurl=http://121.36.94.113:82/openEuler:/20.03:/LTS:/SP3/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[sp3-epol]
+name=sp3-epol
+baseurl=http://121.36.94.113:82/openEuler:/20.03:/LTS:/SP3:/Epol/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[2203-LTS]
+name=2203-LTS
+baseurl=http://119.3.219.20:82/openEuler:/22.03:/LTS/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[2203-LTS-epol]
+name=2203-LTS-epol
+baseurl=http://119.3.219.20:82/openEuler:/22.03:/LTS:/Epol/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[2203-LTS-Next]
+name=2203-LTS-Next
+baseurl=http://120.46.140.206:82/openEuler:/22.03:/LTS:/Next/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[2203-LTS-Next-epol]
+name=2203-LTS-Next-epol
+baseurl=http://120.46.140.206:82/openEuler:/22.03:/LTS:/Next:/Epol/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[Mainline]
+name=Mainline
+baseurl=http://119.3.219.20:82/openEuler:/Mainline/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[epol]
+name=epol
+baseurl=http://119.3.219.20:82/openEuler:/Epol/standard_aarch64/
+enabled=1
+gpgcheck=0
+EOF2
+) &gt; /etc/yum.repos.d/openEuler.repo
+
+git config --global user.email &quot;80474298@qq.com&quot;
+git config --global user.name &quot;openeuler-ci-bot&quot;
+git config --global pull.ff only
+
+
+rm -rf openeuler-os-build
+for ((i=1;i&lt;=5;i++));
+do
+    if [ ! -d openeuler-os-build ];then
+    	git clone --depth 1 https://gitee.com/wangchong1995924/openeuler-os-build
+        #git clone --depth 1 https://${giteeuser}:${giteepwd}@gitee.com/openeuler/openeuler-os-build
+    else
+        break
+    fi
+done
+
+cd openeuler-os-build/script/tools/
+
+
+if [ -z ${buildnumber} ];then
+	python3 package_install_problem_report.py -u &quot;${jenkins_user}&quot; -w &quot;${jenkins_pwd}&quot; -su ${email_user} -sw ${email_pwd} -tu ${to_addr} -b ${branch}
+else
+	python3 package_install_problem_report.py -u &quot;${jenkins_user}&quot; -w &quot;${jenkins_pwd}&quot; -su ${email_user} -sw ${email_pwd} -tu ${to_addr} -b ${branch} -num ${buildnumber}
+fi
+FEOF</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>jenkins_admin</credentialsId>
+          <usernameVariable>jenkins_user</usernameVariable>
+          <passwordVariable>jenkins_pwd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>GiteeCloneUserName</usernameVariable>
+          <passwordVariable>GiteeClonePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>OBS_USER</usernameVariable>
+          <passwordVariable>OBS_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>chong_w_163_email</credentialsId>
+          <usernameVariable>email_user</usernameVariable>
+          <passwordVariable>email_pwd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

@@ -33,7 +33,7 @@
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>UPDATE_TIME</name>
-          <defaultValue>20220705</defaultValue>
+          <defaultValue>20220713</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -43,7 +43,7 @@
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>PKG_NAME</name>
-          <defaultValue>libjpeg-turbo,initscripts,curl</defaultValue>
+          <defaultValue>p11-kit</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>

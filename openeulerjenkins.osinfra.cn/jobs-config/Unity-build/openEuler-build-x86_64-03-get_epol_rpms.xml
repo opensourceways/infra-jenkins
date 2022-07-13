@@ -1,0 +1,195 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>45</daysToKeep>
+        <numToKeep>150</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>isbuild</name>
+          <defaultValue>1</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>OBS_STANDARD_PROJECT</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler:Mainline</string>
+              <string>openEuler:20.03:LTS</string>
+              <string>openEuler:20.03:LTS:Next</string>
+              <string>openEuler:20.03:LTS:SP1</string>
+              <string>openEuler:20.09</string>
+              <string>openEuler:21.03</string>
+              <string>openEuler:21.09</string>
+              <string>openEuler:20.03:LTS:SP2</string>
+              <string>openEuler:20.03:LTS:SP3</string>
+              <string>openEuler:22.03:LTS:Next</string>
+              <string>openEuler:22.03:LTS</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>OBS_EPOL_PROJECT</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler:Epol</string>
+              <string>openEuler:20.03:LTS:Epol</string>
+              <string>openEuler:20.03:LTS:Next:Epol</string>
+              <string>openEuler:20.03:LTS:SP1:Epol</string>
+              <string>openEuler:20.09:Epol</string>
+              <string>openEuler:21.03:Epol</string>
+              <string>openEuler:21.09:Epol</string>
+              <string>openEuler:20.03:LTS:SP2:Epol</string>
+              <string>openEuler:20.03:LTS:SP3:Epol</string>
+              <string>openEuler:22.03:LTS:Next:Epol</string>
+              <string>openEuler:22.03:LTS:Epol</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>OBS_EXTRAS_PROJECT</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler:Extras</string>
+              <string>openEuler:20.03:LTS:Extras</string>
+              <string>openEuler:20.03:LTS:Next:Extras</string>
+              <string>openEuler:20.03:LTS:SP1:Extras</string>
+              <string>openEuler:20.09:Extras</string>
+              <string>openEuler:21.03:Extras</string>
+              <string>openEuler:21.09:Extras</string>
+              <string>openEuler:20.03:LTS:SP2:Extras</string>
+              <string>openEuler:20.03:LTS:SP3:Extras</string>
+              <string>openEuler:22.03:LTS:Next:Extras</string>
+              <string>openEuler:22.03:LTS:Extras</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>bringInRely_repo_url</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>vm_ip</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-openeuler-iso</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>sudo su - root &lt;&lt; EOF
+
+if [ &quot;x$isbuild&quot; == &quot;x0&quot; ]; then
+    echo &quot;skip by all&quot;
+    exit 0
+fi
+set +e
+
+touch ~/.oscrc
+cat &gt; ~/.oscrc &lt;&lt; FEOF
+[general]
+apiurl = http://117.78.1.88
+[http://117.78.1.88]
+user = $obs_admin
+pass = $obs_pwd
+FEOF
+cat ~/.oscrc
+
+rm -rf openeuler-os-build
+for ((i=1;i&lt;=5;i++));
+do
+	set +e
+    if [ ! -d openeuler-os-build ];then
+    	#git clone --depth 1 https://gitee.com/wangchong1995924/openeuler-os-build_epol
+        git clone --depth 1 https://${giteeuser}:${giteepwd}@gitee.com/openeuler/openeuler-os-build
+    else
+        break
+    fi
+    set -e
+done
+cd openeuler-os-build
+bringInRely_repo_url=`echo ${bringInRely_repo_url//\//\\\/}`
+sed -i &quot;s/OBS_BRINGINRELY_URL=.*/OBS_BRINGINRELY_URL=${bringInRely_repo_url}/g&quot; script/setup_env.sh
+
+if [[ &quot;${OBS_STANDARD_PROJECT}&quot; != &quot;openEuler:Mainline&quot; ]];then
+	rm -fr home:Admin:ISO
+	osc co home:Admin:ISO ${OBS_STANDARD_PROJECT//:/-}
+	mv home:Admin:ISO/${OBS_STANDARD_PROJECT//:/-}/unable_install_list_epol_aarch64 ./script/config/unable_install_list
+fi
+
+export dogshenguser81=${dogshenguser81}
+export dogshengpwd81=${dogshengpwd81}
+bash -x reset_release_server_ip.sh &amp;&amp; \
+python build.py -i ${JOB_NAME##*-} -s ${OBS_STANDARD_PROJECT} -ep ${OBS_EPOL_PROJECT} -ex ${OBS_EXTRAS_PROJECT} -ip ${vm_ip}
+
+EOF</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.39">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
+          </configs>
+          <projects>openEuler-build-x86_64-03-make_edge_iso</projects>
+          <condition>SUCCESS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <triggerFromChildProjects>false</triggerFromChildProjects>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>obs_ci_bot</credentialsId>
+          <usernameVariable>obs_admin</usernameVariable>
+          <passwordVariable>obs_pwd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>openeuler_ci_bot</credentialsId>
+          <usernameVariable>giteeuser</usernameVariable>
+          <passwordVariable>giteepwd</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>1.81</credentialsId>
+          <usernameVariable>dogshenguser81</usernameVariable>
+          <passwordVariable>dogshengpwd81</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>
