@@ -147,13 +147,14 @@ function function_check() {
     echo &quot;========================Function Check========================&quot;
     ps -aux | grep rubik
 
-    SKIP_REG=true GOFLAGS=&quot;-mod=vendor&quot; make test-unit
+    GOFLAGS=&quot;-mod=vendor&quot; make test-unit
     result=$?
     
     if [ $result -eq 0 ]; then
         echo &quot;PASS&quot;
     else
         echo &quot;FAILED&quot;
+        cat ${WORKSPACE}/src/isula.org/rubik/unit_test_log
         return 1
     fi
     echo &quot;Function Check PASS&quot;

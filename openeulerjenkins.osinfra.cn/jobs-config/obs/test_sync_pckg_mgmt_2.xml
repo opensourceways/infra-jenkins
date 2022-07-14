@@ -143,6 +143,7 @@ cd $WORKSPACE &amp;&amp; rm -rf openeuler_obs-*
 wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.6.2-aarch64.tar.gz
 tar -xvf openeuler_obs-v1.6.2-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v1.6.2-aarch64
 echo &quot;test2&quot;
+cd $WORKSPACE/openeuler-obs
 ./openeuler_obs -o $WORKSPACE/obs_meta -rm $WORKSPACE/release-management -guser ${GiteeCloneUserName} -gpwd ${GiteeClonePassword} --pckg_mgmt true
 #./openeuler_obs -o $WORKSPACE/obs_meta -rm $WORKSPACE/release-management -guser ${GiteeCloneUserName} -gpwd ${GiteeClonePassword} --pckg_mgmt true --sync_code &quot;&quot;
 EOF</command>

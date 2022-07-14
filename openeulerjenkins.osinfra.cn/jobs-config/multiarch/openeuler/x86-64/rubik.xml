@@ -122,9 +122,9 @@
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>#!/bin/bash
+      <command>#!/bin/bash -x
 
-export GOPATH=${WORKSPACE}/rubik
+export GOPATH=${WORKSPACE}
 cd ${WORKSPACE}/src/isula.org/rubik
 
 function compile_check() {
@@ -148,13 +148,14 @@ function function_check() {
     echo &quot;========================Function Check========================&quot;
     ps -aux | grep rubik
 
-    SKIP_REG=true GOFLAGS=&quot;-mod=vendor&quot; make test-unit
+    GOFLAGS=&quot;-mod=vendor&quot; make test-unit
     result=$?
     
     if [ $result -eq 0 ]; then
         echo &quot;PASS&quot;
     else
         echo &quot;FAILED&quot;
+        cat ${WORKSPACE}/src/isula.org/rubik/unit_test_log
         return 1
     fi
     echo &quot;Function Check PASS&quot;
@@ -228,7 +229,7 @@ echo &quot;========================Rubik CI Begin========================&quot;
 filemode_check || exit 1
 #copyright_check || exit 1
 fileformat_check || exit 1
-static_check || exit 1
+#static_check || exit 1
 compile_check || exit 1
 function_check || exit 1
 echo &quot;========================Rubik CI End========================&quot;

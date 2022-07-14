@@ -43,7 +43,7 @@
               <string>libvirt</string>
               <string>openeuler-jenkins</string>
               <string>pkgship</string>
-            <string>website</string>
+            <string>website </string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>

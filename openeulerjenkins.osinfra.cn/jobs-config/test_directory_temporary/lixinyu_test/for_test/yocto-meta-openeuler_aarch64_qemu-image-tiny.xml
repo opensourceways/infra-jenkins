@@ -1,0 +1,439 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:lixinyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:lixinyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:lixinyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:lixinyu</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:lixinyu</permission>
+      <permission>hudson.model.Item.Build:lixinyu</permission>
+      <permission>hudson.model.Item.Cancel:lixinyu</permission>
+      <permission>hudson.model.Item.Configure:lixinyu</permission>
+      <permission>hudson.model.Item.Delete:lixinyu</permission>
+      <permission>hudson.model.Item.Discover:lixinyu</permission>
+      <permission>hudson.model.Item.Move:lixinyu</permission>
+      <permission>hudson.model.Item.Read:lixinyu</permission>
+      <permission>hudson.model.Item.Workspace:lixinyu</permission>
+      <permission>hudson.model.Run.Delete:lixinyu</permission>
+      <permission>hudson.model.Run.Update:lixinyu</permission>
+      <permission>hudson.scm.SCM.Tag:lixinyu</permission>
+    </hudson.security.AuthorizationMatrixProperty>
+    <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+      <doNotScan>false</doNotScan>
+    </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>30</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repo</name>
+          <description>码云中仓库名称</description>
+          <defaultValue>yocto-meta-openeuler</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>pr 源分支</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>tbranch</name>
+          <description>pr 目标分支</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>prid</name>
+          <description>pull request id</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>committer</name>
+          <description>提交者</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repo_server</name>
+          <description>结果保存地址</description>
+          <defaultValue>121.36.53.23</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>commentid</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ACL</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>is_debug</name>
+          <description>调试信息</description>
+          <defaultValue>1</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>k8s-x86-rtos-openeuler-test</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+echo &quot;arch=aarch64;image=qemu-image-tiny;&quot; &gt; tmp_log</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>if [ $is_debug = 1 ];then
+	echo &quot;check_build=success;&quot; &gt;&gt; tmp_log
+else
+    ls ${repo}
+    pwd &amp;&amp; ls /home/jenkins
+    
+    # 创建构建目录
+    #sudo mkdir -p /home/jenkins/yocto-poky
+    #if [ ! -d &quot;/usr1&quot; ]; then
+    #    sudo ln -s /home/jenkins/yocto-poky /usr1
+    #fi
+    src_path=/usr1/openeuler/src
+    sudo mkdir -p $src_path
+    
+    # echo &quot;log++++++++++++++++++++++&quot;
+    # ls -l /usr1/openeuler/gcc/openeuler_gcc_arm64le/aarch64-openeuler-linux-gnu/lib64/*
+    # exit 0
+    
+    # 下载构建脚本
+    build_script=/usr1/scripts
+    if [ ! -d &quot;$build_script&quot; ]; then
+        sudo git clone https://gitee.com/openeuler/openeuler-os-build.git -b &quot;master&quot; -v $build_script
+    else
+        pushd $build_script
+        git config --global --add safe.directory /usr1/scripts
+        git status
+        sudo git config pull.ff only
+        sudo git reset --hard HEAD^ || echo &quot;&quot;
+        sudo git reset --hard HEAD
+        sudo git clean -dfx
+        sudo git pull
+        popd
+    fi
+    
+    
+    # 使用当前pr的代码替换本地源码
+    sudo rm -rf $src_path/${repo}
+    sudo cp -r $WORKSPACE/${repo} $src_path
+    
+    # 安装构建环境，下载代码
+    sudo rm -rf ${src_path}/kernel-5.10
+    #downloadBranch=${tbranch}
+    downloadBranch=&quot;openEuler-22.03-LTS&quot;
+    if [[ ${tbranch} == &quot;yocto_refactor&quot; || ${tbranch} == &quot;gitee_pages&quot; ]]; then
+        downloadBranch=&quot;openEuler-22.03-LTS&quot;
+    fi
+    sudo sh ${src_path}/${repo}/scripts/download_code.sh &quot;&quot; ${downloadBranch}
+    
+    
+    # 执行构建脚本
+    sudo sh $build_script/script/embedded/compile/build.sh &quot;aarch64-std&quot; &quot;yes&quot; &quot;no&quot; &quot;no&quot; &quot;openeuler-image-tiny&quot;
+    
+    # 删除修改过的代码
+    sudo rm -rf $src_path/${repo}
+    
+    # 加测试代码
+    # 将测试项结果汇总到acl文件
+fi</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>if [ $is_debug = 1 ];then
+	echo &quot;check_test=faild;&quot; &gt;&gt; tmp_log
+else
+    #BUILD_ARCH=&quot;arm&quot;
+    BUILD_ARCH=&quot;aarch64&quot;
+
+    # 目前只有aarch64有tiny镜像，设置时需要注意
+    #IMAGE_TYPE=&quot;std&quot;
+    IMAGE_TYPE=&quot;tiny&quot;
+
+    BUILD_BRANCH=${tbranch}
+    #BUILD_BRANCH=&quot;master&quot;
+    if [[ ${tbranch} == &quot;yocto_refactor&quot; || ${tbranch} == &quot;gitee_pages&quot; ]]; then
+        BUILD_BRANCH=&quot;openEuler-22.03-LTS&quot;
+    fi
+
+    workspace_parent_dir=$(
+        cd ${WORKSPACE}/../ || exit 1
+        pwd
+    )
+    # 规避工程文件夹带括号
+    sudo rm -rf ${workspace_parent_dir}/test_run_dir_*
+    mkdir -p ${workspace_parent_dir}/test_run_dir_${BUILD_ARCH}_${IMAGE_TYPE}_${BUILD_NUMBER}
+    run_test_dir=&quot;${workspace_parent_dir}/test_run_dir_${BUILD_ARCH}_${IMAGE_TYPE}_${BUILD_NUMBER}&quot;
+
+    # 清理现场 防止上次构建有残留
+    if [[ -e  ${run_test_dir}/mugen/qemu_ctl.sh &amp;&amp; -e  ${run_test_dir}/mugen/conf/qemu_info.json ]]; then
+        sudo sh ${run_test_dir}/mugen/qemu_ctl.sh stop
+    fi
+
+    SDK_INSTALL_PATH=${run_test_dir}/sdk/${BUILD_ARCH}
+
+    sudo rm -rf ${run_test_dir}/mugen
+    sudo rm -rf ${run_test_dir}/image
+    sudo rm -rf ${SDK_INSTALL_PATH}
+
+    # 创建工作目录
+    mkdir -p ${run_test_dir}/sdk
+    mkdir -p ${run_test_dir}/image/${BUILD_ARCH}
+    mkdir -p ${SDK_INSTALL_PATH}
+
+    # 直接下载镜像和SDK，std镜像
+    # zImage=http://121.36.84.172/dailybuild/openEuler-22.03-LTS/openEuler-22.03-LTS/embedded_img/arm64/aarch64-std/zImage
+    # rootfs=http://121.36.84.172/dailybuild/openEuler-22.03-LTS/openEuler-22.03-LTS/embedded_img/arm64/aarch64-std/openeuler-image-qemu-aarch64-20220622180107.rootfs.cpio.gz
+    # sdk=http://121.36.84.172/dailybuild/openEuler-22.03-LTS/openEuler-22.03-LTS/embedded_img/arm32/arm-std/openeuler-glibc-x86_64-openeuler-image-armv7a-qemu-arm-toolchain-22.03.sh
+
+    # wget ${zImage} --no-check-certificate -O ${run_test_dir}/image/${BUILD_ARCH}/zImage
+    # wget ${rootfs} --no-check-certificate -O ${run_test_dir}/image/${BUILD_ARCH}/initrd
+    # wget ${sdk} --no-check-certificate -O ${run_test_dir}/sdk/toolchain.sh
+
+    # 从构建输出文件夹获取镜像和SDK
+    outputdir=&quot;/usr1/output&quot;
+    zImage_path=$(find ${outputdir} -name &quot;zImage&quot;)
+    initrd_path=$(find ${outputdir} -name &quot;openeuler-image-*qemu-*.rootfs.cpio.gz&quot;)
+
+    cp -r ${zImage_path} ${run_test_dir}/image/${BUILD_ARCH}/zImage
+    cp -r ${initrd_path} ${run_test_dir}/image/${BUILD_ARCH}/initrd
+
+    if [[ $IMAGE_TYPE == &quot;std&quot; ]]; then
+        toolchain_path=$(find ${outputdir} -name &quot;openeuler-glibc-*-toolchain-*.sh&quot;)
+        cp -r ${toolchain_path} ${run_test_dir}/sdk/toolchain.sh
+
+        # 配置sdk
+        sh ${run_test_dir}/sdk/toolchain.sh &lt;&lt;EOF
+    ${SDK_INSTALL_PATH}
+    Y
+EOF
+
+        environment_script=$(find ${SDK_INSTALL_PATH} -name &quot;environment-setup-*-openeuler-*&quot;)
+        for one_env_script in ${environment_script[@]}; do
+            source ${one_env_script}
+        done
+
+        # openEuler-22.03-LTS分支需要手动执行编译, master分支已经可以在source时自动执行
+        if [[ $BUILD_BRANCH == &quot;openEuler-22.03-LTS&quot; ]]; then
+            kernel_src_path=$(find   ${SDK_INSTALL_PATH}/sysroots -name &quot;kernel&quot; | grep &quot;usr/src/kernel&quot;)
+            cd ${kernel_src_path}
+            make modules_prepare
+        fi
+    fi
+
+    git clone https://gitee.com/openeuler/mugen.git ${run_test_dir}/mugen
+    #git clone -b add_emb_fun https://gitee.com/saarloos/mugen.git ${run_test_dir}/mugen
+
+    cd ${run_test_dir}
+
+    # 测试sdk设置用，std镜像
+    # echo &apos;
+    # cyclictest:
+    # 	git clone https://gitee.com/mirrors/rt-tests.git
+    # 	make -C ./rt-tests
+    # 	cp ./rt-tests/cyclictest ./
+    # 	rm -rf rt-tests
+    # clean:
+    # 	rm -rf rt-tests
+    # 	rm -rf cyclictest
+    # &apos; &gt;&gt; ${run_test_dir}/mugen/testcases/embedded-test/security_config_test/makefile
+
+    # 设置需要执行的测试套, 目前一致, 后面一定会不同
+    if [[ $IMAGE_TYPE == &quot;std&quot; ]]; then
+        run_suitecase=(&quot;embedded_security_config_test&quot;)
+    elif [[ $IMAGE_TYPE == &quot;tiny&quot; ]]; then
+        run_suitecase=(&quot;embedded_tiny_image_test&quot;)
+    fi
+
+    # 创建多测试套结果保存文件夹
+    results_path=&quot;${run_test_dir}/results&quot;
+    sudo rm -rf ${results_path}
+    mkdir -p ${results_path}
+
+    # 执行测试
+    pushd &quot;${run_test_dir}/mugen&quot;
+    # 安装测试执行依赖
+    sudo sh -x dep_install.sh -e
+
+    if [[ $IMAGE_TYPE == &quot;std&quot; ]]; then
+        # 为qemu配置一个可用的IP地址，防止有其他qemu已经占用IP
+        last_ip_num=$(($RANDOM%250+2))
+        can_ip_use=0
+        for i in {1...10}; do
+            ret=0
+            ping &quot;192.168.10.${last_ip_num}&quot; -c 1 || can_ip_use=1
+            if [ $can_ip_use -eq 1 ]; then
+                break;
+            fi
+        done
+        if [ $can_ip_use -eq 0 ]; then
+            echo &quot;ERROR: can&apos;t get a ip set to qemu.&quot;
+            exit 1
+        fi
+        last_pwd_num=$(($RANDOM%1000))
+        # 启动qemu
+        sudo sh -x qemu_ctl.sh start --qemu_type &quot;${BUILD_ARCH}&quot; \
+                                    --passwd &quot;openEuler@${last_pwd_num}&quot; \
+                                    --host_ip &quot;192.168.10.1&quot; \
+                                    --qemu_ip &quot;192.168.10.${last_ip_num}&quot; \
+                                    --put_all \
+                                    --kernal_img_path &quot;${run_test_dir}/image/${BUILD_ARCH}/zImage&quot; \
+                                    --initrd_path &quot;${run_test_dir}/image/${BUILD_ARCH}/initrd&quot;
+        rem_run_str=&quot;-s&quot;
+        need_env_str=&quot;&quot;
+    elif [[ $IMAGE_TYPE == &quot;tiny&quot; ]]; then
+        mkdir -p conf
+        echo &apos;{
+        &quot;NODE&quot;: [
+            {
+                &quot;ID&quot;: 1,
+                &quot;LOCALTION&quot;: &quot;local&quot;,
+                &quot;MACHINE&quot;: &quot;physical&quot;,
+                &quot;FRAME&quot;: &quot;aarch64&quot;,
+                &quot;NIC&quot;: &quot;lo0&quot;,
+                &quot;MAC&quot;: &quot;&quot;,
+                &quot;IPV4&quot;: &quot;127.0.0.1&quot;,
+                &quot;USER&quot;: &quot;root&quot;,
+                &quot;PASSWORD&quot;: &quot;&quot;,
+                &quot;SSH_PORT&quot;: 22,
+                &quot;BMC_IP&quot;: &quot;&quot;,
+                &quot;BMC_USER&quot;: &quot;&quot;,
+                &quot;BMC_PASSWORD&quot;: &quot;&quot;
+            }
+        ]
+    }&apos;&gt;&gt; conf/env.json
+        export FIND_TINY_DIR=${outputdir}
+        rem_run_str=&quot;&quot;
+        need_env_str=&quot;-E&quot;
+    fi
+
+    for one_suite in ${run_suitecase[@]}; do
+        # 执行测试套编译准备
+        sudo bash mugen.sh -b ${one_suite}
+
+        echo &quot;
+        pushd \&quot;${run_test_dir}/mugen\&quot;
+            sudo ${need_env_str} bash mugen.sh -f ${one_suite} ${rem_run_str}
+        popd
+        exit 0
+        &quot;&gt;&gt; ${run_test_dir}/tmp_test_run_${one_suite}.sh
+        sh -x ${run_test_dir}/tmp_test_run_${one_suite}.sh
+        # 拷贝测试套执行结果
+        cp -Rrf ${run_test_dir}/mugen/results/${one_suite} ${results_path}/
+        rm -rf ${run_test_dir}/tmp_test_run_${one_suite}.sh
+    done
+
+    if [[ $IMAGE_TYPE == &quot;std&quot; ]]; then
+        # 关闭qemu
+        sudo sh qemu_ctl.sh stop
+    elif [[ $IMAGE_TYPE == &quot;tiny&quot; ]]; then
+        rm -rf conf/env.json
+    fi
+
+    popd
+
+    exitCode=0
+    # 可以忽略的测试失败用例
+    ignoreFail=(&quot;oe_test_check_file_sys_protect_005&quot; &quot;oe_test_check_network_firewall_001&quot; &quot;oe_test_check_network_firewall_002&quot; &quot;oe_test_check_ssh_config_002&quot; &quot;oe_test_check_file_sys_protect_004&quot;)
+    # 分析用例执行结果
+    for one_suite in ${run_suitecase[@]}; do
+        checkFail=&quot;&quot;
+        if [ -e ${run_test_dir}/mugen/results/${one_suite}/failed ]; then
+            checkFail=$(ls ${run_test_dir}/mugen/results/${one_suite}/failed/)
+        fi
+
+        for oneFail in ${checkFail[@]}; do
+            if [[ &quot;${ignoreFail[*]}&quot;  =~ &quot;${oneFail}&quot; ]]; then
+                echo &quot;INFO: ignore $oneFail test fail&quot;
+            else
+                echo &quot;ERROR: run $oneFail test fail&quot;
+                exitCode=1
+            fi
+        done
+    done
+
+    # 将结果写入远程文件
+    arch=&quot;aarch64_(qemu-image-tiny)&quot;
+    fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
+    comment_file=${repo}_${prid}_${arch}_test_comment
+
+    if [ $exitCode = 0 ]; then
+        echo &quot;[{&apos;name&apos;: &apos;check_test&apos;, &apos;result&apos;: 0}]&quot; &gt; ${comment_file}
+    else
+        echo &quot;[{&apos;name&apos;: &apos;check_test&apos;, &apos;result&apos;: 2}]&quot; &gt; ${comment_file}
+    fi
+    if [[ -f ${comment_file} ]]; then
+        scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR ${comment_file} root@${repo_server}:$fileserver_tmpfile_path
+        echo &quot;upload success&quot;
+    fi
+fi</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+echo build_res=`cat tmp_log` &gt; log_${BUILD_ID}</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.3.0">
+      <info>
+        <propertiesFilePath>log_${BUILD_ID}</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>lisir-gitee-user-pwd</credentialsId>
+          <usernameVariable>GiteeUserName</usernameVariable>
+          <passwordVariable>GiteePassword</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>lisir-gitee-api-token</credentialsId>
+          <variable>GiteeApiToken</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">
+      <colorMapName>vga</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

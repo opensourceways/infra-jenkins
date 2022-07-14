@@ -339,6 +339,8 @@ if [[ $IMAGE_TYPE == &quot;std&quot; ]]; then
                                 --host_ip &quot;192.168.10.1&quot; \
                                 --qemu_ip &quot;192.168.10.${last_ip_num}&quot; \
                                 --put_all \
+                                --start_sshd_cmd &quot;/usr/sbin/sshd -D &amp;&quot; \
+                                --check_sshd_start_cmd &quot;test \$(ps aux | grep sshd | wc -l) -ge 2&quot; \
                                 --kernal_img_path &quot;${run_test_dir}/image/${BUILD_ARCH}/zImage&quot; \
                                 --initrd_path &quot;${run_test_dir}/image/${BUILD_ARCH}/initrd&quot;
     rem_run_str=&quot;-s&quot;

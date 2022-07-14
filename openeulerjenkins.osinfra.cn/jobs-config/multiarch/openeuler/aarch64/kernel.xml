@@ -120,7 +120,7 @@
       </hudson.plugins.git.extensions.impl.CloneOption>
     </extensions>
   </scm>
-  <assignedNode>k8s-aarch64-openeuler-20.09</assignedNode>
+  <assignedNode>docker-aarch64-soe-kernel</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -130,26 +130,27 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-build_script=/usrl/kernel
-yum -y install gcc automake autoconf libtool make
-sudo rm -rf /usrl/kernel/
-if [ ! -d &quot;$build_script&quot; ]; then
-    sudo git clone https://gitee.com/openeuler/${repo}.git -b master -v $build_script
-else
-    pushd $build_script
-fi
 
-pushd $build_script
-git status
-sudo git config pull.ff only
-sudo git reset --hard HEAD^ || echo &quot;&quot;
-sudo git reset --hard HEAD
-sudo git clean -dfx
-sudo git pull
-popd
+git init src-kernel
+cd src-kernel
+git clone https://gitee.com/src-openeuler/kernel.git
+cd kernel
+git checkout openEuler-22.03-LTS-Next
+kernel_tag=$(sudo cat ./SOURCE)
+echo kernel_tag
+mkdir ../../OLK
+cd ../../OLK
+git clone -b $kernel_tag --depth 1 https://gitee.com/openeuler/kernel.git
+cd kernel
+echo y | sudo yum install flex
+echo y | sudo yum install bison
+echo y | sudo yum install elfutils-libelf-devel
+echo y | sudo yum install openssl-devel
 
-sudo make ARCH=arm64 CROSS_COMPILE=arm-linux- menuconfig
-sudo make ARCH=arm64 CROSS_COMPILE=arm-linux- -j100</command>
+echo y | sudo yum install dwarves
+
+make openeuler_defconfig
+make -j30</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>

@@ -113,29 +113,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command># /home/jenkins/ci_check/src/jenkinsfile/lcr.py -a ${arch}
-#/home/jenkins/ci_check/src/jenkinsfile/lcr.py -a ${arch}
-#rpms=(git \
-#      svn \
-#      gcc \
-#      gcc-c++ \
-#      python3-pip \
-#      python3-devel)
-#sudo rm -f *.rpm
-#sudo yum downgrade -y &quot;${rpms[@]}&quot; --downloadonly --downloaddir=./ --allowerasing --skip-broken --nobest || true
-#sudo yum install -y &quot;${rpms[@]}&quot; --downloadonly --downloaddir=./ --allowerasing --skip-broken --nobest
-#sudo rpm -Uvh --force --nodeps *.rpm || true
-#sudo pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-
-#sudo yum install -y svn gcc python3-devel
-#sudo pip3 config set global.index-url https://repo.huaweicloud.com/repository/pypi/simple
-
-#cp -a &quot;${repo}&quot; ci_check/
-#sudo pip3 install -r ci_check/src/requirements
-#export PYTHONPATH=$PYTHONPATH:ci_check
-#python3 ci_check/src/jenkinsfile/openeuler_jenkins_test.py
-#rm -rf ci_check/src/jenkinsfile/test.log
-echo &apos;hello&apos;</command>
+      <command></command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>
