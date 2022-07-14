@@ -1,7 +1,7 @@
 <?xml version='1.1' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>This project used to publish openeuler website test image publish 【2022-01-10 created】;</description>
+  <description>this project is for opengauss odd image build</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
@@ -15,20 +15,20 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>https://gitee.com/openeuler/website-v2.git</url>
+        <url>https://github.com/gzbang/openGauss_ODD.git</url>
         <credentialsId>95032b54-6787-45c5-9058-48977d8e9249</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>*/feature/v3</name>
+        <name>*/main</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
     <submoduleCfg class="empty-list"/>
     <extensions/>
   </scm>
-  <assignedNode>docker-x86-slaves</assignedNode>
+  <assignedNode>docker</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -40,66 +40,53 @@
       <command>#!/bin/bash
 set -e
 
-GIT_EMAIL=&quot;tommylike@gmail.com&quot;
+GITEE_EMAIL=&quot;xiangxinyong@huawei.com&quot;
 #IMAGE_VERSION=$(git rev-parse HEAD)
-IMAGE_VERSION=&quot;v0.0.7&quot;
-PROJECT_NAME=&quot;openeuler-website-test&quot;
+IMAGE_VERSION=v0.0.1
+PROJECT_NAME=&quot;opengauss-website-odd&quot;
 
 if hash git 2&gt;/dev/null; then
     IMAGE_VERSION=$(git rev-parse HEAD)
 fi
 
 if hash docker 2&gt;/dev/null; then
-    docker login -u cn-north-4@$DOCKER_USER -p $DOCKER_PASS swr.cn-north-4.myhuaweicloud.com
+    docker login -u cn-north-4@$DOCKER_USER -p $DOCKER_PASS swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss
 else
 	echo &quot;docker not installed.&quot;
     exit
 fi
 
-#cd     $WORKSPACE
-#ls 
-#sed -i &quot;s|https://www.openeuler.org/api-cve/|https://cvesa.test.osinfra.cn/|&quot; ./web-ui/docs/.vuepress/config.js
-#sed -i &quot;114a location /api-cve/ { &quot; ./web-ui/deploy/nginx/nginx.conf
-#sed -i &quot;115a proxy_pass https://cvesa.test.osinfra.cn/;&quot; ./web-ui/deploy/nginx/nginx.conf
-#sed -i &quot;116a }&quot; ./web-ui/deploy/nginx/nginx.conf
-#echo &quot;display nginx.conf&quot;
-cat ./web-ui/deploy/nginx/nginx.conf
-#source $WORKSPACE/script/docs-builder.sh
-#cd     $WORKSPACE/web-ui
+cat Dockerfile
 
-source $WORKSPACE/script/docs-builder.sh
+echo &quot;begin image building!!!&quot;
 
-echo &quot;building frontend server&quot;
-cd $WORKSPACE/web-ui
+docker build -t swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss/opengauss-odd:$IMAGE_VERSION .
+docker push     swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss/opengauss-odd:$IMAGE_VERSION
 
-sed -i &quot;s|npm install|npm install --registry==https://registry.npm.taobao.org|&quot; ./Dockerfile
+docker rmi      swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss/opengauss-odd:$IMAGE_VERSION
 
-docker build -t swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler-website-test:$IMAGE_VERSION .
-docker push     swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler-website-test:$IMAGE_VERSION
-docker rmi      swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler-website-test:$IMAGE_VERSION
-
-if [ -d &quot;infra-common&quot; ]; then
-    rm -rf &quot;infra-common&quot;
+if [ -d &quot;infra&quot; ]; then
+    rm -rf &quot;infra&quot;
 fi
 
 if hash git 2&gt;/dev/null; then
-    git config --global user.email $GIT_EMAIL
-    git config --global user.name $GIT_USER
-    git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-common
-    cd infra-common/common-applications/test-environment/openeuler-website
+    git config --global user.email $GITEE_EMAIL
+    git config --global user.name $GITEE_USER
+    git clone https://$GITEE_USER:$GITEE_PASSWD@gitee.com/opengauss/infra
+    cd infra/deploy/odd
 else
     echo &quot;git is not existing.&quot;
 fi
 
 if hash kustomize 2&gt;/dev/null; then
-    kustomize edit set image swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler-website-test:$IMAGE_VERSION
+    kustomize edit set image swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss/opengauss-odd:$IMAGE_VERSION
 else
-    echo &quot;use replace to set image.&quot;
+    echo &quot;install kustomize first&quot;
 fi
 
 if hash git 2&gt;/dev/null; then
     git add .
-    git commit -am &quot;update openeuler-website-test:$IMAGE_VERSION&quot;
+    git commit -am &quot;update opengauss-odd:$IMAGE_VERSION&quot;
     git push origin --all
 else
     echo &quot;git is not existing.&quot;
@@ -114,24 +101,7 @@ fi</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>
-  <publishers>
-    <hudson.tasks.Mailer plugin="mailer@408.vd726a_1130320">
-      <recipients>zhaochunjiang1@huawei.com</recipients>
-      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
-      <sendToIndividuals>true</sendToIndividuals>
-    </hudson.tasks.Mailer>
-    <com.chikli.hudson.plugin.naginator.NaginatorPublisher plugin="naginator@1.18.1">
-      <regexpForRerun></regexpForRerun>
-      <rerunIfUnstable>true</rerunIfUnstable>
-      <rerunMatrixPart>false</rerunMatrixPart>
-      <checkRegexp>false</checkRegexp>
-      <regexpForMatrixStrategy>TestParent</regexpForMatrixStrategy>
-      <delay class="com.chikli.hudson.plugin.naginator.FixedDelay">
-        <delay>10</delay>
-      </delay>
-      <maxSchedule>3</maxSchedule>
-    </com.chikli.hudson.plugin.naginator.NaginatorPublisher>
-  </publishers>
+  <publishers/>
   <buildWrappers>
     <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
       <bindings>
@@ -141,9 +111,9 @@ fi</command>
           <passwordVariable>DOCKER_PASS</passwordVariable>
         </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
         <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
-          <credentialsId>tommylike_github_token</credentialsId>
-          <usernameVariable>GIT_USER</usernameVariable>
-          <passwordVariable>GIT_PASS</passwordVariable>
+          <credentialsId>gitee-opengauss-infra-zhongjun-token</credentialsId>
+          <usernameVariable>GITEE_USER</usernameVariable>
+          <passwordVariable>GITEE_PASSWD</passwordVariable>
         </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
         <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
           <credentialsId>00441642-0437-4b00-9be4-ec0bb484d5c1</credentialsId>

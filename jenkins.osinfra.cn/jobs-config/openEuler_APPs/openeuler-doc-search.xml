@@ -1,7 +1,7 @@
 <?xml version='1.1' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>this project is for opengauss docs search image build </description>
+  <description>this project is for openeuler docs search image build </description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
@@ -25,7 +25,7 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>https://gitee.com/ChenYang_LaoTie/doc-search.git</url>
+        <url>https://gitee.com/ChenYang_LaoTie/EaseSearch.git</url>
         <credentialsId>95032b54-6787-45c5-9058-48977d8e9249</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
@@ -72,8 +72,8 @@ fi
 
 cd $WORKSPACE
 
-mvn clean install package -Dmaven.test.skip
-cp target/doc-search-0.0.1-SNAPSHOT.jar .
+#mvn clean install package -Dmaven.test.skip
+#cp target/doc-search-0.0.1-SNAPSHOT.jar .
 
 cat Dockerfile
 

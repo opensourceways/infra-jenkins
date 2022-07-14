@@ -20,9 +20,11 @@
     <string>openeuler-2203ltscontribution</string>
     <string>openeuler-api-cve</string>
     <string>openeuler-ccs</string>
+    <string>openeuler-ci-production-environment</string>
     <string>openeuler-docker-image-maker-for-infra</string>
     <string>openeuler-oqserver</string>
     <string>openeuler-repo-mirrorbits-publish</string>
+    <string>openeuler-sbom-service</string>
     <string>openeuler-website-debug</string>
     <string>openeuler-website-docs-publish</string>
     <string>openEuler-Website-Publish-new</string>

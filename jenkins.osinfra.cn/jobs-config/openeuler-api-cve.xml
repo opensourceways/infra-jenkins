@@ -15,7 +15,7 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>https://github.com/opensourceways/cve-sa-backend.git</url>
+        <url>https://github.com/qinsheng99/cve-sa-backend.git</url>
         <credentialsId>tommylike_github_token</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>

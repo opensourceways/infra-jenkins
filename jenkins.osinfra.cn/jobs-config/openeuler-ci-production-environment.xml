@@ -1,7 +1,7 @@
 <?xml version='1.1' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>this project is for opengauss playground backend   test</description>
+  <description>this project is for openeuler ci production environment image build</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
@@ -15,20 +15,20 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>https://github.com/luonannet/playground-manager.git</url>
+        <url>https://github.com/Open-Infra-Ops/ci_projects_builders.git</url>
         <credentialsId>tommylike_github_token</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>*/old</name>
+        <name>*/main</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
     <submoduleCfg class="empty-list"/>
     <extensions/>
   </scm>
-  <assignedNode>docker</assignedNode>
+  <assignedNode>docker-x86-slaves</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -43,14 +43,14 @@ set -e
 GIT_EMAIL=&quot;tommylike@gmail.com&quot;
 #IMAGE_VERSION=$(git rev-parse HEAD)
 IMAGE_VERSION=v0.0.1
-PROJECT_NAME=&quot;opengauss-playground-backend-test&quot;
+PROJECT_NAME=&quot;openeuler-ci-production-environment&quot;
 
 if hash git 2&gt;/dev/null; then
     IMAGE_VERSION=$(git rev-parse HEAD)
 fi
 
 if hash docker 2&gt;/dev/null; then
-    docker login -u cn-north-4@$DOCKER_USER -p $DOCKER_PASS swr.cn-north-4.myhuaweicloud.com/opensourceway/
+    docker login -u cn-north-4@$DOCKER_USER -p $DOCKER_PASS swr.cn-north-4.myhuaweicloud.com/opensourceway
 else
 	echo &quot;docker not installed.&quot;
     exit
@@ -60,45 +60,12 @@ cd $WORKSPACE
 
 cat Dockerfile
 
+docker build -t swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/openeuler-ci:$IMAGE_VERSION .
+docker push     swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/openeuler-ci:$IMAGE_VERSION
 
-docker build -t swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss-playground-backend-test:$IMAGE_VERSION .
-docker push     swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss-playground-backend-test:$IMAGE_VERSION
+docker rmi      swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/openeuler-ci:$IMAGE_VERSION
 
-docker rmi      swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss-playground-backend-test:$IMAGE_VERSION
-
-if [ -d &quot;infra-common&quot; ]; then
-    rm -rf &quot;infra-common&quot;
-fi
-
-if hash git 2&gt;/dev/null; then
-    git config --global user.email $GIT_EMAIL
-    git config --global user.name $GIT_USER
-    git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-common
-    cd infra-common/common-applications/test-environment/opengauss-playground-backend-test
-else
-    echo &quot;git is not existing.&quot;
-fi
-
-if hash kustomize 2&gt;/dev/null; then
-    kustomize edit set image swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss-playground-backend-test=swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss-playground-backend-test:$IMAGE_VERSION
-else
-    echo &quot;use replace to set image.&quot;
-fi
-
-if hash git 2&gt;/dev/null; then
-    git add .
-    git commit -am &quot;update opengauss-playground-backend-test image to opengauss-playground-backend-test:$IMAGE_VERSION&quot;
-    git push origin --all
-else
-    echo &quot;git is not existing.&quot;
-fi
-ARGOCD_TOKEN=`curl -X POST -s -d &apos;{&quot;password&quot;:&quot;&apos;${ARGOCD_PASS}&apos;&quot;,&quot;username&quot;:&quot;&apos;${ARGOCD_USER}&apos;&quot;}&apos; &quot;https://build.osinfra.cn/api/v1/session&quot;|tail -1 |awk -F &apos;[&quot;&quot;]&apos; &apos;{print$4}&apos;`&gt;/dev/null
-curl -X POST -s -o /dev/null --cookie &quot;argocd.token=${ARGOCD_TOKEN}&quot; &quot;https://build.osinfra.cn/api/v1/applications/${PROJECT_NAME}/sync&quot;&gt;/dev/null
-if [ $? -eq 0 ];then
-    echo &quot;complete!&quot;
-else
-    echo &quot;failed!&quot;
-fi</command>
+</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>

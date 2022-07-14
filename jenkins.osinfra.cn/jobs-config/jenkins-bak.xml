@@ -63,8 +63,7 @@ else
 fi
 
 if hash git 2&gt;/dev/null; then
-    DOCS_VERSION=$(git rev-parse HEAD)
-    IMAGE_VERSION=${DOCS_VERSION}$(date +%s)
+    IMAGE_VERSION=$(git rev-parse HEAD)
 fi
 
 

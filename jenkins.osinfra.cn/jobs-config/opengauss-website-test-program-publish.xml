@@ -85,6 +85,13 @@ docker tag ${project_name}:${build_version}  swr.cn-north-4.myhuaweicloud.com/op
 
 docker push  swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss/test_opengauss_website:$build_version
 
+if [ $? -eq 0 ];then
+	echo &quot;push image succcess&quot;
+else
+	echo &quot;push image fail&quot;
+    exit 1
+fi
+
 docker rmi      swr.cn-north-4.myhuaweicloud.com/opensourceway/opengauss/test_opengauss_website:$build_version
 
 if [ -d &quot;infra-common&quot; ]; then

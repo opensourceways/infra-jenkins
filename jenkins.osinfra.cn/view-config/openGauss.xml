@@ -18,6 +18,7 @@
     <string>openGauss-webclient</string>
     <string>openGauss-webclient-tryme</string>
     <string>opengauss-website-test-program-publish</string>
+    <string>openGauss_ODD</string>
   </jobNames>
   <jobFilters/>
   <columns>

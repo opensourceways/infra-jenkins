@@ -7,7 +7,6 @@
   <jobNames>
     <comparator class="java.lang.String$CaseInsensitiveComparator"/>
     <string>cvesa-test</string>
-    <string>cvesa-web-ui</string>
     <string>get-all-elastic-ips</string>
     <string>gitee-login-test</string>
     <string>gotty-test</string>
