@@ -1,0 +1,45 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>openGauss_server_Main_PR</name>
+  <description>openGauss门禁</description>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>openGauss_server_Main_PrivateBuild_PR</string>
+    <string>openGauss_server_OM_install_upgrade</string>
+    <string>openGauss_server_PrivateBuild_Compile_x86</string>
+    <string>openGauss_server_PrivateBuild_LLT_arm_00</string>
+    <string>openGauss_server_PrivateBuild_LLT_HA</string>
+    <string>openGauss_server_PrivateBuild_LLT_Single-mot</string>
+    <string>openGauss_server_PrivateBuild_LLT_x86_00</string>
+    <string>openGauss_server_Reset_Env</string>
+    <string>z-deleted-back</string>
+    <string>z-deleted-openGauss_OM_install</string>
+    <string>z-deleted-openGauss_server_HA</string>
+    <string>z-deleted-openGauss_server_PrivateBuild_Compile</string>
+    <string>z-deleted-openGauss_server_PrivateBuild_Compile_x86_bak</string>
+    <string>z-deleted-openGauss_server_PrivateBuild_LLT-Single</string>
+    <string>z-deleted-openGauss_server_PrivateBuild_LLT-Tools</string>
+    <string>z-deleted-openGauss_server_PrivateBuild_LLT_fastcheck_Arm_OpenEuler</string>
+    <string>z-deleted-openGauss_server_PrivateBuild_LLT_fastcheck_X86_Centos</string>
+    <string>z-deleted-openGauss_server_PrivateBuild_LLT_fastcheck_X86_openEuler</string>
+    <string>z-deleted-openGauss_server_PrivateBuild_LLT_Single-mot-</string>
+    <string>z-deleted-openGauss_server_PrivateBuild_LLT_x86_00_llt0</string>
+    <string>z-deleted-openGauss_server_PrivateBuild_LLT_x86_17</string>
+    <string>z-deleted-openGauss_server_PrivateBuild_LLT_x86_17_test</string>
+    <string>z-deleted-openGauss_server_PrivateBuild_LLT_x86_om_test</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

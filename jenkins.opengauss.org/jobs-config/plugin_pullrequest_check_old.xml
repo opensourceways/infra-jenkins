@@ -1,0 +1,101 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>x86-slave-1 || X86-openEuler-1</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.1.15">
+      <spec/>
+      <triggerOnPush>true</triggerOnPush>
+      <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+      <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+      <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+      <triggerOnUpdatePullRequest>1</triggerOnUpdatePullRequest>
+      <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+      <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+      <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+      <triggerOnNoteRequest>true</triggerOnNoteRequest>
+      <noteRegex>/retest</noteRegex>
+      <ciSkip>false</ciSkip>
+      <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+      <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+      <skipLastCommitHasBeenBuild>false</skipLastCommitHasBeenBuild>
+      <setBuildDescription>true</setBuildDescription>
+      <branchFilterType>All</branchFilterType>
+      <includeBranchesSpec/>
+      <excludeBranchesSpec/>
+      <targetBranchRegex/>
+      <secretToken>{AQAAABAAAAAwZCpGoS2Ryl+aBgmbAGKKuQbamzMc9tuipG5iBEytAyM8aqZVqxuqqU2p3Xet4MFMNFF8MmIJk7SRB8Zq/hzNhw==}</secretToken>
+      <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+    </com.gitee.jenkins.trigger.GiteePushTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <customWorkspace>/usr1/gauss_jenkins/jenkins/workspace/</customWorkspace>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+chmod -R 755 /usr1
+chmod -R 755 /home/PrivateBuild_tools
+sh /home/PrivateBuild_tools/Private_Main_Plugin.sh 0
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.39">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.NodeParameters/>
+          </configs>
+          <projects>openGauss_server_Reset_Env</projects>
+          <condition>SUCCESS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <triggerFromChildProjects>false</triggerFromChildProjects>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+  </publishers>
+  <buildWrappers>
+    <EnvInjectPasswordWrapper plugin="envinject@2.3.0">
+      <injectGlobalPasswords>true</injectGlobalPasswords>
+      <maskPasswordParameters>false</maskPasswordParameters>
+      <passwordEntries>
+        <EnvInjectPasswordEntry>
+          <name>token</name>
+          <value>{AQAAABAAAAAw4669dOfSjx6aeEuBEJ9Y67c4jE8ldVc2we8mIJLsc/UE0U65OknBlDK8qsTRjjVnJgUNXulRuMuiMF5Z3eFGog==}</value>
+        </EnvInjectPasswordEntry>
+      </passwordEntries>
+    </EnvInjectPasswordWrapper>
+  </buildWrappers>
+</project>

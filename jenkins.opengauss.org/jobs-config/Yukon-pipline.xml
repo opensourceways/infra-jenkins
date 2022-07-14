@@ -1,0 +1,206 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.40">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.2"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.2">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.1.15">
+          <spec/>
+          <triggerOnPush>true</triggerOnPush>
+          <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+          <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+          <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+          <triggerOnUpdatePullRequest>1</triggerOnUpdatePullRequest>
+          <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+          <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+          <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+          <triggerOnNoteRequest>true</triggerOnNoteRequest>
+          <noteRegex>/retest</noteRegex>
+          <ciSkip>false</ciSkip>
+          <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+          <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+          <skipLastCommitHasBeenBuild>true</skipLastCommitHasBeenBuild>
+          <setBuildDescription>true</setBuildDescription>
+          <branchFilterType>All</branchFilterType>
+          <includeBranchesSpec/>
+          <excludeBranchesSpec/>
+          <targetBranchRegex/>
+          <secretToken>{AQAAABAAAAAwmGgtTmOIWIek8CToAuyEVcitn4ep0bMuJBuuf/+vtWVhJEKLJcC485yux0zG5dHn3Mp1rdgZr7ElAp0IfgEhtA==}</secretToken>
+          <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+        </com.gitee.jenkins.trigger.GiteePushTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.87">
+    <script>def giteeComments = "| Check Name | Build Result | Build Details |\n| --- | --- | --- |\n"
+def jobSuccess = true
+
+def addOrRemoveLables(String OWNER, String PROJECT, String PR_NUMBER, String ACCESS_TOKEN, ArrayList ADD_LABELS, ArrayList REMOVE_LABLES) {
+  try {
+    println "going to update pr $OWNER, $PROJECT, $PR_NUMBER,$ADD_LABELS,$REMOVE_LABLES"
+    //删除PR的标签
+    REMOVE_LABLES.eachWithIndex { v, index -&gt;
+      def requestUrl = "https://gitee.com/api/v5/repos/" + OWNER + "/" + PROJECT + "/pulls/" + PR_NUMBER + "/labels/" + v
+	  println requestUrl
+
+	  def auth_token = "Authorization: Bearer " + ACCESS_TOKEN
+	  def header = "Content-Type: application/json;charset=UTF-8"
+
+	  final String response = sh(script: "curl -X DELETE $requestUrl -H '$auth_token' -H '$header'", returnStdout: true).trim()
+	  echo response
+      //unset response or will raise exception
+      response = null
+    }
+
+    //添加新的标签
+    def requestUrl = "https://gitee.com/api/v5/repos/" + OWNER + "/" + PROJECT + "/pulls/" + PR_NUMBER + "/labels"
+    def prNameStr = ADD_LABELS.join(',')
+    def updatedLabels = """
+        ["$prNameStr"]
+      """
+    println requestUrl
+    def auth_token = "Authorization: Bearer " + ACCESS_TOKEN
+	def header = "Content-Type: application/json"
+	final String response = sh(script: "curl -X POST $requestUrl -H '$auth_token' -H '$header' -d '$updatedLabels'", returnStdout: true).trim()
+	echo response
+    //unset response or will raise exception
+    response = null
+  }catch(Exception ex){
+    println "failed to update pr $OWNER, $PROJECT, $PR_NUMBER,$ADD_LABELS,$REMOVE_LABLES, $ex"
+  }
+}
+
+pipeline {
+    agent any
+    environment {
+        GITEE_TOKEN = ""
+    }
+    stages {
+        stage('init'){
+            steps {
+                script {
+                    try {
+                        echo env.giteePullRequestIid
+                        echo env.giteeActionType
+                        echo "source------"
+                        echo env.giteePullRequestIid
+                        echo env.giteeBranch
+                        echo env.giteeSourceRepoURL
+                        echo "target------"
+                        echo env.giteeTargetBranch
+                        echo env.giteeTargetRepoHttpUrl
+                        
+                        addGiteeMRComment comment: "openGauss pipeline is running. Please wait a moment..."
+                        withCredentials([string(credentialsId: 'gitee_token_id', variable: 'GITEE_TOKEN')]){
+                            addOrRemoveLables(env.giteeTargetNamespace, env.giteeTargetRepoName, env.giteePullRequestIid,
+                                  "${GITEE_TOKEN}", ["ci-pipeline-running"], ["ci-pipeline-success", "ci-pipeline-failed"])
+                        }
+                    }
+                    catch (exc) {
+                        jobSuccess = false
+                    }
+                }
+            }   
+        }
+        stage('build') {
+            when {equals expected: true, actual: jobSuccess }
+            steps {
+              script {
+                    def jobsList = ["Yukon-PR-check"]
+                    def parallelJobs2Run =  [:]
+                    def parallelJobResults =  [:]
+                    jobsList.each { job -&gt;
+                        def job_name = job
+                        echo "Going to parallel for job ${job_name}"
+                        parallelJobs2Run["${job_name}"] = { -&gt;  
+                               jobResult =  build job: "${job_name}",
+                                parameters: [
+                                    string(name: 'source_http_url', value: env.giteeSourceRepoURL),
+                                    string(name: 'source_branch', value: env.giteeBranch),
+                                    string(name: 'target_http_url', value: env.giteeTargetRepoHttpUrl),
+                                    string(name: 'target_branch', value: env.giteeTargetBranch),
+                                    string(name: 'giteePullRequestIid', value: env.giteePullRequestIid),
+                                ],
+                                propagate: false,
+                                wait: true
+                                parallelJobResults["${job_name}"] = jobResult
+                         }
+                    }
+                    parallel parallelJobs2Run
+                    parallelJobResults.each{ name, jobResult -&gt;
+                        if (jobResult.result == "SUCCESS") {
+                            resultIcon = ":white_check_mark: "
+                            giteeComments += "|  ${name} | ${resultIcon}**${jobResult.result}** | [#${jobResult.number}](${jobResult.absoluteUrl}/console) |\n"
+                        }
+                        else if (jobResult.result == "ABORTED") {
+                            resultIcon = ":heavy_minus_sign: "
+                            giteeComments += "|  ${name} | ${resultIcon}**${jobResult.result}** | [#${jobResult.number}](${jobResult.absoluteUrl}/console) |\n"
+                            jobSuccess = false
+                        }
+                        else {
+                            resultIcon = ":x: "
+                            giteeComments += "|  ${name} | ${resultIcon}**${jobResult.result}** | [#${jobResult.number}](${jobResult.absoluteUrl}/console) |\n"
+                            jobSuccess = false
+                        }
+                    }
+                    echo "Build jobSuccess: ${jobSuccess}"
+                    if (!jobSuccess) {
+                        currentBuild.result = 'FAILURE'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            addGiteeMRComment comment: giteeComments
+        }
+        success {
+            echo '[INFO] openGauss pipeline run successfully.'
+            script {
+                retry(3) {
+			        withCredentials([string(credentialsId: 'gitee_token_id', variable: 'GITEE_TOKEN')]){
+                            addOrRemoveLables(env.giteeTargetNamespace, env.giteeTargetRepoName, env.giteePullRequestIid,
+                                  "${GITEE_TOKEN}", ["ci-pipeline-success"], ["ci-pipeline-running", "ci-pipeline-failed"])
+			        }
+                }
+			}
+        }
+        unsuccessful {
+            echo '[ERROR] openGauss pipeline run failed.'
+            script {
+                retry(3) {
+			        withCredentials([string(credentialsId: 'gitee_token_id', variable: 'GITEE_TOKEN')]){
+                            addOrRemoveLables(env.giteeTargetNamespace, env.giteeTargetRepoName, env.giteePullRequestIid,
+                                  "${GITEE_TOKEN}", ["ci-pipeline-failed"], ["ci-pipeline-running", "ci-pipeline-success"])
+			        }
+                }
+			}
+        }
+    }
+}
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

@@ -1,0 +1,153 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="org.jenkinsci.plugins.multiplescms.MultiSCM" plugin="multiple-scms@0.8">
+    <scms>
+      <hudson.plugins.git.GitSCM plugin="git@4.2.2">
+        <configVersion>2</configVersion>
+        <userRemoteConfigs>
+          <hudson.plugins.git.UserRemoteConfig>
+            <url>https://gitee.com/opengauss/openGauss-tools-backup.git</url>
+            <credentialsId>e11ea793-ff17-4f9c-b586-1e54223f1618</credentialsId>
+          </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+          <hudson.plugins.git.BranchSpec>
+            <name>${branch}</name>
+          </hudson.plugins.git.BranchSpec>
+        </branches>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <submoduleCfg class="list"/>
+        <extensions>
+          <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+            <deleteUntrackedNestedRepositories>false</deleteUntrackedNestedRepositories>
+          </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+          <hudson.plugins.git.extensions.impl.CloneOption>
+            <shallow>false</shallow>
+            <noTags>false</noTags>
+            <reference/>
+            <honorRefspec>false</honorRefspec>
+          </hudson.plugins.git.extensions.impl.CloneOption>
+          <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+            <relativeTargetDir>openGauss-tools-backup</relativeTargetDir>
+          </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        </extensions>
+      </hudson.plugins.git.GitSCM>
+    </scms>
+  </scm>
+  <assignedNode>website</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>45 12 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+cd $WORKSPACE
+echo "###### build openGauss-tools-backup ######"
+
+# deps
+# yum install java-1.8.0-openjdk java-1.8.0-openjdk-devel -y
+
+latest_jdbc_pkg_version=3.0.0
+latest_jdbc_pkg_url="https://opengauss.obs.cn-south-1.myhuaweicloud.com/latest/x86/openGauss-${latest_jdbc_pkg_version}-JDBC.tar.gz"
+
+time=`date "+%Y%m%d%H%M%S"`
+echo "###### build time: $time "
+
+## download the latest jdbc.jar 
+if [ -d "$WORKSPACE/jdbc_jar" ]; then
+    rm -rf "$WORKSPACE/jdbc_jar"
+fi
+mkdir "$WORKSPACE/jdbc_jar"
+cd "$WORKSPACE/jdbc_jar"
+
+wget ${latest_jdbc_pkg_url}
+tar -zxf "openGauss-${latest_jdbc_pkg_version}-JDBC.tar.gz"
+rm -rf "openGauss-${latest_jdbc_pkg_version}-JDBC.tar.gz"
+
+cd "$WORKSPACE/openGauss-tools-backup"
+
+if [ -d ./lib/ ]; then
+    rm -rf ./lib/
+fi
+if [ -d ./bin/ ]; then
+    rm -rf ./bin/
+fi
+
+mkdir ./lib/ ./bin/
+
+
+cp "$WORKSPACE/jdbc_jar/postgresql.jar" ./lib/
+
+if [ -f ./MANIFEST.MF ]; then
+    rm -rf ./MANIFEST.MF
+fi
+touch MANIFEST.MF
+echo "Manifest-version: 1.0" &gt;&gt;  MANIFEST.MF
+echo "Main-Class: jdbcgsbackup.JdbcGsBackup" &gt;&gt; MANIFEST.MF
+echo "Class-Path: lib/postgresql.jar" &gt;&gt; MANIFEST.MF
+echo "" &gt;&gt; MANIFEST.MF
+# openGauss-tools-backup.tar.gz
+# 	\openGauss-tools-backup.jar
+# 	\lib\postgresq.jar
+
+cd ./src/
+javac -cp ":$WORKSPACE/openGauss-tools-backup/lib/postgresql.jar" -d ../bin ./jdbcgsbackup/*.java
+cd ..
+jar cvfm openGauss-tools-backup.jar MANIFEST.MF -C bin .
+
+package_name=openGauss-tools-backup
+if [ -d ./openGauss-tools-backup ]; then
+    rm -rf ./openGauss-tools-backup
+fi
+mkdir -p ./openGauss-tools-backup
+mv openGauss-tools-backup.jar ./openGauss-tools-backup
+mv lib ./openGauss-tools-backup
+tar -zcvf openGauss-tools-backup.tar.gz ./openGauss-tools-backup
+
+if [ -f "$WORKSPACE/openGauss-tools-backup/openGauss-tools-backup.tar.gz" ]; then
+    echo "### start to upload openGauss-tools-backup.tar.gz to OBS ###"
+    sh /var/jenkins_home/jdbcbackup_upload.sh "$WORKSPACE/openGauss-tools-backup/"
+fi
+
+echo "build task end."
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

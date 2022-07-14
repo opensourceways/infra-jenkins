@@ -1,0 +1,152 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.40">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.2"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.2">
+      <jobProperties/>
+      <triggers/>
+      <parameters>
+        <string>merge_dir</string>
+        <string>branches</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>2021-11-23   使用插件化部署。该命令行部署方式不再使用。 </description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>merge_dir</name>
+          <description/>
+          <defaultValue>CODE</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branches</name>
+          <description/>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers/>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.87">
+    <script>#!groovy
+import groovy.json.*
+def static_result = 'success'
+
+
+Date now = new Date()
+def year = now.year + 1900
+def month = now.month + 1
+def day = now.date
+def scanoss_website = "159.138.63.240:60040"
+// def scan_server_api = "http://159.138.49.20:39100/gateway/dm-service/scan/save" 
+def scan_server_api = "https://api.osinfra.cn/sca/gateway/scan/save"
+
+def API_KEY = "cd849a65500b424fc82c6236626ddb1b"
+def API_URL = "https://shenzhen.scanoss.com/api/scan/direct"
+def BLACK_LIST_PATH = "/data/black.json"
+
+//def repoUrls = ['https://gitee.com/opengauss/openGauss-OM.git','https://gitee.com/opengauss/openGauss-tools-backup.git', 
+//'https://gitee.com/opengauss/openGauss-connector-jdbc.git', 'https://gitee.com/opengauss/openGauss-connector-odbc.git', 
+//'https://gitee.com/opengauss/openGauss-server.git']
+
+def repoUrls = ['https://gitee.com/opengauss/Yukon.git']
+
+//合规引入
+pipeline {
+	agent {
+		node { 
+			label "scanner-manager" 
+		}
+	}
+	parameters {
+		string(name: 'merge_dir', defaultValue: 'CODE')
+        string(name: 'branches', defaultValue: 'master')
+    }
+	stages {
+		stage ('SCANOSS')  {
+		    agent {
+				node { 
+					label "scanner-slave" 
+				}
+			}
+			steps ('sonar-steps') {
+				script {
+                    for(int i=0;i&lt;repoUrls.size();i++){
+    			    def repoUrl = repoUrls.get(i);
+					try {
+						// cleanWs()
+						sh "ls -al ${WORKSPACE}"
+						echo "-------------------git pull merge-------------------"
+						checkout(
+							[$class: 'GitSCM',
+							 branches: [[name: '*/master']],
+							 doGenerateSubmoduleConfigurations: false,
+							 extensions: [[$class: 'RelativeTargetDirectory',
+							 relativeTargetDir: "${merge_dir}/${i}"],
+							 [$class: 'CleanBeforeCheckout']],
+							 submoduleCfg: [],
+							 userRemoteConfigs: [[credentialsId: 'gitee_token_id',
+							 name: 'origin/master',
+							 url: "${repoUrl}"]]])
+						echo "-------------------deal modify code-------------------"
+						
+                        sh """
+						mkdir -p /data/website/html/'${year}'/'${month}'/'${day}'
+                        mkdir -p ${WORKSPACE}/${merge_dir}/${i}
+						"""
+                        sh """
+						set +x
+						/usr/bin/python3 /data/scannershell/scanner.py --blacklist ${BLACK_LIST_PATH} --key ${API_KEY} --apiurl ${API_URL} ${WORKSPACE}/${merge_dir}/${i}  &gt; /data/website/html/${year}/${month}/${day}/SCANOSS-RELEASE-${BUILD_NUMBER}-${i}.json
+						set +x
+						"""
+												
+                        echo "http://${scanoss_website}/${year}/${month}/${day}/SCANOSS-RELEASE-${BUILD_NUMBER}-${i}.json"
+                        
+                        echo "--- start to send json to server ---"
+                        def map = ["reposUrl":repoUrl,"resultUrl":"http://${scanoss_website}/${year}/${month}/${day}/SCANOSS-RELEASE-${BUILD_NUMBER}-${i}.json","branch":"${branches}","nativePath":"${WORKSPACE}/${merge_dir}/${i}/"]
+    			        echo "http://${scanoss_website}/${year}/${month}/${day}/SCANOSS-RELEASE-${BUILD_NUMBER}-${i}.json"
+                        def JsonData = JsonOutput.toJson(map)
+    					echo JsonData
+                        def resp = httpRequest contentType: 'APPLICATION_JSON',
+    													  httpMode: "POST",
+    													  customHeaders: [
+    													  
+    													   [name: "Accept", value: "*/*"],
+    													   [name: "Accept-Encoding", value: "gzip,deflate,br"],
+    													   [name: "Connection", value: "keep-alive"]
+    													 ],
+    													 requestBody: JsonData,
+    													 url: "${scan_server_api}"
+    				    echo "http return: ${resp}"   
+                    }
+					catch(all) {
+						static_result=sh(returnStdout: true, script: 'echo true')
+					}
+                    }
+				}
+			}
+		}
+	}
+} // pipeline end
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

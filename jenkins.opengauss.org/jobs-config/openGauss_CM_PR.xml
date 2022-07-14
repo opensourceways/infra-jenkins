@@ -1,0 +1,190 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><com.tikal.jenkins.plugins.multijob.MultiJobProject plugin="jenkins-multijob-plugin@1.33">
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>100</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.1.15">
+      <spec/>
+      <triggerOnPush>false</triggerOnPush>
+      <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+      <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+      <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+      <triggerOnUpdatePullRequest>1</triggerOnUpdatePullRequest>
+      <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+      <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+      <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+      <triggerOnNoteRequest>true</triggerOnNoteRequest>
+      <noteRegex>/retest</noteRegex>
+      <ciSkip>true</ciSkip>
+      <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+      <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+      <skipLastCommitHasBeenBuild>true</skipLastCommitHasBeenBuild>
+      <setBuildDescription>true</setBuildDescription>
+      <branchFilterType>All</branchFilterType>
+      <includeBranchesSpec/>
+      <excludeBranchesSpec/>
+      <targetBranchRegex/>
+      <secretToken>{AQAAABAAAAAwGB5zgHblz0zBq6NBqr2W+7IEWgaAAzlX3mW1ueTY3qI83qUl8c9usHo4+2XwT/dfr4JTqhlLvHgqC5uHPpiWGA==}</secretToken>
+      <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+    </com.gitee.jenkins.trigger.GiteePushTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>echo "BUILD_ID: ${BUILD_ID}"
+echo "Triggered by Gitee Pull Request #${giteePullRequestIid}: https://gitee.com/opengauss/CM/pulls/${giteePullRequestIid}"
+
+function delete_labels() {
+  echo "Delete labels"
+  curl -X DELETE "https://gitee.com/api/v5/repos/opengauss/CM/pulls/$1/labels/$3" -H "Authorization: Bearer $2" -H 'Content-Type: application/json;charset=UTF-8'
+}
+
+
+delete_labels ${giteePullRequestIid} ${token} ci-pipeline-success
+delete_labels ${giteePullRequestIid} ${token} ci-pipeline-failed
+
+
+curl -X POST "https://gitee.com/api/v5/repos/opengauss/CM/pulls/${giteePullRequestIid}/labels" \
+-H "Authorization: Bearer ${token}" \
+-H "Content-Type: application/json" \
+-d '["ci-pipeline-running"]'</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <com.tikal.jenkins.plugins.multijob.MultiJobBuilder>
+      <phaseName/>
+      <phaseJobs>
+        <com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+          <jobName>openGauss_CM_Compile</jobName>
+          <jobAlias/>
+          <currParams>true</currParams>
+          <aggregatedTestResults>false</aggregatedTestResults>
+          <exposedSCM>false</exposedSCM>
+          <disableJob>false</disableJob>
+          <parsingRulesPath/>
+          <maxRetries>0</maxRetries>
+          <enableRetryStrategy>false</enableRetryStrategy>
+          <enableCondition>false</enableCondition>
+          <abortAllJob>true</abortAllJob>
+          <condition/>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters plugin="parameterized-trigger@2.39">
+              <properties>BUILD_TOP_ID=${BUILD_ID}
+giteeTargetRepoHttpUrl=${openGaussServer_Http_Repo_Url}
+giteeSourceRepoHttpUrl=${giteeSourceRepoHttpUrl}
+giteeSourceBranch=${giteeSourceBranch}
+giteeTargetBranch=${giteeTargetBranch}
+giteeUserName=${giteeUserName}
+giteePullRequestIid=${giteePullRequestIid}
+giteePullRequestLastCommit=${giteePullRequestLastCommit}
+giteeAfterCommitSha=${giteeAfterCommitSha}
+giteeRef=${giteeRef}</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <killPhaseOnJobResultCondition>NEVER</killPhaseOnJobResultCondition>
+          <buildOnlyIfSCMChanges>false</buildOnlyIfSCMChanges>
+          <applyConditionOnlyIfNoSCMChanges>false</applyConditionOnlyIfNoSCMChanges>
+        </com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+      </phaseJobs>
+      <continuationCondition>ALWAYS</continuationCondition>
+      <executionType>PARALLEL</executionType>
+      <quietPeriodGroovy>index &lt; 5 ? 0 : 2 * 60</quietPeriodGroovy>
+    </com.tikal.jenkins.plugins.multijob.MultiJobBuilder>
+  </builders>
+  <publishers>
+    <hudson.plugins.postbuildtask.PostbuildTask plugin="postbuild-task@1.9">
+      <tasks>
+        <hudson.plugins.postbuildtask.TaskProperties>
+          <logTexts>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>Finished: SUCCESS</logText>
+              <operator>OR</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>SUCCESS</logText>
+              <operator>OR</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+          </logTexts>
+          <EscalateStatus>false</EscalateStatus>
+          <RunIfJobSuccessful>true</RunIfJobSuccessful>
+          <script>echo "Post build task success success success"&#13;
+function delete_labels() {&#13;
+  echo "Delete labels"&#13;
+  curl -X DELETE "https://gitee.com/api/v5/repos/opengauss/CM/pulls/$1/labels/$3" -H "Authorization: Bearer $2" -H 'Content-Type: application/json;charset=UTF-8' &gt; /dev/null&#13;
+}&#13;
+&#13;
+delete_labels ${giteePullRequestIid} ${token} ci-pipeline-running&#13;
+&#13;
+curl -X POST "https://gitee.com/api/v5/repos/opengauss/CM/pulls/${giteePullRequestIid}/labels" \&#13;
+-H "Authorization: Bearer ${token}" \&#13;
+-H "Content-Type: application/json" \&#13;
+-d '["ci-pipeline-success"]' &gt; /dev/null</script>
+        </hudson.plugins.postbuildtask.TaskProperties>
+      </tasks>
+    </hudson.plugins.postbuildtask.PostbuildTask>
+    <com.gitee.jenkins.publisher.GiteeMessagePublisher plugin="gitee@1.1.15">
+      <onlyForFailure>false</onlyForFailure>
+      <replaceSuccessNote>true</replaceSuccessNote>
+      <replaceFailureNote>true</replaceFailureNote>
+      <replaceAbortNote>true</replaceAbortNote>
+      <replaceUnstableNote>false</replaceUnstableNote>
+      <successNoteText>| Check Name | Build Result | Build Details |
+| --- | --- | --- |
+|  openGauss_DCF_Main_PR | :white_check_mark: **SUCCESS** | [#${BUILD_ID}](https://jenkins.opengauss.org/job/openGauss_DCF_PR/${BUILD_ID}) |</successNoteText>
+      <failureNoteText>| Check Name | Build Result | Build Details |
+| --- | --- | --- |
+|  openGauss_DCF_Main_PR | :x: **FAILED** | [#${BUILD_ID}](https://jenkins.opengauss.org/job/openGauss_DCF_PR/${BUILD_ID}) |</failureNoteText>
+      <abortNoteText>| Check Name | Build Result | Build Details |
+| --- | --- | --- |
+|  openGauss_DCF_Main_PR | :heavy_minus_sign: **ABORTED** | [#${BUILD_ID}](https://jenkins.opengauss.org/job/openGauss_DCF_PR/${BUILD_ID}) |</abortNoteText>
+      <unstableNoteText/>
+    </com.gitee.jenkins.publisher.GiteeMessagePublisher>
+  </publishers>
+  <buildWrappers>
+    <EnvInjectPasswordWrapper plugin="envinject@2.3.0">
+      <injectGlobalPasswords>true</injectGlobalPasswords>
+      <maskPasswordParameters>true</maskPasswordParameters>
+      <passwordEntries>
+        <EnvInjectPasswordEntry>
+          <name>token</name>
+          <value>{AQAAABAAAAAw/WkWgfymuGxivRSOTPuq/vJBO7SzomvEsZ20dxOvnbrsGYrYQXewduDTCjWqEPzN1TDKp+imSN4DaE3CMzXYBQ==}</value>
+        </EnvInjectPasswordEntry>
+      </passwordEntries>
+    </EnvInjectPasswordWrapper>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@2.1.0">
+      <template>#${BUILD_NUMBER} --Branch:${giteeTargetBranch}</template>
+      <descriptionTemplate/>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+  <pollSubjobs>false</pollSubjobs>
+</com.tikal.jenkins.plugins.multijob.MultiJobProject>

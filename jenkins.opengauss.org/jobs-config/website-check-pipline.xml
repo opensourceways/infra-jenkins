@@ -1,0 +1,167 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>source_branch</name>
+          <description/>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>source_http_url</name>
+          <description/>
+          <defaultValue/>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>target_http_url</name>
+          <description/>
+          <defaultValue/>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>target_branch</name>
+          <description/>
+          <defaultValue/>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>giteePullRequestIid</name>
+          <description/>
+          <defaultValue/>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.2.2">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>${source_http_url}</url>
+        <credentialsId>e11ea793-ff17-4f9c-b586-1e54223f1618</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>${source_branch}</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>website || website2</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+echo "Start build in X86"
+cd $WORKSPACE
+
+echo ${CHANGE_ID}
+
+
+echo "source url: ${source_http_url}"
+echo "source branch: ${source_branch}"
+echo "target url: ${target_http_url}"
+echo "target branch: ${target_branch}"
+
+## fetch from origin branch
+if [ "${target_http_url}" != "" ]; then
+    echo "***** git fetch *******"
+    git config --global user.name "opengauss-bot"
+    git config --global user.email "contact-request@opengauss.org"
+    ##"contact-request@opengauss.org"
+    ##git config --global credential.helper "store"
+    git config remote.origin.url ${target_http_url}
+	git fetch  --tags --force --progress origin ${target_branch}
+    git merge  --no-verify -m 'msg' FETCH_HEAD
+fi
+
+
+##install openjdk if not exit
+if ! [ -x "$(command -v java)" ]; then
+    echo "java is not installed. begin to install java..."
+    yum install java-1.8.0-openjdk.x86_64
+fi
+
+##install git if not exit
+if ! [ -x "$(command -v git)" ]; then
+    echo "git is not install. begin to install git..."
+    yum install git
+fi
+
+##install docker if not exit
+dockerId=$(ps -ef | grep docker | grep -v grep)
+if [ "$dockerId" == "" ]; then
+	
+    sudo yum install -y yum-utils
+
+    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+    sudo yum install -y docker-ce docker-ce-cli containerd.io
+
+    sudo systemctl start docker
+fi
+
+
+##build images
+build_version=`date "+%Y%m%d%H%M%S"`
+project_name=website
+
+echo "### Start build images ${project_name}:${build_version} ###"
+docker build -t ${project_name}:${build_version} .
+
+echo "### Remove docker images"
+imageId=$(docker images | grep ${project_name} | grep ${build_version} | awk '{print $3}')
+
+if [ $imageId ]; then
+    echo "Build image success. ${imageId}"
+    docker rmi -f ${imageId}
+else
+	echo "Build image failed."
+    exit 1
+fi
+
+
+</command>
+      <unstableReturn>1</unstableReturn>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <EnvInjectPasswordWrapper plugin="envinject@2.3.0">
+      <injectGlobalPasswords>true</injectGlobalPasswords>
+      <maskPasswordParameters>false</maskPasswordParameters>
+      <passwordEntries>
+        <EnvInjectPasswordEntry>
+          <name>token</name>
+          <value>{AQAAABAAAAAw/oCxekV0LyOe9w2qKfkHSui2UXhQjm45WpefjU11z+AwzPZ25lNtx/YqopjUgZoQpLlv3sybN+xl7jSPgs87Xg==}</value>
+        </EnvInjectPasswordEntry>
+      </passwordEntries>
+    </EnvInjectPasswordWrapper>
+  </buildWrappers>
+</project>

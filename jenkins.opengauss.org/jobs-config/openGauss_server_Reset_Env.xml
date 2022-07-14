@@ -1,0 +1,102 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.0.15"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>-1</daysToKeep>
+        <numToKeep>200</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <customWorkspace>/usr1/gauss_jenkins/jenkins/workspace/</customWorkspace>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>test -f ${WORKSPACE}/openGauss/.git/index.lock &amp;&amp; rm -rf ${WORKSPACE}/openGauss/.git/index.lock
+cd ${WORKSPACE}/openGauss
+
+#rm -rf binarylibs
+#rm -rf third_party
+
+git clean -dfx
+git reset --hard
+git clean -dfx
+git checkout -f master
+git reset --hard origin/master
+#git pull --no-edit
+git clean -dfx
+git reset --hard origin/master
+
+git branch | grep -v master | xargs -r git branch -D
+
+#git pull --no-edit
+#git pull --no-edit https://gitee.com/opengauss/openGauss-server.git master</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.postbuildtask.PostbuildTask plugin="postbuild-task@1.8">
+      <tasks>
+        <hudson.plugins.postbuildtask.TaskProperties>
+          <logTexts>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>ERROR</logText>
+              <operator>OR</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>failure</logText>
+              <operator>OR</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+          </logTexts>
+          <EscalateStatus>false</EscalateStatus>
+          <RunIfJobSuccessful>false</RunIfJobSuccessful>
+          <script>function delete_labels() {&#xd;
+  echo &quot;Delete labels&quot;&#xd;
+  curl -X DELETE &quot;https://gitee.com/api/v5/repos/opengauss/openGauss-server/pulls/$1/labels/$3&quot; -H &quot;Authorization: Bearer $2&quot; -H &apos;Content-Type: application/json&apos; &gt; /dev/null&#xd;
+}&#xd;
+&#xd;
+delete_labels ${giteePullRequestIid} ${token} ci-pipeline-running&#xd;
+&#xd;
+curl -X POST &quot;https://gitee.com/api/v5/repos/opengauss/openGauss-server/pulls/${giteePullRequestIid}/labels&quot; \&#xd;
+-H &quot;Authorization: Bearer ${token}&quot; \&#xd;
+-H &quot;Content-Type: application/json&quot; \&#xd;
+-d &apos;[&quot;ci-pipeline-failed&quot;]&apos; &gt; /dev/null</script>
+        </hudson.plugins.postbuildtask.TaskProperties>
+      </tasks>
+    </hudson.plugins.postbuildtask.PostbuildTask>
+  </publishers>
+  <buildWrappers>
+    <EnvInjectPasswordWrapper plugin="envinject@2.3.0">
+      <injectGlobalPasswords>true</injectGlobalPasswords>
+      <maskPasswordParameters>false</maskPasswordParameters>
+      <passwordEntries>
+        <EnvInjectPasswordEntry>
+          <name>token</name>
+          <value>{AQAAABAAAAAwuAnJxKu4Xy3LvXZ7CiYVn+H2g3xTqSMPMWsUAQ7HFBR6lIoA1KClLllpWOvN4dK95INH7NDPghc/9SOcl5pfug==}</value>
+        </EnvInjectPasswordEntry>
+      </passwordEntries>
+    </EnvInjectPasswordWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,32 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>static_check</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>codecheck-codelines-statics</string>
+    <string>openGauss_CodeCheck_PR</string>
+    <string>openGauss_CodeCheck_PR_scanoss</string>
+    <string>openGauss_CodeCheck_PR_test</string>
+    <string>scanoss-plugin-build-daily</string>
+    <string>scanoss-plugin-build-single-manully</string>
+    <string>scanoss-pr-plugin</string>
+    <string>scanoss-version-build-不再使用</string>
+    <string>scanoss_old_no_use</string>
+    <string>static_check</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+    <org.jenkins.plugins.builton.BuiltOnColumn plugin="built-on-column@1.1"/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

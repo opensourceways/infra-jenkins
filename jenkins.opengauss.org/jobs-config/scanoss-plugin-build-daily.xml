@@ -1,0 +1,81 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>scanner-slave</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>45 13 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <io.jenkins.plugins.builder.ScanossBuilder plugin="scanoss-jenkins@1.1-SNAPSHOT">
+      <url>https://api.osinfra.cn</url>
+      <repoUrlsAndBranches>https://gitee.com/opengauss/openGauss-server.git:master;https://gitee.com/opengauss/openGauss-connector-jdbc.git:master;https://gitee.com/opengauss/openGauss-connector-odbc.git:master;https://gitee.com/opengauss/openGauss-OM.git:master;</repoUrlsAndBranches>
+      <authCode>eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RAMTIzNC5jb20ifQ.jcROsr6ktxQNujA-9w2CR_tLFbBliaivqojzGQ5bePI</authCode>
+      <credentialId/>
+      <SbomFile>/data/black.json</SbomFile>
+      <urlChoose>1</urlChoose>
+      <scanossCredentials/>
+    </io.jenkins.plugins.builder.ScanossBuilder>
+    <io.jenkins.plugins.builder.ScanossBuilder plugin="scanoss-jenkins@1.1-SNAPSHOT">
+      <url>https://api.osinfra.cn</url>
+      <repoUrlsAndBranches>https://gitee.com/opengauss/openGauss-tools-pg2og.git:master;https://gitee.com/opengauss/openGauss-connector-python-psycopg2.git:master;https://gitee.com/opengauss/openGauss-connector-go-pq.git:master;https://gitee.com/opengauss/openGauss-connector-nodejs.git:master;https://gitee.com/opengauss/openGauss-connector-python-pyog.git:master</repoUrlsAndBranches>
+      <authCode>eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RAMTIzNC5jb20ifQ.jcROsr6ktxQNujA-9w2CR_tLFbBliaivqojzGQ5bePI</authCode>
+      <credentialId/>
+      <SbomFile>/data/black.json</SbomFile>
+      <urlChoose/>
+      <scanossCredentials/>
+    </io.jenkins.plugins.builder.ScanossBuilder>
+    <io.jenkins.plugins.builder.ScanossBuilder plugin="scanoss-jenkins@1.1-SNAPSHOT">
+      <url>https://api.osinfra.cn</url>
+      <repoUrlsAndBranches>https://gitee.com/opengauss/openGauss-tools-pg2og.git:master;https://gitee.com/opengauss/openGauss-tools-datachecker.git:master;https://gitee.com/opengauss/openGauss-tools-chameleon.git:master;https://gitee.com/opengauss/openGauss-tools-loader.git:master;https://gitee.com/opengauss/openGauss-tools-ora2og.git:master;https://gitee.com/opengauss/openGauss-tools-onlineMigration.git:master;https://gitee.com/opengauss/openGauss-tools-migrationAssessmentReport.git:master;</repoUrlsAndBranches>
+      <authCode>eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RAMTIzNC5jb20ifQ.jcROsr6ktxQNujA-9w2CR_tLFbBliaivqojzGQ5bePI</authCode>
+      <credentialId/>
+      <SbomFile>/data/black.json</SbomFile>
+      <urlChoose/>
+      <scanossCredentials/>
+    </io.jenkins.plugins.builder.ScanossBuilder>
+    <io.jenkins.plugins.builder.ScanossBuilder plugin="scanoss-jenkins@1.1-SNAPSHOT">
+      <url>https://api.osinfra.cn</url>
+      <repoUrlsAndBranches>https://gitee.com/opengauss/openGauss-tools-backup.git:master</repoUrlsAndBranches>
+      <authCode>eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RAMTIzNC5jb20ifQ.jcROsr6ktxQNujA-9w2CR_tLFbBliaivqojzGQ5bePI</authCode>
+      <credentialId/>
+      <SbomFile>/data/black.json</SbomFile>
+      <urlChoose/>
+      <scanossCredentials/>
+    </io.jenkins.plugins.builder.ScanossBuilder>
+    <io.jenkins.plugins.builder.ScanossBuilder plugin="scanoss-jenkins@1.1-SNAPSHOT">
+      <url>https://api.osinfra.cn</url>
+      <repoUrlsAndBranches>https://gitee.com/opengauss/Yukon.git:master</repoUrlsAndBranches>
+      <authCode>eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RAMTIzNC5jb20ifQ.jcROsr6ktxQNujA-9w2CR_tLFbBliaivqojzGQ5bePI</authCode>
+      <credentialId/>
+      <SbomFile>/data/black.json</SbomFile>
+      <urlChoose/>
+      <scanossCredentials/>
+    </io.jenkins.plugins.builder.ScanossBuilder>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

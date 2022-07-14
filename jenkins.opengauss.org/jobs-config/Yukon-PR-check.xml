@@ -1,0 +1,192 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>source_branch</name>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>source_http_url</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>target_http_url</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>target_branch</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>giteePullRequestIid</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.2.2">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>${source_http_url}</url>
+        <credentialsId>e11ea793-ff17-4f9c-b586-1e54223f1618</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>${source_branch}</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>yukon-x86</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+echo "Start build in X86"
+cd $WORKSPACE
+
+
+echo "source url: ${source_http_url}"
+echo "source branch: ${source_branch}"
+echo "target url: ${target_http_url}"
+echo "target branch: ${target_branch}"
+
+## fetch from origin branch
+if [ "${target_http_url}" != "" ]; then
+    echo "***** git fetch *******"
+    git config --global user.name "opengauss-bot"
+    git config --global user.email "contact-request@opengauss.org"
+    ##"contact-request@opengauss.org"
+    ##git config --global credential.helper "store"
+    git config remote.origin.url ${target_http_url}
+	git fetch  --tags --force --progress origin ${target_branch}
+    git merge  --no-verify -m 'msg' FETCH_HEAD
+fi
+
+export CODESPACE=$WORKSPACE
+cd $CODESPACE
+echo "###### build openGauss-tools-loader ######"
+envfile=/home/omm/env_single
+user=omm
+group=dngrp
+database_app_path=/opt/huawei/cluster/app/bin/
+
+function check_db_process()
+{
+    result=$(ps -ef | grep gaussdb |grep -v grep)
+    if [ "$result" == "" ]; then
+        echo "##### gaussdb process is not exists. Please check if database status is Normal #####"
+        exit 1
+    fi
+}
+check_db_process
+
+checklogfile=$CODESPACE/regress/make_check.log
+
+if [ ! -f "${checklogfile}" ];then
+    touch "${checklogfile}"
+else
+    rm -f "${checklogfile}"
+    touch "${checklogfile}"
+fi
+
+chown -R $user:$group ./
+
+# # cd $CODESPACE
+# source $envfile
+su - $user -c "cd $CODESPACE;source $envfile; ./configure --with-pgconfig=/opt/huawei/cluster/app/bin/pg_config --with-gdalconfig=/opt/thridlib/gdal/bin/gdal-config --with-geosconfig=/opt/thridlib/geos/bin/geos-config --with-xml2config=/opt/thridlib/libxml2/bin/xml2-config --with-jsondir=/opt/thridlib/jsonc --with-projdir=/opt/thridlib/proj --with-sfcgal=/opt/thridlib/sfcgal/bin/sfcgal-config  --without-topology --without-address-standardizer  --without-interrupt-tests CFLAGS='-O2 -fpermissive -DPGXC -pthread ' CC=g++"
+
+su - $user -c "cd $CODESPACE;source $envfile;sudo make -sj "
+if [ $? -ne 0 ]; then
+    echo "make failed..."
+    exit 1
+fi
+echo "################## make success! ##################"
+
+source $envfile
+make install
+if [ $? -ne 0 ]; then
+    echo "make install failed..."
+    exit 1
+fi
+echo "################## make install success! ##################"
+
+chown -R $user:$group "$database_app_path"
+chown -R $user:$group $CODESPACE
+
+su - $user -c "cd $CODESPACE/regress/;source $envfile; make check &gt; ${checklogfile}";
+
+if [ $? -ne 0 ]; then
+    echo "make check failed..."
+    cat ${checklogfile}
+    exit 1
+fi
+echo "################## make check finished! ##################"
+
+failnum=$(cat ${checklogfile} | tail -1 | awk -F": " '{print $2}')
+
+if [ $failnum -ne '0' ]; then
+    echo "make check has failed case:"
+    cat ${checklogfile}
+    exit 1
+fi
+
+echo "################## make check success! ##################"
+cat ${checklogfile} | tail -2
+
+cd $WORKSPACE/../
+
+sh build_cent64.sh
+
+echo "################## make package success! ##################"
+
+
+
+
+
+</command>
+      <configuredLocalRules/>
+      <unstableReturn>1</unstableReturn>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <EnvInjectPasswordWrapper plugin="envinject@2.3.0">
+      <injectGlobalPasswords>true</injectGlobalPasswords>
+      <maskPasswordParameters>false</maskPasswordParameters>
+      <passwordEntries>
+        <EnvInjectPasswordEntry>
+          <name>token</name>
+          <value>{AQAAABAAAAAwATLSey3HsOlUKbN6CcEwV9Zyl1wVA0Y2j3prupx077FRPpXkCDBCaGxU5Iy4aE7O3XzAnXptBCb23NiT1SV+2g==}</value>
+        </EnvInjectPasswordEntry>
+      </passwordEntries>
+    </EnvInjectPasswordWrapper>
+  </buildWrappers>
+</project>

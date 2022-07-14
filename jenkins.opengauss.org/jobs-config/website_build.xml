@@ -1,0 +1,168 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <org.jenkinsci.plugins.jobgenerator.parameters.GeneratorChoiceParameterDefinition plugin="jobgenerator@1.22">
+          <name>build_website</name>
+          <description>Whether to Build Website Repository
+</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>true</string>
+              <string>false</string>
+            </a>
+          </choices>
+        </org.jenkinsci.plugins.jobgenerator.parameters.GeneratorChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>build_blog</name>
+          <description>Whether to Build Blog Repository</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>false</string>
+              <string>true</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="org.jenkinsci.plugins.multiplescms.MultiSCM" plugin="multiple-scms@0.8">
+    <scms>
+      <hudson.plugins.git.GitSCM plugin="git@4.2.2">
+        <configVersion>2</configVersion>
+        <userRemoteConfigs>
+          <hudson.plugins.git.UserRemoteConfig>
+            <url>https://gitee.com/opengauss/website.git</url>
+            <credentialsId>e11ea793-ff17-4f9c-b586-1e54223f1618</credentialsId>
+          </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+          <hudson.plugins.git.BranchSpec>
+            <name>${branch}</name>
+          </hudson.plugins.git.BranchSpec>
+        </branches>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <submoduleCfg class="list"/>
+        <extensions>
+          <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+            <deleteUntrackedNestedRepositories>false</deleteUntrackedNestedRepositories>
+          </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+          <hudson.plugins.git.extensions.impl.CloneOption>
+            <shallow>false</shallow>
+            <noTags>false</noTags>
+            <reference/>
+            <honorRefspec>false</honorRefspec>
+          </hudson.plugins.git.extensions.impl.CloneOption>
+          <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+            <relativeTargetDir>openGauss-website</relativeTargetDir>
+          </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        </extensions>
+      </hudson.plugins.git.GitSCM>
+      <hudson.plugins.git.GitSCM plugin="git@4.2.2">
+        <configVersion>2</configVersion>
+        <userRemoteConfigs>
+          <hudson.plugins.git.UserRemoteConfig>
+            <url>https://gitee.com/opengauss/blog.git</url>
+            <credentialsId>e11ea793-ff17-4f9c-b586-1e54223f1618</credentialsId>
+          </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+          <hudson.plugins.git.BranchSpec>
+            <name>${branch}</name>
+          </hudson.plugins.git.BranchSpec>
+        </branches>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <submoduleCfg class="list"/>
+        <extensions>
+          <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+            <deleteUntrackedNestedRepositories>false</deleteUntrackedNestedRepositories>
+          </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+          <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+            <relativeTargetDir>openGauss-blog</relativeTargetDir>
+          </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        </extensions>
+      </hudson.plugins.git.GitSCM>
+    </scms>
+  </scm>
+  <assignedNode>website || website2</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>cd $WORKSPACE
+echo "###### build repo ######"
+
+echo "build repo is: website: $build_website and blog: $build_blog"
+
+time=`date "+%Y%m%d%H%M%S"`
+build_version="v1.0.$time"
+
+echo "build version: $build_version"
+
+website_imageId=""
+blog_imageId=""
+
+if [ "$build_website" == "true" ]; then
+	project_name=website
+	echo "###################################### build website: $build_website ######################################"
+    cd "$WORKSPACE/openGauss-website"
+    docker build -t ${project_name}:${build_version} .
+    website_imageId=$(docker images | grep ${project_name} | grep ${build_version} | awk '{print $3}')
+    sh /var/jenkins_home/swr_upload.sh opengauss  ${project_name}:${build_version}
+    echo "build website successful; $website_imageId"
+fi
+
+if [ "$build_blog" == "true" ]; then
+	project_name=blog
+	echo "###################################### build blog: $build_blog ######################################"
+    cd "$WORKSPACE/openGauss-blog"
+    docker build -t ${project_name}:${build_version} .
+    blog_imageId=$(docker images | grep ${project_name} | grep ${build_version} | awk '{print $3}')
+    sh /var/jenkins_home/swr_upload.sh opengauss  ${project_name}:${build_version}
+     echo "build blog successful; $website_imageId"
+fi
+
+if [ $website_imageId ]; then
+	echo "remote website images: $website_imageId"
+    docker rmi -f $website_imageId
+fi
+
+if [ $blog_imageId ]; then
+	echo "remote blog images: $blog_imageId"
+    docker rmi -f $blog_imageId
+fi
+
+echo "build task end."
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

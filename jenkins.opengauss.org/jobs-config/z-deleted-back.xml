@@ -1,0 +1,322 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<com.tikal.jenkins.plugins.multijob.MultiJobProject plugin="jenkins-multijob-plugin@1.33">
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>7</daysToKeep>
+        <numToKeep>100</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>contr_env</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.1.15">
+      <spec></spec>
+      <triggerOnPush>false</triggerOnPush>
+      <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+      <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+      <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+      <triggerOnUpdatePullRequest>3</triggerOnUpdatePullRequest>
+      <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+      <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+      <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+      <triggerOnNoteRequest>true</triggerOnNoteRequest>
+      <noteRegex>/retest</noteRegex>
+      <ciSkip>true</ciSkip>
+      <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+      <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+      <skipLastCommitHasBeenBuild>true</skipLastCommitHasBeenBuild>
+      <setBuildDescription>true</setBuildDescription>
+      <branchFilterType>All</branchFilterType>
+      <includeBranchesSpec></includeBranchesSpec>
+      <excludeBranchesSpec></excludeBranchesSpec>
+      <targetBranchRegex></targetBranchRegex>
+      <secretToken>{AQAAABAAAAAwv6/LpfXnHOI+nRJVGpWU3k7EVWqnt+ESywWlVhNwdUmCfQNg7os5mMSa0D+4/rvO+FoaM/HdTgjkHQ+Qn1ODnQ==}</secretToken>
+      <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+    </com.gitee.jenkins.trigger.GiteePushTrigger>
+  </triggers>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>echo &quot;BUILD_ID: ${BUILD_ID}&quot;
+echo &quot;Triggered by Gitee Pull Request #${giteePullRequestIid}: https://gitee.com/opengauss/openGauss-server/pulls/${giteePullRequestIid}&quot;
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <com.tikal.jenkins.plugins.multijob.MultiJobBuilder>
+      <phaseName></phaseName>
+      <phaseJobs>
+        <com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+          <jobName>z-deleted-openGauss_server_PrivateBuild_LLT_fastcheck_X86_Centos</jobName>
+          <jobAlias></jobAlias>
+          <currParams>true</currParams>
+          <aggregatedTestResults>false</aggregatedTestResults>
+          <exposedSCM>false</exposedSCM>
+          <disableJob>false</disableJob>
+          <parsingRulesPath></parsingRulesPath>
+          <maxRetries>0</maxRetries>
+          <enableRetryStrategy>false</enableRetryStrategy>
+          <enableCondition>false</enableCondition>
+          <abortAllJob>true</abortAllJob>
+          <condition></condition>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters plugin="parameterized-trigger@2.39">
+              <properties>BUILD_TOP_ID=${BUILD_ID}
+giteeTargetRepoHttpUrl=${openGaussServer_Http_Repo_Url}
+giteeSourceRepoHttpUrl=${giteeSourceRepoHttpUrl}
+giteeSourceBranch=${giteeSourceBranch}
+giteeTargetBranch=${giteeTargetBranch}
+giteeUserName=${giteeUserName}
+giteePullRequestIid=${giteePullRequestIid}
+giteePullRequestLastCommit=${giteePullRequestLastCommit}
+giteeAfterCommitSha=${giteeAfterCommitSha}
+giteeRef=${giteeRef}</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <killPhaseOnJobResultCondition>NEVER</killPhaseOnJobResultCondition>
+          <buildOnlyIfSCMChanges>false</buildOnlyIfSCMChanges>
+          <applyConditionOnlyIfNoSCMChanges>false</applyConditionOnlyIfNoSCMChanges>
+        </com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+        <com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+          <jobName>z-deleted-openGauss_server_PrivateBuild_LLT-Single</jobName>
+          <jobAlias></jobAlias>
+          <currParams>true</currParams>
+          <aggregatedTestResults>false</aggregatedTestResults>
+          <exposedSCM>false</exposedSCM>
+          <disableJob>false</disableJob>
+          <parsingRulesPath></parsingRulesPath>
+          <maxRetries>0</maxRetries>
+          <enableRetryStrategy>false</enableRetryStrategy>
+          <enableCondition>false</enableCondition>
+          <abortAllJob>true</abortAllJob>
+          <condition></condition>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters plugin="parameterized-trigger@2.39">
+              <properties>BUILD_TOP_ID=${BUILD_ID}
+giteeTargetRepoHttpUrl=${openGaussServer_Http_Repo_Url}
+giteeSourceRepoHttpUrl=${giteeSourceRepoHttpUrl}
+giteeSourceBranch=${giteeSourceBranch}
+giteeTargetBranch=${giteeTargetBranch}
+giteeUserName=${giteeUserName}
+giteePullRequestIid=${giteePullRequestIid}
+giteePullRequestLastCommit=${giteePullRequestLastCommit}
+giteeAfterCommitSha=${giteeAfterCommitSha}
+giteeRef=${giteeRef}</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <killPhaseOnJobResultCondition>NEVER</killPhaseOnJobResultCondition>
+          <buildOnlyIfSCMChanges>false</buildOnlyIfSCMChanges>
+          <applyConditionOnlyIfNoSCMChanges>false</applyConditionOnlyIfNoSCMChanges>
+        </com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+        <com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+          <jobName>z-deleted-openGauss_server_HA</jobName>
+          <jobAlias></jobAlias>
+          <currParams>true</currParams>
+          <aggregatedTestResults>false</aggregatedTestResults>
+          <exposedSCM>false</exposedSCM>
+          <disableJob>false</disableJob>
+          <parsingRulesPath></parsingRulesPath>
+          <maxRetries>0</maxRetries>
+          <enableRetryStrategy>false</enableRetryStrategy>
+          <enableCondition>false</enableCondition>
+          <abortAllJob>true</abortAllJob>
+          <condition></condition>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters plugin="parameterized-trigger@2.39">
+              <properties>BUILD_TOP_ID=${BUILD_ID}
+giteeTargetRepoHttpUrl=${openGaussServer_Http_Repo_Url}
+giteeSourceRepoHttpUrl=${giteeSourceRepoHttpUrl}
+giteeSourceBranch=${giteeSourceBranch}
+giteeTargetBranch=${giteeTargetBranch}
+giteeUserName=${giteeUserName}
+giteePullRequestIid=${giteePullRequestIid}
+giteePullRequestLastCommit=${giteePullRequestLastCommit}
+giteeAfterCommitSha=${giteeAfterCommitSha}
+giteeRef=${giteeRef}</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <killPhaseOnJobResultCondition>NEVER</killPhaseOnJobResultCondition>
+          <buildOnlyIfSCMChanges>false</buildOnlyIfSCMChanges>
+          <applyConditionOnlyIfNoSCMChanges>false</applyConditionOnlyIfNoSCMChanges>
+        </com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+        <com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+          <jobName>z-deleted-openGauss_server_PrivateBuild_LLT_fastcheck_Arm_OpenEuler</jobName>
+          <jobAlias></jobAlias>
+          <currParams>true</currParams>
+          <aggregatedTestResults>false</aggregatedTestResults>
+          <exposedSCM>false</exposedSCM>
+          <disableJob>false</disableJob>
+          <parsingRulesPath></parsingRulesPath>
+          <maxRetries>0</maxRetries>
+          <enableRetryStrategy>false</enableRetryStrategy>
+          <enableCondition>false</enableCondition>
+          <abortAllJob>true</abortAllJob>
+          <condition></condition>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters plugin="parameterized-trigger@2.39">
+              <properties>BUILD_TOP_ID=${BUILD_ID}
+giteeTargetRepoHttpUrl=${openGaussServer_Http_Repo_Url}
+giteeSourceRepoHttpUrl=${giteeSourceRepoHttpUrl}
+giteeSourceBranch=${giteeSourceBranch}
+giteeTargetBranch=${giteeTargetBranch}
+giteeUserName=${giteeUserName}
+giteePullRequestIid=${giteePullRequestIid}
+giteePullRequestLastCommit=${giteePullRequestLastCommit}
+giteeAfterCommitSha=${giteeAfterCommitSha}
+giteeRef=${giteeRef}</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <killPhaseOnJobResultCondition>NEVER</killPhaseOnJobResultCondition>
+          <buildOnlyIfSCMChanges>false</buildOnlyIfSCMChanges>
+          <applyConditionOnlyIfNoSCMChanges>false</applyConditionOnlyIfNoSCMChanges>
+        </com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+        <com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+          <jobName>z-deleted-openGauss_server_PrivateBuild_Compile</jobName>
+          <jobAlias></jobAlias>
+          <currParams>true</currParams>
+          <aggregatedTestResults>false</aggregatedTestResults>
+          <exposedSCM>false</exposedSCM>
+          <disableJob>false</disableJob>
+          <parsingRulesPath></parsingRulesPath>
+          <maxRetries>0</maxRetries>
+          <enableRetryStrategy>false</enableRetryStrategy>
+          <enableCondition>false</enableCondition>
+          <abortAllJob>true</abortAllJob>
+          <condition></condition>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters plugin="parameterized-trigger@2.39">
+              <properties>BUILD_TOP_ID=${BUILD_ID}
+giteeTargetRepoHttpUrl=${openGaussServer_Http_Repo_Url}
+giteeSourceRepoHttpUrl=${giteeSourceRepoHttpUrl}
+giteeSourceBranch=${giteeSourceBranch}
+giteeTargetBranch=${giteeTargetBranch}
+giteeUserName=${giteeUserName}
+giteePullRequestIid=${giteePullRequestIid}
+giteePullRequestLastCommit=${giteePullRequestLastCommit}
+giteeAfterCommitSha=${giteeAfterCommitSha}
+giteeRef=${giteeRef}</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <killPhaseOnJobResultCondition>FAILURE</killPhaseOnJobResultCondition>
+          <buildOnlyIfSCMChanges>false</buildOnlyIfSCMChanges>
+          <applyConditionOnlyIfNoSCMChanges>false</applyConditionOnlyIfNoSCMChanges>
+        </com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+        <com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+          <jobName>openGauss_server_OM_install_upgrade</jobName>
+          <jobAlias></jobAlias>
+          <currParams>true</currParams>
+          <aggregatedTestResults>false</aggregatedTestResults>
+          <exposedSCM>false</exposedSCM>
+          <disableJob>false</disableJob>
+          <parsingRulesPath></parsingRulesPath>
+          <maxRetries>0</maxRetries>
+          <enableRetryStrategy>false</enableRetryStrategy>
+          <enableCondition>false</enableCondition>
+          <abortAllJob>true</abortAllJob>
+          <condition></condition>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters plugin="parameterized-trigger@2.39">
+              <properties>BUILD_TOP_ID=${BUILD_ID}
+giteeTargetRepoHttpUrl=${openGaussServer_Http_Repo_Url}
+giteeSourceRepoHttpUrl=${giteeSourceRepoHttpUrl}
+giteeSourceBranch=${giteeSourceBranch}
+giteeTargetBranch=${giteeTargetBranch}
+giteeUserName=${giteeUserName}
+giteePullRequestIid=${giteePullRequestIid}
+giteePullRequestLastCommit=${giteePullRequestLastCommit}
+giteeAfterCommitSha=${giteeAfterCommitSha}
+giteeRef=${giteeRef}</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <killPhaseOnJobResultCondition>NEVER</killPhaseOnJobResultCondition>
+          <buildOnlyIfSCMChanges>false</buildOnlyIfSCMChanges>
+          <applyConditionOnlyIfNoSCMChanges>false</applyConditionOnlyIfNoSCMChanges>
+        </com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+        <com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+          <jobName>z-deleted-openGauss_server_PrivateBuild_LLT-Tools</jobName>
+          <jobAlias></jobAlias>
+          <currParams>true</currParams>
+          <aggregatedTestResults>false</aggregatedTestResults>
+          <exposedSCM>false</exposedSCM>
+          <disableJob>false</disableJob>
+          <parsingRulesPath></parsingRulesPath>
+          <maxRetries>0</maxRetries>
+          <enableRetryStrategy>false</enableRetryStrategy>
+          <enableCondition>false</enableCondition>
+          <abortAllJob>true</abortAllJob>
+          <condition></condition>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters plugin="parameterized-trigger@2.39">
+              <properties>BUILD_TOP_ID=${BUILD_ID}
+giteeTargetRepoHttpUrl=${openGaussServer_Http_Repo_Url}
+giteeSourceRepoHttpUrl=${giteeSourceRepoHttpUrl}
+giteeSourceBranch=${giteeSourceBranch}
+giteeTargetBranch=${giteeTargetBranch}
+giteeUserName=${giteeUserName}
+giteePullRequestIid=${giteePullRequestIid}
+giteePullRequestLastCommit=${giteePullRequestLastCommit}
+giteeAfterCommitSha=${giteeAfterCommitSha}
+giteeRef=${giteeRef}</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <killPhaseOnJobResultCondition>NEVER</killPhaseOnJobResultCondition>
+          <buildOnlyIfSCMChanges>false</buildOnlyIfSCMChanges>
+          <applyConditionOnlyIfNoSCMChanges>false</applyConditionOnlyIfNoSCMChanges>
+        </com.tikal.jenkins.plugins.multijob.PhaseJobsConfig>
+      </phaseJobs>
+      <continuationCondition>ALWAYS</continuationCondition>
+      <executionType>PARALLEL</executionType>
+      <quietPeriodGroovy>index &lt; 5 ? 0 : 2 * 60</quietPeriodGroovy>
+    </com.tikal.jenkins.plugins.multijob.MultiJobBuilder>
+  </builders>
+  <publishers>
+    <com.gitee.jenkins.publisher.GiteeMessagePublisher plugin="gitee@1.1.15">
+      <onlyForFailure>false</onlyForFailure>
+      <replaceSuccessNote>true</replaceSuccessNote>
+      <replaceFailureNote>true</replaceFailureNote>
+      <replaceAbortNote>true</replaceAbortNote>
+      <replaceUnstableNote>false</replaceUnstableNote>
+      <successNoteText>| Check Name | Build Result | Build Details |
+| --- | --- | --- |
+|  openGauss_server_Main_PR | :white_check_mark: **SUCCESS** | [#${BUILD_ID}](https://jenkins.opengauss.org/job/openGauss_server_Main_PrivateBuild_PR/${BUILD_ID}) |</successNoteText>
+      <failureNoteText>| Check Name | Build Result | Build Details |
+| --- | --- | --- |
+|  openGauss_server_Main_PR | :x: **FAILED** | [#${BUILD_ID}](https://jenkins.opengauss.org/job/openGauss_server_Main_PrivateBuild_PR/${BUILD_ID}) |</failureNoteText>
+      <abortNoteText>| Check Name | Build Result | Build Details |
+| --- | --- | --- |
+|  openGauss_server_Main_PR | :heavy_minus_sign: **ABORTED** | [#${BUILD_ID}](https://jenkins.opengauss.org/job/openGauss_server_Main_PrivateBuild_PR/${BUILD_ID}) |</abortNoteText>
+      <unstableNoteText></unstableNoteText>
+    </com.gitee.jenkins.publisher.GiteeMessagePublisher>
+  </publishers>
+  <buildWrappers/>
+  <pollSubjobs>false</pollSubjobs>
+</com.tikal.jenkins.plugins.multijob.MultiJobProject>

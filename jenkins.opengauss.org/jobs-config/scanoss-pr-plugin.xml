@@ -1,0 +1,188 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.40">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.2"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.2">
+      <jobProperties/>
+      <triggers/>
+      <parameters>
+        <string>PULL_NUMBER</string>
+        <string>REPO_NAME</string>
+        <string>REPO_OWNER</string>
+        <string>merge_dir</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>merge_dir</name>
+          <defaultValue>CODE</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PULL_NUMBER</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>REPO_OWNER</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>REPO_NAME</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.1.15">
+          <spec/>
+          <triggerOnPush>true</triggerOnPush>
+          <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+          <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+          <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+          <triggerOnUpdatePullRequest>1</triggerOnUpdatePullRequest>
+          <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+          <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+          <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+          <triggerOnNoteRequest>true</triggerOnNoteRequest>
+          <noteRegex>/retest-static</noteRegex>
+          <ciSkip>false</ciSkip>
+          <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+          <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+          <skipLastCommitHasBeenBuild>false</skipLastCommitHasBeenBuild>
+          <setBuildDescription>true</setBuildDescription>
+          <branchFilterType>All</branchFilterType>
+          <includeBranchesSpec/>
+          <excludeBranchesSpec/>
+          <targetBranchRegex/>
+          <secretToken>{AQAAABAAAAAw3TxzJXOmzKTg7YmgR0pTH45lrBttPR3cOLxlYR4Fhr1mAHLX3cXnwKmUyS9RRDt2Nz6WsAAAR7qVp4UjXLjKJA==}</secretToken>
+          <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+        </com.gitee.jenkins.trigger.GiteePushTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.90">
+    <script>
+import groovy.json.*
+import java.util.Date
+
+// codecheck
+def check_result = ''
+def check_state = 'failed'
+
+// scanoss
+def static_result = 'success'
+def filenum = 0
+def snippetnum = 0
+def totals = 0
+
+Date now = new Date()
+def year = now.year + 1900
+def month = now.month + 1
+def day = now.date
+
+def API_KEY = "cd849a65500b424fc82c6236626ddb1b"
+def API_URL = "https://shenzhen.scanoss.com/api/scan/direct"
+def BLACK_LIST_PATH = "/data/black.json"
+
+pipeline {
+	agent {
+		node { 
+			label "scanner-manager" 
+		}
+	}
+	parameters {
+		string(name: 'merge_dir', defaultValue: 'CODE')
+        string(name: 'PULL_NUMBER', defaultValue: '')
+        string(name: 'REPO_OWNER', defaultValue: '')
+        string(name: 'REPO_NAME', defaultValue: '')
+    }
+    stages {
+		stage ('Add Tag') {
+			steps ('Add Tag step') {
+				script{
+					echo "############ Start Code Checking ##############"
+				}
+			}
+		}
+        stage ('StaticCheck') {
+            parallel {
+               
+                stage ("ScanossCheck") {
+                    // when {
+                    //     expression {false}
+                    // }
+                    agent {
+                        node { 
+                            label "scanner-slave" 
+                        }
+                    }
+                    steps ('sonar-steps') {
+                        script {
+                            echo "########## Scanoss Build Number is : ${BUILD_NUMBER} ##########"
+                            echo "########## Repo Url: ${giteeTargetRepoHttpUrl} and Pull Request Id ${giteePullRequestIid} ##########"
+                            
+                            sca authCode: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RANDMyMS5jb20ifQ.1WBjnBDgNsPfAVqxQyXDl-PS7r3L_h4OR45rNKPLJeE', credentialsId: '', method: 'WebHook', methodChoose: '', sbomFile: '/data/black.json', scanossCredentials: '', sourceFile: '', sudoOrder: 'sudo', url: 'https://api.osinfra.cn', urlChoose: '1'
+
+                            def resultjsonfile = readFile( "${WORKSPACE}/scanoss_result_${BUILD_NUMBER}.json" )
+
+							def slurper = new JsonSlurper();
+							def result = slurper.parseText(resultjsonfile);
+                            echo "result.result ${result.result}"
+                            
+
+                            if (result.result == "failed") {
+                                echo "静态检查失败"
+                                echo "静态检查地址： ${result.reportUrl}"
+                            } else {
+                                echo "静态检查成功"
+                                echo "静态检查地址： ${result.reportUrl}"
+                            }
+                        }
+                        
+                    }
+                }
+
+            }
+        }
+		
+	}
+
+	post {
+		success {
+			script {
+				retry(3) {
+				    echo "-------------------post success-------------------"
+                    
+                }
+			}
+		}
+		unsuccessful {
+			script {
+				retry(3) {
+				    echo "-------------------post failed-------------------"
+                    
+				}
+			}
+		}
+	}
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

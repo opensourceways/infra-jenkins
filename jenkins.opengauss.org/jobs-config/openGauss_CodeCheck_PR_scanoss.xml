@@ -1,0 +1,315 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.40">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.2"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.2">
+      <jobProperties/>
+      <triggers/>
+      <parameters>
+        <string>PULL_NUMBER</string>
+        <string>REPO_NAME</string>
+        <string>REPO_OWNER</string>
+        <string>merge_dir</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>merge_dir</name>
+          <defaultValue>CODE</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PULL_NUMBER</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>REPO_OWNER</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>REPO_NAME</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.1.15">
+          <spec/>
+          <triggerOnPush>true</triggerOnPush>
+          <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+          <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+          <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+          <triggerOnUpdatePullRequest>1</triggerOnUpdatePullRequest>
+          <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+          <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+          <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+          <triggerOnNoteRequest>true</triggerOnNoteRequest>
+          <noteRegex>/retest-static</noteRegex>
+          <ciSkip>false</ciSkip>
+          <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+          <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+          <skipLastCommitHasBeenBuild>false</skipLastCommitHasBeenBuild>
+          <setBuildDescription>true</setBuildDescription>
+          <branchFilterType>All</branchFilterType>
+          <includeBranchesSpec/>
+          <excludeBranchesSpec/>
+          <targetBranchRegex/>
+          <secretToken>{AQAAABAAAAAwJNJ04PpSUB9B68+g8FEzK2uTLDWxmKqERRlUIp6ePWI5wqlcOox7mQ/6mO9EEGojqw39x2xIjfvfWEJWTvBtlw==}</secretToken>
+          <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+        </com.gitee.jenkins.trigger.GiteePushTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.90">
+    <script>#!groovy
+/*
+ openGauss静态检查门禁，该脚本目前已经集成：
+    1. scanoss 开源引用扫描
+    2. codecheck 代码检查
+
+ 任务管理：
+    任务调度机器： scanner-manager
+    任务执行机器： scanner-slave
+    执行方式： scanoss和codecheck为并行执行。
+
+ 依赖关系：
+    1. scanoss 依赖
+        scanner.py发送数据并接收检查结果
+        parse_json_file.py 解析检查结果，生成html文件用于展示
+        black.json配置白名单，在白名单上面的项目不进行扫描
+
+        -- 更新 2021-12-08
+        scanoss更新为插件方式管理
+
+    2. codecheck 依赖
+        codecheck_request.py 用于发送pr地址到远程服务器，并等待codecheck完毕回传libing平台的任务url地址
+*/
+import groovy.json.*
+import java.util.Date
+
+// codecheck
+def check_result = ''
+def check_state = 'failed'
+
+// scanoss
+def scanoss_state = ''
+def scanoss_result_url = ''
+def filenum = 0
+def snippetnum = 0
+def totals = 0
+
+// enableatrue
+def enable_codecheck = false
+def enable_scanosss = true
+
+Date now = new Date()
+def year = now.year + 1900
+def month = now.month + 1
+def day = now.date
+
+def BLACK_LIST_PATH = "/data/black.json"
+
+pipeline {
+	agent {
+		node { 
+			label "scanner-manager" 
+		}
+	}
+	parameters {
+		string(name: 'merge_dir', defaultValue: 'CODE')
+        string(name: 'PULL_NUMBER', defaultValue: '')
+        string(name: 'REPO_OWNER', defaultValue: '')
+        string(name: 'REPO_NAME', defaultValue: '')
+
+    }
+    stages {
+		stage ('Add Tag') {
+			steps ('Add Tag step') {
+				script{
+					echo "############ Start Code Checking ##############"
+				}
+			}
+		}
+        stage ('StaticCheck') {
+            parallel {
+                stage ('CodeCheck')  {
+                    when {
+                        expression {enable_codecheck}
+                    }
+                    agent {
+                        node { 
+                            label "codecheck-slave"
+                        }
+                    }
+                    steps ('sonar-steps') {
+                        script {
+                            
+                            sh '''
+                            if [ -f /tmp/cc_result ]; then
+                                rm /tmp/cc_result
+                            fi
+                            if [ -f /tmp/cc_state ]; then
+                                rm /tmp/cc_state
+                            fi
+
+                            pr_id=${giteePullRequestIid}
+                            repo_url=${giteeTargetRepoHttpUrl}
+
+                            python3 /home/codecheck_request.py --pull-id=${pr_id} --repo-url=${repo_url}
+                            '''						
+                            def userid = "${giteeUserName}"
+                            println(userid)
+                            check_result = readFile("/tmp/cc_result")
+                            println(check_result)
+                            check_state = readFile("/tmp/cc_state")
+                            println(check_state)
+                            if (userid == "zhang_xubo") {
+                                scanoss_state = "success"
+                                echo "success for ---------------- spec user-----------"
+                            }
+                            sh "echo '......end......'"
+                        
+                        }
+                    }
+                }
+                
+                stage ("ScanossCheck") {
+                    when {
+                        expression {enable_scanosss}
+                    }
+                    agent {
+                        node { 
+                            label "scanner-slave" 
+                        }
+                    }
+                    steps ('sonar-steps') {
+                        script {
+                            echo "########## Scanoss Build Number is : ${BUILD_NUMBER} ##########"
+                            echo "########## Repo Url: ${giteeTargetRepoHttpUrl} and Pull Request Id ${giteePullRequestIid} ##########"
+                            
+                            sca authCode: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RANDMyMS5jb20ifQ.1WBjnBDgNsPfAVqxQyXDl-PS7r3L_h4OR45rNKPLJeE', credentialsId: '', method: 'WebHook', methodChoose: '', sbomFile: '/data/black.json', scanossCredentials: '', sourceFile: '', sudoOrder: 'sudo', url: 'https://api.osinfra.cn', urlChoose: '1'
+
+                            def resultjsonfile = readFile( "${WORKSPACE}/scanoss_result_${BUILD_NUMBER}.json" )
+
+                            def userid = "${giteeUserName}"
+                            println(userid)
+                            println("开源片段检查结果：")
+
+							def slurper = new JsonSlurper();
+							def result = slurper.parseText(resultjsonfile);
+                            echo "result.result ${result}"
+                            
+                            
+
+                            if (result.result == "failed") {
+                                echo "开源片段检查失败"
+                                scanoss_state = "failed"
+                            } else {
+                                echo "开源片段检查成功"
+                                scanoss_state = "success"
+                            }
+                            scanoss_result_url = result.reportUrl
+                            echo "开源片段检查结果： ${scanoss_result_url}"
+                        }
+                        
+                    }
+                }
+
+            }
+        }
+		
+	}
+
+	post {
+		success {
+			script {
+				retry(3) {
+				    echo "-------------------post success-------------------"
+					def comments =  "\n 静态检查 \n" +
+                    "|  Check Name  |  Build Details  |  Check Result  | Check Detail | \n" +
+                    "|  -------------  |  -------------  |  -------------  |  -------------  |\n"
+
+                    def userid = "${giteeUserName}"
+                    println(userid)
+                    
+                    if ( enable_codecheck ) {
+                        if (check_state != "failed"){
+                            comments += 
+                            "|  CodeCheck  |  [#${BUILD_ID}](https://jenkins.opengauss.org/view/static_check/job/openGauss_CodeCheck_PR/${BUILD_ID}/console) | :white_check_mark: 通过 | [&gt;&gt;&gt;](${check_result}) |\n"
+                        } else {
+                            comments += 
+                            "|  CodeCheck  |  [#${BUILD_ID}](https://jenkins.opengauss.org/view/static_check/job/openGauss_CodeCheck_PR/${BUILD_ID}/console) | :warning: 不通过 | [&gt;&gt;&gt;](${check_result}) |\n"
+                        }
+                    }
+
+                    if (enable_scanosss) {
+                        if (scanoss_state == "failed") {
+                            comments += 
+                            "|  开源扫描  | [#${BUILD_ID}](https://jenkins.opengauss.org/view/static_check/job/openGauss_CodeCheck_PR/${BUILD_ID}/console) | :warning: 不通过 | [&gt;&gt;&gt;](${scanoss_result_url}) |"
+                        } else {
+                            comments += 
+                            "|  开源扫描  | [#${BUILD_ID}](https://jenkins.opengauss.org/view/static_check/job/openGauss_CodeCheck_PR/${BUILD_ID}/console) | :white_check_mark: 通过 | [&gt;&gt;&gt;](${scanoss_result_url}) |"
+                        }
+                    }
+
+                    addGiteeMRComment comment: comments
+                }
+			}
+		}
+		unsuccessful {
+			script {
+				retry(3) {
+				    echo "-------------------post failed-------------------"
+                    
+                    def comments =  "\n 静态检查 \n" +
+                    "|  Check Name  |  Build Details  |  Check Result  | Check Detail | \n" +
+                    "|  -------------  |  -------------  |  -------------  |  -------------  |\n"
+
+                    def userid = "${giteeUserName}"
+                    println(userid)
+                    
+                    if ( enable_codecheck ) {
+                        if (check_state != "failed"){
+                            comments += 
+                            "|  CodeCheck  |  [#${BUILD_ID}](https://jenkins.opengauss.org/view/static_check/job/openGauss_CodeCheck_PR/${BUILD_ID}/console) | :white_check_mark: 通过 | [&gt;&gt;&gt;](${check_result}) |\n"
+                        } else {
+                            comments += 
+                            "|  CodeCheck  |  [#${BUILD_ID}](https://jenkins.opengauss.org/view/static_check/job/openGauss_CodeCheck_PR/${BUILD_ID}/console) | :warning: 不通过 | [&gt;&gt;&gt;](${check_result}) |\n"
+                        }
+                    }
+
+                    if (enable_scanosss) {
+                        if (scanoss_state == "failed") {
+                            comments += 
+                            "|  开源扫描  | [#${BUILD_ID}](https://jenkins.opengauss.org/view/static_check/job/openGauss_CodeCheck_PR/${BUILD_ID}/console) | :warning: 不通过 | [&gt;&gt;&gt;](${check_result}) |"
+                        } else {
+                            comments += 
+                            "|  开源扫描  | [#${BUILD_ID}](https://jenkins.opengauss.org/view/static_check/job/openGauss_CodeCheck_PR/${BUILD_ID}/console) | :white_check_mark: 通过 | [&gt;&gt;&gt;](${check_result}) |"
+                        }
+                    }
+                    addGiteeMRComment comment: comments
+				}
+			}
+		}
+	}
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
