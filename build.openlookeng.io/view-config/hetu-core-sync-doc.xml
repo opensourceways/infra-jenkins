@@ -1,0 +1,25 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>hetu-core-sync-doc</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>hetu-core-release-pre-test</string>
+    <string>sync-doc-manually</string>
+    <string>sync-doc-to-website-by-tag</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+    <org.jenkins.plugins.builton.BuiltOnColumn plugin="built-on-column@1.1"/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

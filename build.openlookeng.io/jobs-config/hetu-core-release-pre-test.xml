@@ -1,0 +1,166 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.3">
+      <giteeConnection></giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.11.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/openlookeng/hetu-core</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>hetu-core</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -v
+
+GIT_EMAIL=&quot;huawei_ci_bot@163.com&quot;
+ 
+org=openlookeng
+repo=website
+
+if [ -d &quot;$repo&quot; ]; then
+    rm -rf $repo
+fi
+ 
+replace() {
+    local src=$1
+    local dest=$2
+ 
+    path=$dest/docs
+    if [ ! -d &quot;$path&quot; ]; then
+        echo &quot;$path is not existing, going to create it.&quot;
+        mkdir -p $path
+    fi
+ 
+    menu=$dest/menu
+    if [ ! -d &quot;$menu&quot; ]; then
+        echo &quot;$menu is not existing, going to create it.&quot;
+        mkdir -p $menu
+    fi
+ 
+    rm -r ${path}/*
+    cp -r $src/* ${path}/
+ 
+    mf=${path}/index.md
+    test -f $mf &amp;&amp; mv $mf $menu
+ 
+    find $path -name &quot;*_index.md&quot; | xargs sed -i &apos;s/\(\[[^[]*\](\)\.\.\([^[]*\).png/\1.\2.png/g&apos;
+    find $path -name &quot;*_index.md&quot; | xargs sed -i &apos;s/\(\[[^[]*\](\.\.\)\([^[]*\)\/_index.md/\1\/docs\2.html/g&apos;
+    find $path -name &quot;*_index.md&quot; | xargs sed -i &apos;s/\(\[[^[]*\](\.\.\)\([^[]*\).md/\1\/docs\2.html/g&apos;
+ 
+    find $path -name &quot;*.md&quot; | xargs sed -i &apos;s/\(\[[^[]*\](\.\.[^[]*\)\/_index.md/\1.html/g&apos;
+ 
+    find $path -name &quot;*.md&quot; | xargs sed -i &apos;s/\(\[[^[]*\]([^:[]*\)\.md/\1.html/g&apos;
+}
+
+clone() {
+    local path=$(pwd)
+
+    git clone https://${GIT_USER}:${GIT_PASSWORD}@gitee.com/${GIT_USER}/${repo}.git
+    cd $repo
+
+    git remote add upstream https://gitee.com/${org}/${repo}.git
+    git fetch upstream
+    git rebase upstream/master
+
+    cd $path
+}
+
+clear_env() {
+    cd ..
+
+    if [ -d &quot;website&quot; ]; then
+        rm -rf website
+    fi
+
+    cd ..
+
+    if [ -d &quot;hetu-core&quot; ]; then
+        rm -rf hetu-core
+    fi
+}
+
+if hash git 2&gt;/dev/null; then
+    clone
+
+    if [ -d &quot;hetu-docs/en&quot; ]; then
+
+        replace hetu-docs/en ./website/content/en-us/docs
+
+        echo &quot;hetu-docs/en to en-us/docs copyed.&quot;
+    fi
+
+    if [ -d &quot;hetu-docs/zh&quot; ]; then
+        replace hetu-docs/zh ./website/content/zh-cn/docs
+
+        echo &quot;hetu-docs/zh to zh-cn/docs copyed.&quot;
+    fi
+
+    cd $repo
+
+    if hash docker 2&gt;/dev/null; then
+        docker build -t web:v0.0.1 .
+        if [ &quot;$?&quot; -ne &quot;0&quot; ]; then
+            echo &quot;build website error... the process will be exited.&quot; 1&gt;&amp;2
+            exit 1
+        fi
+        docker rmi web:v0.0.1
+    else
+        echo &quot;docker is not installed, don&apos;t do build test.&quot;
+    fi
+else
+    echo &quot;git has not been installed.&quot;
+fi
+
+clear_env</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.38">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.19">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>c3596b9e-5833-4952-be23-c8470d54d78f</credentialsId>
+          <usernameVariable>GIT_USER</usernameVariable>
+          <passwordVariable>GIT_PASSWORD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

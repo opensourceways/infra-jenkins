@@ -1,0 +1,96 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.3">
+      <giteeConnection>test</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>version</name>
+          <defaultValue>1.0.0</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>vm-slave-8</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>source /home/openlookeng/.bashrc
+
+clone_code() {
+    local url=$1
+    local repo=$2    
+    local branch=$3
+    local msg=&quot;&quot;
+
+    test -n &quot;$branch&quot; &amp;&amp; branch=&quot;-b $branch&quot;
+
+    for i in {1..3}; do
+        msg=$(git clone $branch $url)
+        test $? -eq 0 &amp;&amp; return 0
+
+        sleep 1
+        rm -fr $repo
+    done
+
+    echo $msg
+    return 1
+}
+clone_code git@gitee.com:openlookeng/openlookeng-manager.git
+cd openlookeng-manager/openlookeng-cluster-server
+mvn clean install
+cd -
+
+cd openlookeng-manager/openlookeng-cluster-web
+npm install --registry=https://registry.npm.taobao.org
+npm run build:prod
+tar cvzf dist.tar.gz dist/
+cd -
+mkdir openlookeng-manager-${version}
+cp ${WORKSPACE}/openlookeng-manager/openlookeng-cluster-server/service/openlookeng-server/target/openlookeng-manager*.jar openlookeng-manager-${version}/
+cp -r ${WORKSPACE}/openlookeng-manager/openlookeng-cluster-web/dist/ openlookeng-manager-${version}/
+
+tar cvzf openlookeng-manager-${version}.tar.gz openlookeng-manager-${version}/
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>openlookeng-manager*.tar.gz</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
+      <followSymlinks>false</followSymlinks>
+    </hudson.tasks.ArtifactArchiver>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.38">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+  </buildWrappers>
+</project>

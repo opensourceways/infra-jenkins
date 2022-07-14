@@ -1,0 +1,26 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<io.jenkins.plugins.huaweicloud.ECSOndemandSlave plugin="huaweicloud-ecs@1.1.1-999999-SNAPSHOT">
+  <name>ECS(huaweicloud-hetu-core) - openlookeng-slave-On-demand-tpl (e8afaa27-defc-455e-b11b-f45f64337f0d)</name>
+  <remoteFS>/home/openlookeng</remoteFS>
+  <numExecutors>1</numExecutors>
+  <mode>EXCLUSIVE</mode>
+  <retentionStrategy class="io.jenkins.plugins.huaweicloud.ECSRetentionStrategy">
+    <nextCheckAfter>1657819847182</nextCheckAfter>
+    <idleTerminationMinutes>30</idleTerminationMinutes>
+  </retentionStrategy>
+  <launcher class="io.jenkins.plugins.huaweicloud.ECSUnixLauncher"/>
+  <label>hetu-core</label>
+  <nodeProperties/>
+  <instanceId>e8afaa27-defc-455e-b11b-f45f64337f0d</instanceId>
+  <initScript></initScript>
+  <tmpDir></tmpDir>
+  <remoteAdmin>openlookeng</remoteAdmin>
+  <templateDescription>openlookeng-slave-On-demand-tpl</templateDescription>
+  <isConnected>false</isConnected>
+  <tags class="linked-list"/>
+  <cloudName>ecs-huaweicloud-hetu-core</cloudName>
+  <idleTerminationMinutes>30</idleTerminationMinutes>
+  <offlineTimeout>120</offlineTimeout>
+  <stopOnTerminate>true</stopOnTerminate>
+  <launchTimeout>2147483647</launchTimeout>
+</io.jenkins.plugins.huaweicloud.ECSOndemandSlave>

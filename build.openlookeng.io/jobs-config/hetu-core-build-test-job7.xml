@@ -1,0 +1,214 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>-1</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.3">
+      <giteeConnection>test</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>PULL_NUMBER</name>
+          <description>eg.1</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MODULES_LIST</name>
+          <description>comma separated with no spaces 
+e.g. presto-main,presto-tests 
+required only if RUN_TESTS=true, leave blank if testing build only</description>
+          <defaultValue>hetu-carbondata,hetu-filesystem-client,hetu-hbase,hetu-metastore,hetu-sql-migration-tool,hetu-transport,presto-elasticsearch</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>RUN_TESTS</name>
+          <description>if you only want to run a build without tests, set to false</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>true</string>
+              <string>false</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PULL_BASE_REF</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PROW_JOB_ID</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>hetu-core</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>11cb8527fb1fa37227673a0aa87ad52891</authToken>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>source /home/openlookeng/.bashrc
+
+test -e /tmp/clone.sh &amp;&amp; rm /tmp/clone.sh
+wget https://gitee.com/zengchen1024/repo-test/raw/master/clone.sh -O /tmp/clone.sh
+chmod +x /tmp/clone.sh
+
+clone_code() {
+    local url=$1
+    local repo=$2    
+    local branch=$3
+    
+    local dir=$(pwd)
+    
+    /tmp/clone.sh $url ${dir}/$repo $branch
+}
+
+#git clone https://i-am-a-robot:Huawei%23999@gitee.com/openlookeng/hetu-core.git
+#git clone -b ${PULL_BASE_REF} git@gitee.com:openlookeng/hetu-core.git
+#git clone -b ${PULL_BASE_REF} https://gitee.com/openlookeng/hetu-core.git
+clone_code git@gitee.com:openlookeng/hetu-core.git hetu-core ${PULL_BASE_REF}
+cd hetu-core
+git fetch origin pull/${PULL_NUMBER}/head:${PULL_BASE_REF}-${PULL_NUMBER}
+#git checkout master-${PULL_ID}
+#git checkout master
+git config --global user.email &quot;ci@abc.com&quot;
+git config --global user.name &quot;ci&quot;
+git merge ${PULL_BASE_REF}-${PULL_NUMBER}
+
+cd -
+#git clone https://i-am-a-robot:Huawei%23999@gitee.com/openlookeng/hetu-maven-plugin.git
+#git clone git@gitee.com:openlookeng/hetu-maven-plugin.git
+#git clone https://gitee.com/openlookeng/hetu-maven-plugin.git
+clone_code git@gitee.com:openlookeng/hetu-maven-plugin.git hetu-maven-plugin
+cd hetu-maven-plugin
+mvn clean install -DskipTests -T 2C
+cd -
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>source /home/openlookeng/.bashrc
+
+whoami
+ulimit -a
+mvn --version
+java -version
+
+rm -rf /tmp/* /tmp/*.* || true
+docker volume rm $(docker volume ls -q) || true
+
+# remove all containers
+docker ps -aq | tr &apos;\n&apos; &apos; &apos; | xargs -rI % sh -c &apos;docker rm -f %;&apos;
+sleep 15
+
+cd ${WORKSPACE}/hetu-core
+
+# get all the modules defined in the root pom.xml
+# IGNORED: &apos;!hetu-kudu,!hetu-phoenix,!hetu-elasticsearch,!hetu-raptor-legacy&apos;
+grep -P &apos;&lt;module&gt;.*hetu&apos; pom.xml | grep -v &apos;&lt;!--&apos; | grep -Pv &apos;hetu-kudu|hetu-phoenix|hetu-elasticsearch|hetu-raptor-legacy&apos; | tr &apos;&gt;&apos; &quot; &quot; | tr &apos;&lt;&apos; &apos; &apos; | awk &apos;{print $2}&apos; | sort &gt; all_modules.txt
+
+# create test suites, each with some modules, to distribute the time
+TEST_SUITE_1_MODULES=&apos;presto-array,presto-atop,presto-benchmark,presto-benchmark-driver,presto-benchto-benchmarks,presto-cli,presto-client,presto-example-http,presto-geospatial,presto-geospatial-toolkit,presto-hive-hadoop2,presto-jmx,presto-local-file,presto-matching,presto-memory,presto-memory-context,presto-ml,presto-orc,presto-parquet,presto-parser,presto-password-authenticators,presto-plugin-toolkit,presto-postgresql,presto-product-tests,presto-proxy,presto-rcfile,presto-record-decoder,presto-resource-group-managers,presto-session-property-managers,presto-teradata-functions,presto-testing-docker,presto-testing-server-launcher,presto-thrift,presto-thrift-api,presto-thrift-testing-server,presto-tpcds,presto-tpch,presto-verifier&apos;
+TEST_SUITE_2_MODULES=&apos;presto-hive&apos;
+TEST_SUITE_3_MODULES=&apos;presto-main,hetu-server,hetu-server-rpm,presto-mysql&apos;
+TEST_SUITE_4_MODULES=&apos;presto-tests&apos;
+TEST_SUITE_5_MODULES=&apos;hetu-hive-functions,hetu-listener,hetu-oracle,hetu-hana,hetu-vdm,hetu-seed-store,hetu-state-store,hetu-datacenter,hetu-heuristic-index&apos;
+TEST_SUITE_6_MODULES=&apos;presto-jdbc,presto-base-jdbc,presto-spi,presto-kafka,presto-sqlserver&apos;
+TEST_SUITE_7_MODULES=&apos;hetu-carbondata,hetu-filesystem-client,hetu-hbase,hetu-metastore,hetu-sql-migration-tool,hetu-transport,presto-elasticsearch&apos;
+
+# write all tested modules to a file
+echo $TEST_SUITE_1_MODULES $TEST_SUITE_2_MODULES $TEST_SUITE_3_MODULES $TEST_SUITE_4_MODULES $TEST_SUITE_5_MODULES $TEST_SUITE_6_MODULES $TEST_SUITE_7_MODULES | tr &apos;,&apos; &apos; &apos; | tr &apos; &apos; &apos;\n&apos; | sort &gt; tested_modules.txt
+
+# Note: there may be a case when a new module is added to pom.xml, this means it will be missing from the TEST_SUITEs defined above
+# we can find new modules and add then to an existing suite
+
+# find modules in all_modules.txt which are not in tested_modules.txt
+
+
+
+# Note: there may be a case when a new module is added to pom.xml, this means it will be missing from the TEST_SUITEs defined above
+# we can find new modules and add then to an existing suite
+
+# find modules in all_modules.txt which are not in tested_modules.txt
+NEW_MODULES=`comm -23 all_modules.txt tested_modules.txt | tr &apos;\n&apos; &apos;,&apos;`
+
+# append to existing suite
+MODULES_LIST=&quot;${NEW_MODULES}${MODULES_LIST}&quot;
+
+
+if [[ &quot;${RUN_TESTS}&quot; == &apos;true&apos; ]]
+then
+    mvn clean install -DskipTests -pl &apos;!hetu-server, !hetu-server-rpm&apos; -Dmaven.gitcommitid.skip=true
+
+    # modules list should not be empty
+    [[ -n &quot;${MODULES_LIST}&quot; ]]
+    # with the modules broken down into smaller sets, mvn test should not take longer than an hour
+    # if it does, there is an issue
+	timeout 3600 mvn test -pl &quot;${MODULES_LIST}&quot; -Dmaven.gitcommitid.skip=true
+    
+    # a little hack so we don&apos;t archive the server and cli for test jobs
+    rm -f hetu-server/target/hetu-server-*.tar.gz presto-cli/target/hetu-cli-*-executable.jar
+else
+    mvn clean install -DskipTests -Dmaven.gitcommitid.skip=true
+fi
+
+docker volume rm $(docker volume ls -q) || true
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.ws__cleanup.WsCleanup plugin="ws-cleanup@0.38">
+      <patterns class="empty-list"/>
+      <deleteDirs>false</deleteDirs>
+      <skipWhenFailed>false</skipWhenFailed>
+      <cleanWhenSuccess>true</cleanWhenSuccess>
+      <cleanWhenUnstable>false</cleanWhenUnstable>
+      <cleanWhenFailure>false</cleanWhenFailure>
+      <cleanWhenNotBuilt>false</cleanWhenNotBuilt>
+      <cleanWhenAborted>false</cleanWhenAborted>
+      <notFailBuild>false</notFailBuild>
+      <cleanupMatrixParent>false</cleanupMatrixParent>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.WsCleanup>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.38">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.20">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>60</timeoutMinutes>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+  </buildWrappers>
+</project>

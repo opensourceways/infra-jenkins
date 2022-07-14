@@ -1,0 +1,145 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.40">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.8.5"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.8.5">
+      <jobProperties/>
+      <triggers/>
+      <parameters>
+        <string>merge_dir</string>
+        <string>branches</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.3">
+      <giteeConnection>test</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>merge_dir</name>
+          <defaultValue>CODE</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>branches</name>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.1.3">
+          <spec></spec>
+          <triggerOnPush>true</triggerOnPush>
+          <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+          <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+          <triggerOnAcceptedPullRequest>true</triggerOnAcceptedPullRequest>
+          <triggerOnUpdatePullRequest>true</triggerOnUpdatePullRequest>
+          <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+          <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+          <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+          <triggerOnNoteRequest>true</triggerOnNoteRequest>
+          <noteRegex>/check</noteRegex>
+          <ciSkip>false</ciSkip>
+          <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+          <ciSkipFroTestNotRequired>true</ciSkipFroTestNotRequired>
+          <skipLastCommitHasBeenBuild>true</skipLastCommitHasBeenBuild>
+          <setBuildDescription>true</setBuildDescription>
+          <branchFilterType>All</branchFilterType>
+          <includeBranchesSpec></includeBranchesSpec>
+          <excludeBranchesSpec></excludeBranchesSpec>
+          <targetBranchRegex></targetBranchRegex>
+          <secretToken>{AQAAABAAAAAwMZPSoJQsiLuATJ2D01/uraGBAOUFefVxq9XvzQj9XWASle/Wep3I+p2WcDpgNirAsWmZCVGG6SWToBrTvsj/cQ==}</secretToken>
+          <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+        </com.gitee.jenkins.trigger.GiteePushTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.92">
+    <script>#!groovy
+import groovy.json.*
+def static_result = &apos;success&apos;
+def repoUrls = [&apos;https://gitee.com/openlookeng/hetu-core.git&apos;]
+
+pipeline {
+	agent {
+		node { 
+			label &quot;vm-slave-scan&quot; 
+		}
+	}
+	parameters {
+		string(name: &apos;merge_dir&apos;, defaultValue: &apos;CODE&apos;)
+		string(name: &apos;branches&apos;, defaultValue: &apos;master&apos;)
+   }
+	stages {
+		stage (&apos;SCANOSS&apos;)  {
+		    agent {
+				node { 
+					label &quot;vm-slave-scan&quot; 
+				}
+			}
+			steps (&apos;sonar-steps&apos;) {
+				script {
+				    cleanWs();
+			    	for(int i=0;i&lt;repoUrls.size();i++){
+    			        def repoUrl = repoUrls.get(i);
+    			        def codeDir = &quot;${merge_dir}_${i}&quot;;
+    			        echo &quot;codeDir: ${codeDir}&quot;
+    			        echo &quot;repoUrl-wxj: ${repoUrl}&quot;
+    			        
+    			        try{
+    			            checkout([$class: &apos;GitSCM&apos;, branches: [[name: &apos;*/master&apos;]], extensions: [[$class: &apos;RelativeTargetDirectory&apos;, relativeTargetDir: &quot;${codeDir}&quot;]], userRemoteConfigs: [[credentialsId: &apos;senny456&apos;, 
+                        url: &quot;${repoUrl}&quot;]]])   
+							
+							echo &quot;-------------------wxj parameter info begin-------------------&quot;	  
+    						echo &quot;url: &apos;${repoUrl}&apos; \n&quot;
+    						echo &quot;relativeTargetDir: &apos;${codeDir}&apos; \n&quot;
+    						echo &quot;branches: &apos;${branches}&apos; \n&quot;
+    						
+    						echo &quot;-------------------wxj parameter info end-------------------&quot;
+    							 
+    						echo &quot;-------------------deal modify code-------------------&quot;
+    						
+    						sh  &quot;/usr/local/python3/bin/scanoss-py scan --ignore /opt/openlookeng/SBOM.json --key cd849a65500b424fc82c6236626ddb1b --apiurl https://shenzhen.scanoss.com/api/scan/direct ${WORKSPACE}/${codeDir} &gt; /var/www/html/${JOB_NAME}--${BUILD_NUMBER}--${i}.json&quot;
+    						
+    						def map = [&quot;reposUrl&quot;:&quot;${repoUrl}&quot;,&quot;resultUrl&quot;:&quot;http://119.13.87.120/${JOB_NAME}--${BUILD_NUMBER}--${i}.json&quot;,&quot;branch&quot;:&quot;${branches}&quot;,&quot;nativePath&quot;:&quot;&quot;]
+    			            def JsonData = JsonOutput.toJson(map)
+    						echo JsonData
+    			           
+    						def resp = httpRequest contentType: &apos;APPLICATION_JSON&apos;,
+    													  httpMode: &quot;POST&quot;,
+    													  customHeaders: [
+    													  
+    													   [name: &quot;Accept&quot;, value: &quot;*/*&quot;],
+    													   [name: &quot;Accept-Encoding&quot;, value: &quot;gzip,deflate,br&quot;],
+    													   [name: &quot;Connection&quot;, value: &quot;keep-alive&quot;]
+    													 ],
+    													 requestBody: JsonData,
+    													 url: &apos;https://api.osinfra.cn/sca/gateway/scan/save&apos;
+    				        echo &quot;http return: ${resp}&quot;
+                        
+			    	    }
+			    	    catch(all) {
+						    static_result=sh(returnStdout: true, script: &apos;echo true&apos;)
+					    }
+			    	}
+				}
+			}
+		}
+	}
+} // pipeline end</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

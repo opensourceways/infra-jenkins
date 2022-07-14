@@ -1,0 +1,59 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.3">
+      <giteeConnection>test</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>vm-slave-scan</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+clone_code() {
+    local url=$1
+    local repo=$2    
+    local branch=$3
+    local msg=&quot;&quot;
+
+    test -n &quot;$branch&quot; &amp;&amp; branch=&quot;-b $branch&quot;
+
+    for i in {1..3}; do
+        msg=$(git clone $branch $url)
+        test $? -eq 0 &amp;&amp; return 0
+
+        sleep $((RANDOM%15+5))
+        rm -fr $repo
+    done
+
+    echo $msg
+    return 1
+}
+
+#git clone https://i-am-a-robot:Huawei%23999@gitee.com/openlookeng/hetu-core.git
+#git clone -b ${PULL_BASE_REF} git@gitee.com:openlookeng/hetu-core.git
+#git clone -b ${PULL_BASE_REF} https://gitee.com/openlookeng/hetu-core.git
+clone_code git@gitee.com:openlookeng/hetu-core.git hetu-core 
+cd hetu-core</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

@@ -1,0 +1,217 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.40">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.8.5"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.8.5">
+      <jobProperties/>
+      <triggers/>
+      <parameters>
+        <string>giteeTargetRepoHttpUrl</string>
+        <string>PULL_NUMBER</string>
+        <string>REPO_NAME</string>
+        <string>REPO_OWNER</string>
+        <string>merge_dir</string>
+        <string>PULL_BASE_REF</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.3">
+      <giteeConnection>test</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>merge_dir</name>
+          <defaultValue>CODE</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PULL_NUMBER</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PULL_BASE_REF</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>giteeTargetRepoHttpUrl</name>
+          <defaultValue>https://gitee.com</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>REPO_OWNER</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>REPO_NAME</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PROW_JOB_ID</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers/>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.92">
+    <script>#!groovy
+import groovy.json.*
+def static_result = &apos;success&apos;
+def filenum = 0
+def snippetnum = 0
+def totals = 0
+
+pipeline {
+	agent {
+		node { 
+			label &quot;vm-slave-scan&quot; 
+		}
+	}
+	parameters {
+		string(name: &apos;merge_dir&apos;, defaultValue: &apos;CODE&apos;)
+		string(name: &apos;PULL_NUMBER&apos;, defaultValue: &apos;&apos;)
+		string(name: &apos;PULL_BASE_REF&apos;, defaultValue: &apos;&apos;)
+		string(name: &apos;giteeTargetRepoHttpUrl&apos;, defaultValue: &apos;https://gitee.com&apos;)
+		string(name: &apos;REPO_OWNER&apos;, defaultValue: &apos;&apos;)
+		string(name: &apos;REPO_NAME&apos;, defaultValue: &apos;&apos;)		
+   }
+	stages {
+		stage (&apos;SCANOSS&apos;)  {
+		    agent {
+				node { 
+					label &quot;vm-slave-scan&quot; 
+				}
+			}
+			steps (&apos;sonar-steps&apos;) {
+				script {
+					try {
+						cleanWs()
+						sh &quot;ls -al ${WORKSPACE}&quot;
+						echo &quot;-------------------git pull merge-------------------&quot;
+						checkout(
+							[$class: &apos;GitSCM&apos;,
+							 branches: [[name: &apos;pull/${PULL_NUMBER}/MERGE&apos;]],
+							 doGenerateSubmoduleConfigurations: false,
+							 extensions: [[$class: &apos;RelativeTargetDirectory&apos;,
+							 relativeTargetDir: &apos;${merge_dir}&apos;],
+							 [$class: &apos;CleanBeforeCheckout&apos;]],
+							 submoduleCfg: [],
+							 userRemoteConfigs: [[credentialsId: &apos;i-am-a-robot&apos;,
+							 name: &apos;origin&apos;,
+							 refspec: &apos;+refs/heads/*:refs/remotes/origin/* +refs/pull/*/MERGE:refs/pull/*/MERGE&apos;,
+							 url: &apos;${giteeTargetRepoHttpUrl}/${REPO_OWNER}/${REPO_NAME}.git&apos;]]])
+						echo &quot;-------------------deal modify code-------------------&quot;
+						sh &apos;&apos;&apos;
+							rm -rf ${WORKSPACE}/${merge_dir}/modify_dir
+							mkdir -p ${WORKSPACE}/${merge_dir}/modify_dir
+							cd ${WORKSPACE}/${merge_dir}
+							git diff-tree -r --name-only --no-commit-id origin/${PULL_BASE_REF} HEAD &gt; modify_list.txt
+							cat modify_list.txt
+							while read -r line
+							do
+								dir_name=${line%/*}
+								file_name=${line##*/}
+								if [ $(echo $line |grep &apos;/&apos;) ];then
+									mkdir -p ${WORKSPACE}/${merge_dir}/modify_dir/${dir_name}
+									if [ -f &quot;${WORKSPACE}/${merge_dir}/${line}&quot; ]; then
+										cp -rf ${WORKSPACE}/${merge_dir}/${line} ${WORKSPACE}/${merge_dir}/modify_dir/${dir_name}
+									fi
+								else
+									mkdir -p ${WORKSPACE}/${merge_dir}/modify_dir
+									if [ -f &quot;${WORKSPACE}/${merge_dir}/${line}&quot; ]; then
+										cp -rf ${WORKSPACE}/${merge_dir}/${line} ${WORKSPACE}/${merge_dir}/modify_dir
+									fi
+								fi
+							done &lt; ${WORKSPACE}/${merge_dir}/modify_list.txt
+							#find ${WORKSPACE}/${merge_dir}/modify_dir -type f
+						&apos;&apos;&apos;
+						sh &apos;&apos;&apos;
+							/usr/local/python3/bin/scanoss-py scan --ignore /opt/openlookeng/SBOM.json --key cd849a65500b424fc82c6236626ddb1b --apiurl https://shenzhen.scanoss.com/api/scan/direct ${WORKSPACE}/${merge_dir}/modify_dir  &gt; /var/www/html/${JOB_NAME}--${BUILD_NUMBER}.json
+						&apos;&apos;&apos;
+							def inputFile = readFile(&quot;/var/www/html/${JOB_NAME}--${BUILD_NUMBER}.json&quot;)
+                        
+							def InputJSON = new JsonSlurper().parseText(inputFile)
+						   
+										def info=&quot;&lt;a href=&apos;http://119.13.87.120/${JOB_NAME}--${BUILD_NUMBER}.json&apos; download=&apos;result.json&apos;&gt;Download Full json result&lt;/a&gt;&quot;
+							            def dat=&quot;&lt;table border=&apos;1&apos; cellspacing=&apos;0&apos; cellpadding=&apos;5&apos; style=&apos;margin-top:20px&apos;&gt;&lt;tr&gt;&lt;td style=&apos;1px solid black&apos;&gt;filename&lt;/td&gt;&lt;td&gt;id&lt;/td&gt;&lt;td&gt;lines&lt;/td&gt;&lt;td&gt;oss_lines&lt;/td&gt;&lt;td&gt;matched&lt;/td&gt;&lt;td&gt;vendor&lt;/td&gt;&lt;td&gt;component&lt;/td&gt;&lt;td&gt;version&lt;/td&gt;&lt;td&gt;url&lt;/td&gt;&lt;td&gt;file&lt;/td&gt;&lt;td&gt;file_id&lt;/td&gt;&lt;td&gt;licenses&lt;/td&gt;&lt;td&gt;vulnerabilities&lt;/td&gt;&lt;/tr&gt;&quot;
+							
+								InputJSON.each { def k ,def value -&gt;
+											value.each{def v -&gt;
+													
+													if (v.id == &quot;snippet&quot;) { 
+														snippetnum++ 
+														
+													}
+													if (v.id == &quot;file&quot;) {
+														filenum++
+														
+													}
+													if (v.id != &quot;none&quot;) {
+														def result=&quot;&lt;tr&gt;&lt;td&gt;${k}&lt;/td&gt;&lt;td&gt;${v.id}&lt;/td&gt;&lt;td&gt;${v.lines}&lt;/td&gt;&lt;td&gt;${v.oss_lines}&lt;/td&gt;&lt;td&gt;${v.matched}&lt;/td&gt;&lt;td&gt;${v.vendor}&lt;/td&gt;&lt;td&gt;${v.component}&lt;/td&gt;&lt;td&gt;${v.version}&lt;/td&gt;&lt;td&gt;${v.url}&lt;/td&gt;&lt;td&gt;${v.file}&lt;/td&gt;&lt;td&gt;${v.file_id}&lt;/td&gt;&lt;td&gt;${v.licenses}&lt;/td&gt;&lt;td nowrap = &apos;nowrap&apos; title = &apos;${v.vulnerabilities}&apos;&gt;${v.vulnerabilities}&lt;/td&gt;&lt;/tr&gt;&quot;
+														dat=dat + result
+														}
+													} 
+												}
+							totals = snippetnum + filenum				
+							def sums = &quot;&lt;table border=&apos;1&apos; cellspacing=&apos;0&apos; cellpadding=&apos;5&apos; style=&apos;margin-top:20px&apos;&gt;&lt;tr&gt;&lt;td style=&apos;1px solid black&apos;&gt;snippet&lt;/td&gt;&lt;td&gt;file&lt;/td&gt;&lt;td&gt;total&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;${snippetnum}&lt;/td&gt;&lt;td&gt;${filenum}&lt;/td&gt;&lt;td&gt;${totals}&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&quot;					
+							dat=info + sums + dat + &quot;&lt;/table&gt;&quot;
+							
+							
+					    echo &quot;#################${dat}&quot;
+					    // sh	&apos;&apos;&apos;
+				        // 	echo ${dat} &gt; /var/www/html/${JOB_NAME}--${BUILD_NUMBER}.html
+					    // &apos;&apos;&apos;
+					    writeFile(file: &quot;/var/www/html/${JOB_NAME}--${BUILD_NUMBER}.html&quot;, text: &quot;${dat}&quot;)
+					
+					}
+					catch(all) {
+						static_result=sh(returnStdout: true, script: &apos;echo ${all}&apos;)
+
+					}
+				}
+			}
+		}
+	}
+
+	post {
+		success {
+			script {
+				retry(3) {
+				    echo &quot;-------------------post success-------------------&quot;
+					
+					def con = &quot;snippet num: ${snippetnum}  file num: ${filenum}&quot;
+					// addGiteeMRComment comment:  &quot;|  SCANOSS  | :white_check_mark: **SUCCESS**  |  [#${BUILD_ID}](http://119.13.87.120/${JOB_NAME}--${BUILD_NUMBER}.html) | ${con} |\n|  -------------  |  -------------  |  -------------  |  -------------  |\n&quot;
+					echo &quot;http://119.13.87.120/${JOB_NAME}--${BUILD_NUMBER}.html&quot;
+
+				}
+			}
+		}
+		unsuccessful {
+			script {
+				retry(3) {
+				    echo &quot;-------------------post failed-------------------&quot;
+					// addGiteeMRComment comment: &quot;|  SCANOSS  | :x: **FAILURE**   |  [#${BUILD_ID}](http://119.13.87.120/${JOB_NAME}--${BUILD_NUMBER}.html)   |\n|  -------------  |  -------------  |  -------------   |\n&quot;
+				
+				    echo &quot;http://119.13.87.120/${JOB_NAME}--${BUILD_NUMBER}.html&quot;
+				}
+			}
+		}
+	}
+} // pipeline end</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <authToken>11cb8527fb1fa37227673a0aa87ad52891</authToken>
+  <disabled>false</disabled>
+</flow-definition>

@@ -1,0 +1,181 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>-1</daysToKeep>
+        <numToKeep>10</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.3">
+      <giteeConnection>test</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>version</name>
+          <description>e.g. 1.0.1</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <net.uaznia.lukanus.hudson.plugins.gitparameter.GitParameterDefinition plugin="git-parameter@0.9.13">
+          <name>build_on_tag</name>
+          <uuid>f1678117-bf6a-472b-929c-2d9a254a4362</uuid>
+          <type>PT_TAG</type>
+          <branch></branch>
+          <tagFilter>*</tagFilter>
+          <branchFilter>.*</branchFilter>
+          <sortMode>NONE</sortMode>
+          <defaultValue>origin/master</defaultValue>
+          <selectedValue>NONE</selectedValue>
+          <quickFilterEnabled>false</quickFilterEnabled>
+          <listSize>5</listSize>
+        </net.uaznia.lukanus.hudson.plugins.gitparameter.GitParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>isReleaseVersion</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>False</string>
+              <string>True</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.2">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/openlookeng/hetu-core.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>${build_on_tag}</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>hetu-core</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+    </extensions>
+  </scm>
+  <assignedNode>vm-slave-9</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>source /home/openlookeng/.bashrc
+
+clone_code() {
+    local url=$1
+    local repo=$2    
+    local branch=$3
+    local msg=&quot;&quot;
+
+    test -n &quot;$branch&quot; &amp;&amp; branch=&quot;-b $branch&quot;
+
+    for i in {1..3}; do
+        msg=$(git clone $branch $url)
+        test $? -eq 0 &amp;&amp; return 0
+
+        sleep 1
+        rm -fr $repo
+    done
+
+    echo $msg
+    return 1
+}
+clone_code git@gitee.com:openlookeng/hetu-maven-plugin.git hetu-maven-plugin
+cd hetu-maven-plugin
+mvn clean install -DskipTests -T 2C
+cd -</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>source /home/openlookeng/.bashrc
+
+whoami
+ulimit -a
+mvn --version
+java -version
+
+rm -rf /tmp/* /tmp/*.* || true
+
+# remove all containers
+docker ps -aq | tr &apos;\n&apos; &apos; &apos; | xargs -rI % sh -c &apos;docker rm -f %;&apos;
+sleep 15
+
+cd hetu-core
+
+mvn clean install -DskipTests -T 2C
+#mvn test -pl &apos;!hetu-server,!hetu-server-rpm&apos;
+
+hetujdbcpakname=$(ls presto-jdbc/target/ | grep -v “original-*” | grep -oP &quot;hetu-jdbc-\d+.\d+.\d+-?(SNAPSHOT)?.jar&quot; | uniq)
+
+#cd hetu-jdbc/target/ &amp;&amp; ls | grep -v ^${hetujdbcpakname} | grep jar | xargs rm -f
+#cd -
+
+mkdir -p ${version}
+cp hetu-server/target/hetu-server-*.tar.gz ${version}/
+cp hetu-server-rpm/target/hetu-server-rpm-*.rpm ${version}/
+cp presto-cli/target/hetu-cli-*executable.jar ${version}/
+cp presto-jdbc/target/${hetujdbcpakname} ${version}/
+cp hetu-sql-migration-tool/target/hetu-sql-migration-cli-*executable.jar ${version}/
+
+cd ${version} &amp;&amp; paklist=$(ls)
+
+for i in ${paklist}
+do
+	sha256sum ${i} &gt; ${i}.sha256sum
+done
+
+if [[ &quot;$isReleaseVersion&quot; == &quot;True&quot; ]]
+then
+	cd -
+	scp -i /home/openlookeng/.ssh/rsa.key -P 30322 -r ${version}/ root@10.0.0.191:/repo/openlookeng/
+	
+fi
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>hetu-core/hetu-server/target/hetu-server-*.tar.gz,hetu-core/hetu-server-rpm/target/hetu-server-rpm-*.rpm, hetu-core/presto-cli/target/hetu-cli-*executable.jar, hetu-core/presto-jdbc/target/hetu-jdbc-*.jar,hetu-core/hetu-sql-migration-tool/target/hetu-sql-migration-cli-*executable.jar</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
+      <followSymlinks>false</followSymlinks>
+    </hudson.tasks.ArtifactArchiver>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.38">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+  </buildWrappers>
+</project>
