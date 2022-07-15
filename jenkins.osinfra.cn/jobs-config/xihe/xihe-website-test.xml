@@ -58,6 +58,8 @@ fi
 
 cd $WORKSPACE
 
+sed -i &quot;s|RUN pnpm build|RUN pnpm build:dev|&quot; ./Dockerfile
+
 cat Dockerfile
 
 

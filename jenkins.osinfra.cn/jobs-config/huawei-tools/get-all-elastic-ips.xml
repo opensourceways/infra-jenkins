@@ -84,14 +84,14 @@ do
     fi
 done
 
-# download obs file
+# download obs file from OBS-repo
 obsutil cp obs://obs-for-openeuler-developer/secret-files/collect_elastic_public_ip.yaml ./collect_elastic_public_ip.yaml -i=${AK} -k=${SK} -e=${EP}
 
 # build
 python3 collect_elastic_public_ip_by_yaml.py  -config_path ./collect_elastic_public_ip.yaml
 mv 公网IP统计表.xlsx elastic-ips-${str}.xlsx
 
-# upload xlsx file
+# upload xlsx file to OBS-repo
 obsutil cp ./elastic-ips-${str}.xlsx obs://obs-for-openeuler-developer/elastic-ips/elastic-ips-${str}.xlsx  -i=${AK} -k=${SK} -e=${EP}
 
 # rm fils

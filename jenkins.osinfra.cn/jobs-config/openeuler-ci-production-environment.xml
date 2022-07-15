@@ -43,7 +43,7 @@ set -e
 GIT_EMAIL=&quot;tommylike@gmail.com&quot;
 #IMAGE_VERSION=$(git rev-parse HEAD)
 IMAGE_VERSION=v0.0.1
-PROJECT_NAME=&quot;openeuler-ci-production-environment&quot;
+PROJECT_NAME=&quot;openeuler-cn-north4-jenkins-2&quot;
 
 if hash git 2&gt;/dev/null; then
     IMAGE_VERSION=$(git rev-parse HEAD)
@@ -65,7 +65,40 @@ docker push     swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/openeul
 
 docker rmi      swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/openeuler-ci:$IMAGE_VERSION
 
-</command>
+if [ -d &quot;infra-openeuler&quot; ]; then
+    rm -rf &quot;infra-openeuler&quot;
+fi
+
+if hash git 2&gt;/dev/null; then
+    git config --global user.email $GIT_EMAIL
+    git config --global user.name $GIT_USER
+    git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-openeuler
+    cd infra-openeuler/applications/jenkins-cn-north4-2
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+if hash kustomize 2&gt;/dev/null; then
+    kustomize edit set image swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler/openeuler-ci:$IMAGE_VERSION   
+else
+    echo &quot;use replace to set image.&quot;
+fi
+
+if hash git 2&gt;/dev/null; then
+    git add .
+    git commit -am &quot;update openeuler-ci:$IMAGE_VERSION&quot;
+    git push origin --all
+else
+    echo &quot;git is not existing.&quot;
+fi
+
+ARGOCD_TOKEN=`curl -X POST -s -d &apos;{&quot;password&quot;:&quot;&apos;${ARGOCD_PASS}&apos;&quot;,&quot;username&quot;:&quot;&apos;${ARGOCD_USER}&apos;&quot;}&apos; &quot;https://build.osinfra.cn/api/v1/session&quot;|tail -1 |awk -F &apos;[&quot;&quot;]&apos; &apos;{print$4}&apos;`&gt;/dev/null
+curl -X POST -s -o /dev/null --cookie &quot;argocd.token=${ARGOCD_TOKEN}&quot; &quot;https://build.osinfra.cn/api/v1/applications/${PROJECT_NAME}/sync&quot;&gt;/dev/null
+if [ $? -eq 0 ];then
+    echo &quot;complete!&quot;
+else
+    echo &quot;failed!&quot;
+fi</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>
