@@ -1,0 +1,858 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description>Ascend部署</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>15</daysToKeep>
+        <numToKeep>1000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.82">
+          <name>NODE_IP_LIST</name>
+          <description>node ip</description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>16</visibleItemCount>
+          <type>PT_CHECKBOX</type>
+          <value>8.92.9.56,8.92.9.57,8.92.9.58,8.92.9.60,8.92.9.61,8.92.9.71,8.92.9.73,8.92.9.85,8.92.9.86,8.92.9.87,8.92.9.88,8.92.9.89,8.92.9.29,8.92.9.83,8.92.9.96,8.92.9.131</value>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+          <descriptionPropertyValue>8.92.9.56 (smoke-ascend-56),8.92.9.57 (smoke-ascend-57),8.92.9.58 (smoke-ascend-58),8.92.9.60 (smoke-ascend-60),8.92.9.61 (smoke-ascend-61),8.92.9.71 (smoke-ascend-71),8.92.9.73 (smoke-ascend-73),8.92.9.85 (smoke-ascend-85),8.92.9.86 (smoke-ascend-86),8.92.9.87 (smoke-ascend-87),8.92.9.88 (smoke-ascend-88),8.92.9.89 (smoke-ascend-89),8.92.9.29 (smoke-ascend310-29),8.92.9.83 (smoke-ascend310-83),8.92.9.96 (smoke-ascend310-96),8.92.9.131 (smoke-ascend310-131)</descriptionPropertyValue>
+          <projectName>Deploy_Ascend</projectName>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>DRIVER_VERSION_DATE</name>
+          <description>版本外发日期
+------------------
+20220712:   开源r1.8
+20220704：开源 r1.8
+20220628：开源 r1.8
+20220609: 开源仓, 内源仓master
+20220415: r1.7
+20220119: r1.6
+20211021: r1.5
+20210803: r1.4
+20210713: r1.3
+20210608: r1.2
+------------------
+20210129: r1.1
+20201229: 内源仓gpt
+20201215: r1.0
+20200829: r0.7
+20200731: r0.6
+20200903: r0.5
+20200527: r0.3</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>20220712</string>
+              <string>20220704</string>
+              <string>20220628</string>
+              <string>20220616</string>
+              <string>20220609</string>
+              <string>20220415</string>
+              <string>20220119</string>
+              <string>20211021</string>
+              <string>20210803</string>
+              <string>20210713</string>
+              <string>20210608</string>
+              <string>20210129</string>
+              <string>20201229</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>TOOLS_VERSION_DATE</name>
+          <description>版本外发日期
+------------------
+20220712：开源 r1.8
+20220628：开源 r1.8
+20220609: 开源仓, 内源仓master
+20220415: r1.7
+20220119: r1.6
+20211021: r1.5
+20210803: r1.4
+20210713: r1.3
+20210608: r1.2
+------------------
+20210129: r1.1
+20201229: 内源仓gpt
+20201215: r1.0
+20200829: r0.7
+20200731: r0.6
+20200903: r0.5
+20200527: r0.3</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>20220712</string>
+              <string>20220704</string>
+              <string>20220628</string>
+              <string>20220616</string>
+              <string>20220415</string>
+              <string>20220119</string>
+              <string>20211021</string>
+              <string>20210803</string>
+              <string>20210713</string>
+              <string>20210608</string>
+              <string>20210129</string>
+              <string>20201229</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>VERSION_TYPE</name>
+          <description>版本类型</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>euleros2.8_aarch64</string>
+              <string>ubuntu18.04_x86_64</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>OPERATOR_TYPE</name>
+          <description>安装顺序</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>firmware-&gt;driver</string>
+              <string>driver-&gt;firmware</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>UNINSTALL_FLAG</name>
+          <description>run包是否卸载</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>false</string>
+              <string>true</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>smoke-schedule-30</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+# Init parameter
+SSHPASS="sshpass -p ${BLUE_ASCEND_PASSWORD}"
+SSH="${SSHPASS} ssh -q -o StrictHostKeychecking=no"
+NODE_IP_LIST="${NODE_IP_LIST//,/ }"
+FILENAME_VERSION_TYPE=$(echo ${VERSION_TYPE}|sed 's#_#.#g')
+ASCEND_PACKAGE_PATH="/nfs/ascend/ascend910/${DRIVER_VERSION_DATE}"
+TIMEOUT_CHECK_NETWORK=200
+TIMEOUT_CHECK_SSH=200
+RUN_PACKAGE_NUM=6
+
+
+##################
+# Common Library #
+##################
+# Color
+Red='\e[0;31m'          # Red
+Green='\e[0;32m'        # Green
+BRed='\e[1;31m'         # Red
+BGreen='\e[1;32m'       # Green
+BCyan='\e[1;36m'        # Cyan
+Purple='\e[0;35m'       # Purple
+BPurple='\e[1;35m'      # Bold Purple
+Color_Off='\e[0m'       # Text Reset
+
+# Log head
+function LOG_HEAD() {
+    local assert_msg=${1}
+    echo -e "\n${BGreen}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log info
+function LOG_INFO() {
+    local assert_msg=${1}
+    echo -e "${Green}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log error
+function LOG_ERROR() {
+    local assert_msg=${1}
+    echo -e "${BRed}[ERROR] ${assert_msg}${Color_Off}"
+}
+
+# Assert A is equal to B
+# True: equal
+# False: not equal
+function DP_ASSERT_EQUAL() {
+    local actual_value=${1}
+    local expect_value=${2}
+    local assert_msg=${3}
+    local b_flag=${4:-"true"}
+    if [ "${actual_value}" != "${expect_value}" ]; then
+        LOG_ERROR "${assert_msg} is failed."
+        echo "ret:${actual_value}"
+        if [ "${b_flag}" = "true" ]; then
+            exit 1
+        fi
+    else
+        LOG_INFO "${assert_msg} is success."
+    fi
+}
+
+# Excute command
+function EXCUTE_COMMAND_REMOTE() {
+    local node_ip=${1}
+    local cmd=${2}
+    echo -e "${BPurple}[Command]${Color_Off} ${Purple}${cmd}${Color_Off}"
+    ${SSH} ${BLUE_ASCEND_USER}@${node_ip} "${cmd}"
+    return $?
+}
+
+# Excute command with result
+function EXCUTE_COMMAND_REMOTE_WITH_RESULT() {
+    local node_ip=${1}
+    local cmd=${2}
+    echo -e "${BPurple}[Command]${Color_Off} ${Purple}${cmd}${Color_Off}"
+    result=$(${SSH} ${BLUE_ASCEND_USER}@${node_ip} "${cmd}")
+    export EXCUTE_RESULT=$result
+    return ${result}
+}
+
+# Check node model 310 or 910
+function CHECK_NODE_DEVICE_TYPE() {
+    local node_ip=${1}
+
+    EXCUTE_COMMAND_REMOTE_WITH_RESULT "${node_ip}" "cat /root/davinci_type.txt"
+    check_ret=$EXCUTE_RESULT
+    if [ -n "${check_ret}" ]; then
+        device_type=${check_ret}
+    else
+        EXCUTE_COMMAND_REMOTE_WITH_RESULT "${node_ip}" "dtype=\$(lspci|grep 'Device d'|awk -F'Device' '{print \$NF}'|uniq);
+                                                        if [[ \${dtype} =~ d100 ]]; then
+                                                            echo 310
+                                                        elif [[ \${dtype} =~ d801 ]]; then
+                                                            echo 910
+                                                        else
+                                                            echo 710
+                                                        fi"
+        check_ret=$EXCUTE_RESULT
+        if [ -n "${check_ret}" ]; then
+            device_type=${check_ret}
+            EXCUTE_COMMAND_REMOTE_WITH_RESULT "${node_ip}" "echo ${device_type} &gt; /root/davinci_type.txt"
+        else
+            device_type=910
+        fi
+    fi
+    export NODE_TYPE=${device_type}
+}
+
+
+##########
+# Deploy #
+##########
+# Uninstall ascend
+function UNINSTALL_ASCEND() {
+    local node_ip=${1}
+    local NODE_MODEL=910
+
+    # Check mount
+    LOG_HEAD "Mount nfs."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "df -Th|grep '8.92.9.30:/data/nfs'"
+    if [ $? -ne 0 ]; then
+        EXCUTE_COMMAND_REMOTE "${node_ip}" "mount -t nfs -o vers=3,nolock 8.92.9.30:/data/nfs /nfs"
+        DP_ASSERT_EQUAL "$?" "0" "Mount nfs"
+    fi
+
+    # Check node ascend910 or ascend310
+    LOG_HEAD "Check node ascend910 or ascend310."
+    CHECK_NODE_DEVICE_TYPE "${node_ip}"
+    if [ -n "${NODE_TYPE}" ]; then
+        NODE_MODEL="${NODE_TYPE}"
+    else
+        LOG_ERROR "The node type is ${NODE_TYPE}"
+        return 1
+    fi
+    LOG_INFO "The node is ascend${NODE_MODEL}."
+
+    # Get old version date
+    LOG_HEAD "Get old version date."
+    EXCUTE_COMMAND_REMOTE_WITH_RESULT "${node_ip}" "[ -f /usr/local/Ascend/version_date.txt ] &amp;&amp; cat /usr/local/Ascend/version_date.txt"
+    OLD_DRIVER_VERSION_DATE=$EXCUTE_RESULT
+    if [ -z "${OLD_DRIVER_VERSION_DATE}" ]; then
+        LOG_ERROR "Get old version date is failed."
+        return 1
+    else
+        local OLD_DRIVER_BASE_PATH="/nfs/ascend/ascend910/${OLD_DRIVER_VERSION_DATE}"
+    fi
+
+    EXCUTE_COMMAND_REMOTE_WITH_RESULT "${node_ip}" "[ -f /usr/local/Ascend/tools_version_date.txt ] &amp;&amp; cat /usr/local/Ascend/tools_version_date.txt"
+    OLD_TOOLS_VERSION_DATE=$EXCUTE_RESULT
+    if [ -z "${OLD_TOOLS_VERSION_DATE}" ]; then
+        local OLD_TOOLS_BASE_PATH="/nfs/ascend/ascend910/${OLD_DRIVER_VERSION_DATE}"
+    else
+        local OLD_TOOLS_BASE_PATH="/nfs/ascend/ascend910/${OLD_TOOLS_VERSION_DATE}"
+    fi
+
+    # Check driver package path
+    if [ -d "${OLD_DRIVER_BASE_PATH}/ascend${NODE_MODEL}/aarch64" ]; then
+        if [[ "${VERSION_TYPE}" =~ "aarch64" ]]; then
+            local version_type="aarch64"
+        else
+            local version_type="x86_64"
+        fi
+        local OLD_FIRMWARE_PACKAGE_PATH="${OLD_DRIVER_BASE_PATH}/ascend${NODE_MODEL}"
+    else
+        local version_type="${VERSION_TYPE}"
+        local OLD_FIRMWARE_PACKAGE_PATH="${OLD_DRIVER_BASE_PATH}/ascend${NODE_MODEL}/common"
+    fi
+    local OLD_DRIVER_PACKAGE_PATH="${OLD_DRIVER_BASE_PATH}/ascend${NODE_MODEL}/${version_type}"
+
+    # Check tools package path
+    if [ -d "${OLD_TOOLS_BASE_PATH}/CANN/aarch64" ]; then
+        local OLD_FWKACLLIB_PACKAGE_PATH="${OLD_TOOLS_BASE_PATH}/CANN/${version_type}"
+        local OLD_AICPU_PACKAGE_PATH="${OLD_TOOLS_BASE_PATH}/ascend${NODE_MODEL}"
+        local OLD_OPP_PACKAGE_PATH="${OLD_TOOLS_BASE_PATH}/CANN/${version_type}"
+        local OLD_TOOLKIT_PACKAGE_PATH="${OLD_TOOLS_BASE_PATH}/CANN/${version_type}"
+    else
+        local OLD_FWKACLLIB_PACKAGE_PATH="${OLD_TOOLS_BASE_PATH}/ascend${NODE_MODEL}/${version_type}"
+        local OLD_AICPU_PACKAGE_PATH="${OLD_TOOLS_BASE_PATH}/ascend${NODE_MODEL}/common"
+        local OLD_OPP_PACKAGE_PATH="${OLD_TOOLS_BASE_PATH}/ascend${NODE_MODEL}/${version_type}"
+        local OLD_TOOLKIT_PACKAGE_PATH="${OLD_TOOLS_BASE_PATH}/ascend${NODE_MODEL}/${version_type}"
+    fi
+
+    # Uninstall driver
+    LOG_HEAD "Uninstall driver."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${OLD_DRIVER_PACKAGE_PATH} &amp;&amp; bash *driver*.run --uninstall"
+
+    # Uninstall firmware
+    LOG_HEAD "Uninstall firmware."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${OLD_FIRMWARE_PACKAGE_PATH} &amp;&amp; bash *firmware*.run --uninstall"
+
+    # Uninstall fwkacllib
+    LOG_HEAD "Uninstall fwkacllib."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${OLD_FWKACLLIB_PACKAGE_PATH};
+                                        if [ -f Ascend-fwkacllib-*-${FILENAME_VERSION_TYPE}.run ]; then
+                                            bash Ascend-fwkacllib-*-${FILENAME_VERSION_TYPE}.run --uninstall
+                                        else
+                                            bash CANN-compiler-*.run --uninstall
+                                            bash CANN-runtime-*.run --uninstall
+                                        fi"
+
+    # Uninstall aicpu
+    LOG_HEAD "Uninstall aicpu."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${OLD_AICPU_PACKAGE_PATH} &amp;&amp; bash Ascend${NODE_MODEL}-aicpu_kernels-*.run --uninstall"
+
+    # Uninstall opp
+    LOG_HEAD "Uninstall opp."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${OLD_OPP_PACKAGE_PATH};
+                                        if [ -f Ascend-opp-*-${FILENAME_VERSION_TYPE}.run ]; then
+                                            bash Ascend-opp-*-${FILENAME_VERSION_TYPE}.run --uninstall
+                                        else
+                                            bash CANN-opp-*.run --uninstall
+                                        fi"
+
+    # Uninstall toolkit
+    LOG_HEAD "Uninstall toolkit."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${OLD_TOOLKIT_PACKAGE_PATH};
+                                        if [ -f Ascend-toolkit-*-${FILENAME_VERSION_TYPE}.run ]; then
+                                            bash Ascend-toolkit-*-${FILENAME_VERSION_TYPE}.run --uninstall
+                                        else
+                                            bash CANN-toolkit-*.run --uninstall
+                                        fi"
+}
+
+# Uninstall ascend
+function UNINSTALL_ASCEND_ALL_NODE() {
+    local node_ip_list=($@)
+    local process_pid=()
+    local flag_check=0
+    local i=0
+    local succ_number=0
+    local NODE_MODEL=910
+
+    # Uninstall
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        # Uninstall# Set version date
+        UNINSTALL_ASCEND "${node_ip_list[i]}" &gt; ${WORKSPACE}/uninstall_ascend_${node_ip_list[i]}.log 2&gt;&amp;1 &amp;
+        process_pid[${i}]=$(echo $!)
+    done
+
+    # Wait for all process execution
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        # Check node ascend910 or ascend310
+        LOG_HEAD "Check node ascend910 or ascend310."
+        CHECK_NODE_DEVICE_TYPE "${node_ip_list[i]}"
+        if [ -n "${NODE_TYPE}" ]; then
+            NODE_MODEL="${NODE_TYPE}"
+        else
+            LOG_ERROR "The node type is ${NODE_TYPE}"
+            flag_check=1
+            continue
+        fi
+
+        # Check uninstall ret
+        wait ${process_pid[i]}
+        ret=$?
+
+        # Check run package number
+        EXCUTE_COMMAND_REMOTE_WITH_RESULT "${node_ip_list[i]}" "[ -f /usr/local/Ascend/version_date.txt ] &amp;&amp; cat /usr/local/Ascend/version_date.txt"
+        OLD_VERSION_DATE=$EXCUTE_RESULT
+        EXCUTE_COMMAND_REMOTE_WITH_RESULT "${node_ip_list[i]}" "[ -f /nfs/ascend/ascend910/${OLD_VERSION_DATE}/ascend${NODE_MODEL}/${VERSION_TYPE}/Ascend-fwkacllib-*-${FILENAME_VERSION_TYPE}.run ] &amp;&amp; echo 6"
+        if [ "${EXCUTE_RESULT}" = "6" ]; then
+            RUN_PACKAGE_NUM=6
+        else
+            RUN_PACKAGE_NUM=7
+        fi
+        error_number=$(cat uninstall_ascend_${node_ip_list[i]}.log|grep '\[ERROR\]'|wc -l)
+        if [ "${ret}" -eq "0" ] &amp;&amp; [ "${error_number}" -eq "0" ]; then
+            # Uninstall toolkit
+            LOG_HEAD "Clear /usr/local/Ascend."
+            EXCUTE_COMMAND_REMOTE "${node_ip_list[i]}" "rm -fr /usr/local/Ascend"
+            echo "Node[${node_ip_list[i]}] - Uninstall ascend success."
+        else
+            echo "Node[${node_ip_list[i]}] - Uninstall ascend failed."
+            cat ${WORKSPACE}/uninstall_ascend_${node_ip_list[i]}.log
+            flag_check=1
+        fi
+    done
+
+    # Return result
+    if [ "${flag_check}" -ne "0" ]; then
+        LOG_ERROR "Uninstall ascend of all nodes is failed."
+        return 1
+    else
+        LOG_INFO "Uninstall ascend of all nodes is success."
+        return 0
+    fi
+}
+
+
+
+# Deploy ascend
+function DEPLOY_ASCEND() {
+    local node_ip=${1}
+    local NODE_MODEL=910
+
+    # Check mount
+    LOG_HEAD "Mount nfs."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "df -Th|grep '8.92.9.30:/data/nfs'"
+    if [ $? -ne 0 ]; then
+        EXCUTE_COMMAND_REMOTE "${node_ip}" "mount -t nfs -o vers=3,nolock 8.92.9.30:/data/nfs /nfs"
+        DP_ASSERT_EQUAL "$?" "0" "Mount nfs"
+    fi
+
+    # Delete ascend_check
+    LOG_HEAD "Delete ascend_check."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "rm -rf /root/ascend_check; ls -l /root/ascend_check"
+
+    # Check node ascend910 or ascend310
+    LOG_HEAD "Check node ascend910 or ascend310."
+    CHECK_NODE_DEVICE_TYPE "${node_ip}"
+    if [ -n "${NODE_TYPE}" ]; then
+        NODE_MODEL="${NODE_TYPE}"
+    else
+        LOG_ERROR "The node type is ${NODE_TYPE}"
+        return 1
+    fi
+    LOG_INFO "The node is ascend${NODE_MODEL}."
+
+    # Set driver and tools base path
+    LOG_HEAD "Set driver and tools base path."
+    local DRIVER_BASE_PATH="/nfs/ascend/ascend910/${DRIVER_VERSION_DATE}"
+    if [ -z "${TOOLS_VERSION_DATE}" ]; then
+        local TOOLS_BASE_PATH="/nfs/ascend/ascend910/${DRIVER_VERSION_DATE}"
+    else
+        local TOOLS_BASE_PATH="/nfs/ascend/ascend910/${TOOLS_VERSION_DATE}"
+    fi
+
+    # Check driver package path
+    if [ -d "${DRIVER_BASE_PATH}/ascend${NODE_MODEL}/aarch64" ]; then
+        if [[ "${VERSION_TYPE}" =~ "aarch64" ]]; then
+            local version_type="aarch64"
+        else
+            local version_type="x86_64"
+        fi
+        local FIRMWARE_PACKAGE_PATH="${DRIVER_BASE_PATH}/ascend${NODE_MODEL}"
+    else
+        local version_type="${VERSION_TYPE}"
+        local FIRMWARE_PACKAGE_PATH="${DRIVER_BASE_PATH}/ascend${NODE_MODEL}/common"
+    fi
+    local DRIVER_PACKAGE_PATH="${DRIVER_BASE_PATH}/ascend${NODE_MODEL}/${version_type}"
+
+    # Check tools package path
+    if [ -d "${TOOLS_BASE_PATH}/CANN/aarch64" ]; then
+        local FWKACLLIB_PACKAGE_PATH="${TOOLS_BASE_PATH}/CANN/${version_type}"
+        local AICPU_PACKAGE_PATH="${TOOLS_BASE_PATH}/ascend${NODE_MODEL}"
+        local OPP_PACKAGE_PATH="${TOOLS_BASE_PATH}/CANN/${version_type}"
+        local TOOLKIT_PACKAGE_PATH="${TOOLS_BASE_PATH}/CANN/${version_type}"
+    else
+        local FWKACLLIB_PACKAGE_PATH="${TOOLS_BASE_PATH}/ascend${NODE_MODEL}/${version_type}"
+        local AICPU_PACKAGE_PATH="${TOOLS_BASE_PATH}/ascend${NODE_MODEL}/common"
+        local OPP_PACKAGE_PATH="${TOOLS_BASE_PATH}/ascend${NODE_MODEL}/${version_type}"
+        local TOOLKIT_PACKAGE_PATH="${TOOLS_BASE_PATH}/ascend${NODE_MODEL}/${version_type}"
+    fi
+
+    # Install hisi pkg
+    if [ "${UNINSTALL_FLAG}" != "true" ] &amp;&amp; [ "${OPERATOR_TYPE}" = "firmware-&gt;driver" ]; then
+        # Install firmware
+        LOG_HEAD "Install firmware."
+        EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${FIRMWARE_PACKAGE_PATH} &amp;&amp; bash *firmware*.run --full --quiet"
+
+        # Install driver
+        LOG_HEAD "Install driver."
+        EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${DRIVER_PACKAGE_PATH} &amp;&amp; bash *driver*.run --full --quiet"
+    else
+        # Install driver
+        LOG_HEAD "Install driver."
+        EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${DRIVER_PACKAGE_PATH} &amp;&amp; bash *driver*.run --full --quiet"
+
+        # Install firmware
+        LOG_HEAD "Install firmware."
+        EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${FIRMWARE_PACKAGE_PATH} &amp;&amp; bash *firmware*.run --full --quiet"
+    fi
+
+    # Install fwkacllib
+    LOG_HEAD "Install fwkacllib."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${FWKACLLIB_PACKAGE_PATH};
+                                        if [ -f Ascend-fwkacllib-*.run ]; then
+                                            bash Ascend-fwkacllib-*-${FILENAME_VERSION_TYPE}.run --full --quiet --install-for-all
+                                        else
+                                            bash CANN-runtime*.run --full --quiet --install-for-all
+                                            bash CANN-compiler*.run --full --quiet --install-for-all
+                                        fi"
+
+    # Install opp
+    LOG_HEAD "Install opp."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${OPP_PACKAGE_PATH};
+                                        if [ -f Ascend-opp-*.run ]; then
+                                            bash Ascend-opp-*-${FILENAME_VERSION_TYPE}.run --full --quiet --install-for-all
+                                        else
+                                            bash CANN-opp-*.run --full --quiet --install-for-all
+                                        fi"
+
+    # Install toolkit
+    LOG_HEAD "Install toolkit."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${TOOLKIT_PACKAGE_PATH};
+                                        if [ -f Ascend-toolkit-*.run ]; then
+                                            bash Ascend-toolkit-*-${FILENAME_VERSION_TYPE}.run --full --quiet --install-for-all
+                                        else
+                                            bash CANN-toolkit-*.run --full --quiet --install-for-all
+                                        fi"
+
+    # Install aicpu
+    LOG_HEAD "Install aicpu."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "cd ${AICPU_PACKAGE_PATH} &amp;&amp; bash Ascend${NODE_MODEL}-aicpu_kernels-*.run --full --quiet --install-for-all"
+
+    # Bugfix
+    LOG_HEAD "Bugfix."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "chmod 755 /usr/local/Ascend/fwkacllib/data/platform_config"
+    LOG_INFO "Bugfix is success."
+
+    # Chmod 555 /usr/local/Ascend/driver/tools/msnpureport
+    LOG_HEAD "Chmod /usr/local/Ascend/driver/tools/msnpureport."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "chattr -i /usr/local/Ascend/driver/tools/msnpureport &amp;&amp; chmod 555 /usr/local/Ascend/driver/tools/msnpureport"
+    DP_ASSERT_EQUAL "$?" "0" "Chmod /usr/local/Ascend/driver/tools/msnpureport"
+
+    # Install te topi hccl
+    LOG_HEAD "Install te topi hccl."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "if [ -d /usr/local/Ascend/fwkacllib/lib64 ]; then
+                                            cd /usr/local/Ascend/fwkacllib/lib64;
+                                            pip3 uninstall -y te topi hccl &amp;&amp; pip3 install te*.whl topi*.whl hccl*.whl
+                                        elif [ -d /usr/local/Ascend/latest/lib64 ]; then
+                                            cd /usr/local/Ascend/latest/lib64;
+                                            pip3 uninstall -y te topi hccl &amp;&amp; pip3 install te*.whl topi*.whl hccl*.whl
+                                        else
+                                            exit 1
+                                        fi"
+    DP_ASSERT_EQUAL "$?" "0" "Install te topi hccl"
+
+    # Set version date
+    LOG_HEAD "Set version date."
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "echo ${DRIVER_VERSION_DATE} &gt; /usr/local/Ascend/version_date.txt; chmod 755 /usr/local/Ascend/version_date.txt"
+    EXCUTE_COMMAND_REMOTE "${node_ip}" "echo ${TOOLS_VERSION_DATE} &gt; /usr/local/Ascend/tools_version_date.txt; chmod 755 /usr/local/Ascend/tools_version_date.txt"
+    LOG_INFO "Set version date success."
+}
+
+# Deploy ascend
+function DEPLOY_ASCEND_ALL_NODE() {
+    local node_ip_list=($@)
+    local process_pid=()
+    local flag_check=0
+    local i=0
+    local succ_number=0
+    local NODE_MODEL=910
+
+    # Deploy
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        DEPLOY_ASCEND "${node_ip_list[i]}" &gt; ${WORKSPACE}/deploy_ascend_${node_ip_list[i]}.log 2&gt;&amp;1 &amp;
+        process_pid[${i}]=$(echo $!)
+    done
+
+    # Wait for all process execution
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        # Check node ascend910 or ascend310
+        LOG_HEAD "Check node ascend910 or ascend310."
+        CHECK_NODE_DEVICE_TYPE "${node_ip_list[i]}"
+        if [ -n "$NODE_TYPE" ]; then
+            NODE_MODEL="${NODE_TYPE}"
+        else
+            LOG_ERROR "The node type is ${NODE_TYPE}"
+            flag_check=1
+            continue
+        fi
+
+        # Check install ret
+        wait ${process_pid[i]}
+        ret=$?
+
+        # Check run package number
+        EXCUTE_COMMAND_REMOTE_WITH_RESULT "${node_ip_list[i]}" "[ -f ${ASCEND_PACKAGE_PATH}/ascend${NODE_MODEL}/${VERSION_TYPE}/Ascend-fwkacllib-*-${FILENAME_VERSION_TYPE}.run ] &amp;&amp; echo 6"
+        if [ "${EXCUTE_RESULT}" = "6" ]; then
+            RUN_PACKAGE_NUM=6
+        else
+            RUN_PACKAGE_NUM=7
+        fi
+        error_number=$(cat deploy_ascend_${node_ip_list[i]}.log|grep '\[ERROR\]'|wc -l)
+        if [ "${ret}" -eq "0" ] &amp;&amp; [ "${error_number}" -eq "0" ]; then
+            echo "Node[${node_ip_list[i]}] - Deploy ascend success."
+        else
+            echo "Node[${node_ip_list[i]}] - Deploy ascend failed."
+            cat ${WORKSPACE}/deploy_ascend_${node_ip_list[i]}.log
+            flag_check=1
+        fi
+    done
+
+    # Return result
+    if [ "${flag_check}" -ne "0" ]; then
+        LOG_ERROR "Deploy ascend of all nodes is failed."
+        return 1
+    else
+        LOG_INFO "Deploy ascend of all nodes is success."
+        return 0
+    fi
+}
+
+# Reboot node
+function REBOOT_NODE() {
+    local node_ip_list=($@)
+    local flag_check=0
+    local i=0
+
+    # Reboot node
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        ${SSH} ${BLUE_ASCEND_USER}@${node_ip_list[i]} "reboot" &gt; /dev/null 2&gt;&amp;1
+        if [ "$?" -ne "255" ]; then
+            echo "Node[${node_ip_list[i]}] - Reboot failed."
+            flag_check=1
+        else
+            echo "Node[${node_ip_list[i]}] - Reboot success."
+        fi
+    done
+
+    # Return result
+    if [ "${flag_check}" -ne "0" ]; then
+        LOG_ERROR "Reboot all nodes is failed."
+        sleep 60
+        return 1
+    else
+        LOG_INFO "Reboot all nodes is success."
+        sleep 60
+        return 0
+    fi
+}
+
+# Check network
+function CHECK_NODE_NETWORK() {
+    local node_ip_list=($@)
+    local timeout=${TIMEOUT_CHECK_NETWORK}
+    local flag_check=0
+    local i=0
+
+    # Check network
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        timeout=${TIMEOUT_CHECK_NETWORK}
+        while [ "${timeout}" -ne "0" ]; do
+            ping -c 1 ${node_ip_list[i]} &gt; /dev/null 2&gt;&amp;1
+            if [ $? -eq 0 ]; then
+                break
+            fi
+            ((timeout-=1))
+            echo "CheckTimes=$((TIMEOUT_CHECK_NETWORK-timeout)), Node[${node_ip_list[i]}] network connect failed."
+        done
+
+        # If timeout
+        if [ "${timeout}" -eq "0" ]; then
+            LOG_ERROR "Node[${node_ip_list[i]}] - Network connect failed."
+            flag_check=1
+        else
+            LOG_INFO "Node[${node_ip_list[i]}] - Network connect success."
+        fi
+    done
+
+    # Return result
+    if [ "${flag_check}" -ne "0" ]; then
+        LOG_ERROR "Check network of all nodes is failed."
+        return 1
+    else
+        LOG_INFO "Check network of all nodes is success."
+        return 0
+    fi
+}
+
+# Check ssh
+function CHECK_NODE_SSH() {
+    local node_ip_list=($@)
+    local timeout=${TIMEOUT_CHECK_SSH}
+    local flag_check=0
+    local i=0
+
+    # Check ssh
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        timeout=${TIMEOUT_CHECK_SSH}
+        while [ "${timeout}" -ne "0" ]; do
+             ${SSH} ${BLUE_ASCEND_USER}@${node_ip_list[i]} "date" &gt; /dev/null 2&gt;&amp;1
+            if [ $? -eq 0 ]; then
+                break
+            fi
+            ((timeout-=1))
+            sleep 2
+            echo "CheckTimes=$((TIMEOUT_CHECK_SSH-timeout)), Node[${node_ip_list[i]}] ssh failed."
+        done
+
+        # If timeout
+        if [ "${timeout}" -eq "0" ]; then
+            LOG_ERROR "Node[${node_ip_list[i]}] - Check ssh failed."
+            flag_check=1
+        else
+            LOG_INFO "Node[${node_ip_list[i]}] - Check ssh success."
+        fi
+    done
+
+    # Return result
+    if [ "${flag_check}" -ne "0" ]; then
+        LOG_ERROR "Check ssh of all nodes is failed."
+        return 1
+    else
+        LOG_INFO "Check ssh of all nodes is success."
+        return 0
+    fi
+}
+
+function ENV_RESET() {
+    local node_ip_list=($@)
+
+    # Env reset
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        EXCUTE_COMMAND_REMOTE "${node_ip_list[i]}" "/usr/local/Ascend/driver/tools/msnpureport -g error"
+        EXCUTE_COMMAND_REMOTE "${node_ip_list[i]}" "/usr/local/Ascend/driver/tools/msnpureport -e disable"
+        EXCUTE_COMMAND_REMOTE "${node_ip_list[i]}" "/usr/local/Ascend/driver/tools/msnpureport -g error -d 4"
+        EXCUTE_COMMAND_REMOTE "${node_ip_list[i]}" "/usr/local/Ascend/driver/tools/msnpureport -e disable -d 4"
+        EXCUTE_COMMAND_REMOTE "${node_ip_list[i]}" "[ -f /usr/local/Ascend/latest/bin/setenv.bash ] &amp;&amp; source /usr/local/Ascend/latest/bin/setenv.bash"
+        EXCUTE_COMMAND_REMOTE "${node_ip_list[i]}" "rm -rf /home/jenkins/mindspore/mindspore/kernel_meta &amp;&amp; ls -l /home/jenkins/mindspore/mindspore"
+    done
+}
+
+function main() {
+    if [ "${UNINSTALL_FLAG}" = "true" ]; then
+        # Uninstall ascend
+        LOG_HEAD "Uninstall ascend."
+        UNINSTALL_ASCEND_ALL_NODE "${NODE_IP_LIST}"
+        ret1=$?
+
+        # Reboot node
+        LOG_HEAD "Reboot node."
+        REBOOT_NODE "${NODE_IP_LIST}"
+        ret2=$?
+
+        # Check network
+        LOG_HEAD "Check network."
+        CHECK_NODE_NETWORK "${NODE_IP_LIST}"
+        ret3=$?
+
+        # Check ssh
+        LOG_HEAD "Check sshd."
+        CHECK_NODE_SSH "${NODE_IP_LIST}"
+        ret4=$?
+
+         # Return result
+        if [ "${ret1}" -ne "0" ] || [ "${ret2}" -ne "0" ] || [ "${ret3}" -ne "0" ] || [ "${ret4}" -ne "0" ]; then
+            exit 1
+        fi
+    fi
+
+    # Deploy ascend
+    LOG_HEAD "Deploy ascend."
+    DEPLOY_ASCEND_ALL_NODE "${NODE_IP_LIST}"
+    ret1=$?
+
+    # Reboot node
+    LOG_HEAD "Reboot node."
+    REBOOT_NODE "${NODE_IP_LIST}"
+    ret2=$?
+
+    # Check network
+    LOG_HEAD "Check network."
+    CHECK_NODE_NETWORK "${NODE_IP_LIST}"
+    ret3=$?
+
+    # Check ssh
+    LOG_HEAD "Check sshd."
+    CHECK_NODE_SSH "${NODE_IP_LIST}"
+    ret4=$?
+
+    # Env reset
+    LOG_HEAD "Env reset."
+    ENV_RESET "${NODE_IP_LIST}"
+
+    # Return result
+    if [ "${ret1}" -ne "0" ] || [ "${ret2}" -ne "0" ] || [ "${ret3}" -ne "0" ] || [ "${ret4}" -ne "0" ]; then
+        exit 1
+    fi
+}
+
+main $@</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.39">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter/>
+      <externalDelete/>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.25">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>user_root</credentialsId>
+          <usernameVariable>BLUE_ASCEND_USER</usernameVariable>
+          <passwordVariable>BLUE_ASCEND_PASSWORD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.13"/>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@1.0.0">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

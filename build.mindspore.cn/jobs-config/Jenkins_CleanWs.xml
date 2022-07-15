@@ -1,0 +1,234 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.41">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.8.5"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.8.5">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>定时清理节点workspace目录</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>100</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.82">
+          <name>NODE_TYPE</name>
+          <description>节点类型（调度，代码检查，编译，冒烟）</description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>10</visibleItemCount>
+          <type>PT_CHECKBOX</type>
+          <value>generic,check,compile,smoke</value>
+          <defaultValue>compile,smoke</defaultValue>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+          <descriptionPropertyValue>generic,check,compile,smoke</descriptionPropertyValue>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.TimerTrigger>
+          <spec>#H 3 * * 6-7
+H H/24 * * *</spec>
+        </hudson.triggers.TimerTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.92">
+    <script>/*
+# Copyright 2021 Huawei Technologies Co., Ltd
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
+*/
+
+def setEnv() {
+    env.NUMBER_GENERIC = 8
+    env.NUMBER_CHECK = 12
+    env.NUMBER_COMPILE_ARM_CENTOS = 20
+    env.NUMBER_COMPILE_ARM_EULEROS = 1
+    env.NUMBER_COMPILE_ARM_UBUNTU = 1
+    env.NUMBER_COMPILE_X86_CENTOS = 96
+    env.NUMBER_COMPILE_X86_EULEROS = 1
+    env.NUMBER_COMPILE_X86_UBUNTU = 23
+    env.NUMBER_COMPILE_X64_WINDOWS = 36
+}
+
+def cleanWs_Linux(String nodeLabel, int projectTimeout) {
+    nodes("${nodeLabel}") {
+        dir("/tmp/${nodeLabel}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                sh label: nodeLabel, script: """
+                #!/bin/bash
+                set +xe
+                
+                # Running on agent
+                echo "Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})"
+                
+                # Clean ws
+                echo -e "\n[INFO] Clean ws."
+                rm -rf ${HOME}/agent-working-dir/workspace/*
+                ls -l ${HOME}/agent-working-dir/workspace
+
+                # Clean tmp
+                echo -e "\n[INFO] Clean tmp."
+                rm -fr /tmp
+                
+                # Clean ascend log
+                echo -e "\n[INFO] Clean ascend log."
+                rm -rf ${HOME}/ascend/log
+                """
+            }
+        }
+    }
+}
+
+def cleanWs_Windows(String nodeLabel, int projectTimeout) {
+    node("${nodeLabel}") {
+        dir("${TEMP}\\${nodeLabel}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                bat label: nodeLabel, script: """
+                @echo off
+                @rem Running on agent
+                echo Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})
+                
+                @rem Clean ws
+                echo. &amp;&amp; echo [INFO] Clean ws.
+                rmdir /s/q D:\\jenkins\\agent-working-dir\\workspace\\
+                dir D:\\jenkins\\agent-working-dir\\workspace\\
+                echo [INFO] Clean ws is success.
+                """
+            }
+        }
+    }
+}
+
+def getJobsList(def nodeType) {
+    setEnv()
+    if (nodeType == 'generic') {
+        def jobsListGeneric = []
+        for (int i=0; i&lt;NUMBER_GENERIC.toInteger(); i++) {
+            jobsListGeneric &lt;&lt; "x86-generic-slaves-${i}"
+        }
+        return jobsListGeneric
+    } else if (nodeType == 'check') {
+        def jobsListCheck = []
+        for (int i=0; i&lt;NUMBER_CHECK.toInteger(); i++) {
+            jobsListCheck &lt;&lt; "x86-check-slaves-${i}"
+        }
+        return jobsListCheck
+    } else if (nodeType == 'compile_linux') {
+        def jobsListCompileLinux = []
+        for (int i=0; i&lt;NUMBER_COMPILE_ARM_CENTOS.toInteger(); i++) {
+            jobsListCompileLinux &lt;&lt; "arm-centos-slaves-${i}"
+        }
+        for (int i=0; i&lt;NUMBER_COMPILE_ARM_EULEROS.toInteger(); i++) {
+            jobsListCompileLinux &lt;&lt; "arm-euleros-slaves-${i}"
+        }
+        for (int i=0; i&lt;NUMBER_COMPILE_ARM_UBUNTU.toInteger(); i++) {
+            jobsListCompileLinux &lt;&lt; "arm-ubuntu-slaves-${i}"
+        }
+        for (int i=0; i&lt;NUMBER_COMPILE_X86_CENTOS.toInteger(); i++) {
+            jobsListCompileLinux &lt;&lt; "x86-centos-slaves-${i}"
+        }
+        for (int i=0; i&lt;NUMBER_COMPILE_X86_EULEROS.toInteger(); i++) {
+            jobsListCompileLinux &lt;&lt; "x86-euleros-slaves-${i}"
+        }
+        for (int i=0; i&lt;NUMBER_COMPILE_X86_UBUNTU.toInteger(); i++) {
+            jobsListCompileLinux &lt;&lt; "x86-ubuntu-slaves-${i}"
+        }
+        return jobsListCompileLinux
+    } else if (nodeType == 'compile_windows') {
+        def jobsListCompileWindows = []
+        for (int i=0; i&lt;NUMBER_COMPILE_X64_WINDOWS.toInteger(); i++) {
+            jobsListCompileWindows &lt;&lt; "x86-windows-slaves-${i}"
+        }
+        return jobsListCompileWindows
+    } else if (nodeType == 'smoke') {
+        def jobsListSmoke = ["smoke-ascend310-96",
+                             "smoke-lite-x86",
+                             "smoke-lite-phone-cpu",
+                             "smoke-lite-phone-gpu",
+                             "smoke-lite-phone-npu",
+                             "smoke-lite-phone-gpu-gl",
+                             "smoke-lite-gpu"]
+        return jobsListSmoke
+    }
+}
+
+def getParallelJobs(def jobsList, def funcName) {
+    def parallelJobsRun = [:]
+    jobsList.each { job -&gt;
+        parallelJobsRun["${job}"] = {funcName(job, 10)}
+    }
+    return parallelJobsRun
+}
+
+node('x86-generic-slaves') {
+    try {
+        stage('clean-ws') {
+            def nodeTypeList = NODE_TYPE.tokenize(',')
+            def parallelJobsRun = [:]
+            def jobsListLinux = []
+            def jobsListWindows = []
+            
+            // Get jobs list
+            if (nodeTypeList.contains('generic')) {
+                jobsListLinux += getJobsList("generic")
+            }
+            if (nodeTypeList.contains('check')) {
+                jobsListLinux += getJobsList("check")
+            }
+            if (nodeTypeList.contains('compile')) {
+                jobsListLinux += getJobsList("compile_linux")
+                jobsListWindows += getJobsList("compile_windows")
+            }
+            if (nodeTypeList.contains('smoke')) {
+                jobsListLinux += getJobsList("smoke")
+            }
+            
+            // Run jobs
+            parallelJobsRun &lt;&lt; getParallelJobs(jobsListLinux, this.&amp;cleanWs_Linux)
+            parallelJobsRun &lt;&lt; getParallelJobs(jobsListWindows, this.&amp;cleanWs_Windows)
+            parallel parallelJobsRun
+        }
+    } catch(Exception ex) {
+        println("[ERROR] ${ex}")
+    }
+}
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

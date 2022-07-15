@@ -1,0 +1,100 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description>Smoke节点时钟同步</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.2.1"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>15</daysToKeep>
+        <numToKeep>1000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.82">
+          <name>NODE_IP</name>
+          <description>node ip</description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>15</visibleItemCount>
+          <type>PT_CHECKBOX</type>
+          <value>8.92.9.56,8.92.9.57,8.92.9.58,8.92.9.85,8.92.9.86,8.92.9.87,8.92.9.88,8.92.9.89,8.92.9.42,8.92.9.45,8.92.9.76,8.92.9.77</value>
+          <defaultValue>8.92.9.56,8.92.9.57,8.92.9.58,8.92.9.85,8.92.9.86,8.92.9.87,8.92.9.88,8.92.9.89,8.92.9.42,8.92.9.45,8.92.9.76,8.92.9.77</defaultValue>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+          <descriptionPropertyValue>8.92.9.56 (smoke-ascend-56),8.92.9.57 (smoke-ascend-57),8.92.9.58 (smoke-ascend-58),8.92.9.85 (smoke-ascend-85),8.92.9.86 (smoke-ascend-86),8.92.9.87 (smoke-ascend-87),8.92.9.88 (smoke-ascend-88),8.92.9.89 (smoke-ascend-89),8.92.9.42 (smoke-gpu-42),8.92.9.45 (smoke-gpu-45),8.92.9.76 (smoke-gpu-76),8.92.9.77 (smoke-gpu-77)</descriptionPropertyValue>
+          <projectName>Jenkins_Time_Sync</projectName>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>smoke-schedule</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>00 3 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+# Init parameter
+SSHPASS="sshpass -p ${BLUE_SMOKE_PASSWORD}"
+SSH="${SSHPASS} ssh -q -o StrictHostKeychecking=no"
+NODE_IP_LIST="${NODE_IP//,/ }"
+
+# Sync time
+echo -e "\n[INFO] Synchronised clock."
+for ONE_NODE in ${NODE_IP_LIST}; do
+    ${SSH} ${BLUE_SMOKE_USER}@${ONE_NODE} "ntpdate ntp1.aliyun.com" &amp;
+done
+wait
+
+# Check time
+echo -e "\n[INFO] Check time."
+for ONE_NODE in ${NODE_IP_LIST}; do
+    ${SSH} ${BLUE_SMOKE_USER}@${ONE_NODE} "echo 'Node[${ONE_NODE}]: $(date)'"
+done
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.39">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter/>
+      <externalDelete/>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.24">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>user_root</credentialsId>
+          <usernameVariable>BLUE_SMOKE_USER</usernameVariable>
+          <passwordVariable>BLUE_SMOKE_PASSWORD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.12"/>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.5">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

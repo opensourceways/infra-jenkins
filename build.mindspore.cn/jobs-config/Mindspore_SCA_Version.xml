@@ -1,0 +1,74 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.41">
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>mindsporeçš„branch</description>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.TimerTrigger>
+          <spec>15 1 * * *
+15 12 * * *
+15 20 * * *</spec>
+        </hudson.triggers.TimerTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.92">
+    <script>node('x86-check-ubuntu') {
+        stage("downloadCode"){
+            cleanWs()
+            withCredentials([usernamePassword(credentialsId: 'mindspore_community_jenkins_gitee', passwordVariable: 'GITEE_CREDENTIAL_PSW', usernameVariable: 'GITEE_CREDENTIAL_USR')]) {
+                sh label: "downloadcode", script: """
+                #!/bin/bash
+                set +xe
+
+                # Running on agent
+                echo "Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})"
+                which scanoss-py
+                scanoss-py version
+                # Git clone code of ms-pipeline
+                echo -e "\n[INFO] Git clone code of ms-pipeline."
+                for ((i=0; i&lt;3; i++)); do
+                    rm -rf ${WORKSPACE}/ms-pipeline
+                    git clone https://${GITEE_CREDENTIAL_USR}:${GITEE_CREDENTIAL_PSW}@gitee.com/mindspore/ms-pipeline.git -b master
+                    [ \$? -eq 0 ] &amp;&amp; break
+                done
+                [ \${i} -eq 3 ] &amp;&amp; echo "[ERROR] Git clone code of ms-pipeline is failed." &amp;&amp; exit 1
+                 ls -ld ${WORKSPACE}/ms-pipeline
+                ls ${WORKSPACE}/ms-pipeline/pipeline/bin/code
+                """   
+            }
+        }
+        stage("run scanoss"){
+            def sbom_path = env.WORKSPACE+"/ms-pipeline/pipeline/bin/code/sbom.json"
+            scanner sbomFile: sbom_path, authCode: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RAMTIzNC5jb20ifQ.jcROsr6ktxQNujA-9w2CR_tLFbBliaivqojzGQ5bePI', credentialId: 'mindspore_community_jenkins_gitee', repoUrlsAndBranches: 'https://gitee.com/mindspore/mindspore.git:'+env.branch, scanossCredentials: '', url: 'https://api.osinfra.cn', urlChoose: ''
+            sh label: "cat result", script: """
+                #!/bin/bash
+                cat ${WORKSPACE}/scanoss_result_${BUILD_NUMBER}_1.txt
+                """   
+        }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

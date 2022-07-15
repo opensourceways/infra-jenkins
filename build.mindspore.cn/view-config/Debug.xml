@@ -1,0 +1,36 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>Debug</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>GoldenStick_Gitee_Version_Debug</string>
+    <string>MindScience_Gitee_Gate_Test</string>
+    <string>MindSpore_AKG_Gitee_Scanoss_Test</string>
+    <string>MindSpore_Course_Gitee_Test</string>
+    <string>MindSpore_Gitee_Gate2</string>
+    <string>MindSpore_Gitee_Gate3</string>
+    <string>MindSpore_Gitee_Gate4</string>
+    <string>MindSpore_Gitee_Gate_Debug_Test</string>
+    <string>MindSpore_Gitee_Test_Scanoss</string>
+    <string>MindSpore_Gitee_Test_Tensorrt</string>
+    <string>MindSpore_Gitee_Test_Tensorrt_r1.8</string>
+    <string>MindSpore_Gitee_Version2</string>
+    <string>MindSpore_Mindquan_Gitee_Scanoss_Test</string>
+    <string>MindSpore_MindScience_Gitee_Scanoss_Test</string>
+    <string>Qinling-Flyspeech_Gitee_Gate2</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

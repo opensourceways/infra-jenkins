@@ -1,0 +1,213 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>SHARE_PATH</name>
+          <description>代码share的根目录</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>/home/jenkins/share-data</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>CODE_PLATFORM</name>
+          <description>平台</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>gitee</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>x86-check-ubuntu</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H */2 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+# Init parameter
+BASE_PATH="${SHARE_PATH}/${CODE_PLATFORM}"
+
+
+
+##################
+# Common Library #
+##################
+# Color
+Red='\e[0;31m'          # Red
+Green='\e[0;32m'        # Green
+BRed='\e[1;31m'         # Red
+BGreen='\e[1;32m'       # Green
+BCyan='\e[1;36m'        # Cyan
+Purple='\e[0;35m'       # Purple
+BPurple='\e[1;35m'      # Bold Purple
+Color_Off='\e[0m'       # Text Reset
+
+# Log head
+function LOG_HEAD() {
+    local assert_msg=${1}
+    echo -e "\n${BGreen}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log info
+function LOG_INFO() {
+    local assert_msg=${1}
+    echo -e "${Green}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log error
+function LOG_ERROR() {
+    local assert_msg=${1}
+    echo -e "${BRed}[ERROR] ${assert_msg}${Color_Off}"
+}
+
+# Assert A is equal to B
+# True: equal
+# False: not equal
+function DP_ASSERT_EQUAL() {
+    local actual_value=${1}
+    local expect_value=${2}
+    local assert_msg=${3}
+    local b_flag=${4:-"true"}
+    if [ "${actual_value}" != "${expect_value}" ]; then
+        LOG_ERROR "${assert_msg} is failed."
+        echo "ret:${actual_value}"
+        if [ "${b_flag}" = "true" ]; then
+            exit 1
+        fi
+    else
+        LOG_INFO "${assert_msg} is success."
+    fi
+}
+
+# Assert A is not equal to B
+# True: not equal
+# False: equal
+function DP_ASSERT_NOT_EQUAL() {
+    local actual_value=${1}
+    local expect_value=${2}
+    local assert_msg=${3}
+    local log_flag=${4:-"true"}
+    local log_path=${5}
+    if [ "${actual_value}" = "${expect_value}" ]; then
+        if [ -n "${log_path}" ] &amp;&amp; [ -f "${log_path}" ]; then
+            cat ${log_path}
+        fi
+        LOG_ERROR "${assert_msg} is failed."
+        exit 1
+    else
+        if [ "${log_flag}" = "true" ]; then
+            LOG_INFO "${assert_msg} is success."
+        fi
+    fi
+}
+
+# download code
+function DOWNLOAD_CODE()
+{
+	local code_path=${1}
+    local organization_name=${2}
+    local repository_name=${3}
+    LOG_HEAD "code_path is ${code_path}"
+    LOG_HEAD "repository_name is ${repository_name}"
+    mkdir -p ${code_path}
+    cd ${code_path}
+	rm -rf ${repository_name}
+    for ((i=0; i&lt;3; i++)); do
+        rm -rf ${code_path}/${repository_name}
+        git clone https://${GITEE_CREDENTIAL_USR}:${GITEE_CREDENTIAL_PSW}@gitee.com/${organization_name}/${repository_name}.git &gt; /dev/null 2&gt;&amp;1
+        if [ $? -eq 0 ]; then
+            break
+        fi
+        sleep $((RANDOM%15+5))
+    done
+    DP_ASSERT_NOT_EQUAL "$i" "3" "Git clone of ${repository_name}"
+    # ls -lsa ${code_path}/${repository_name}
+    rm -rf ../${repository_name} ../${repository_name}.tar ../${repository_name}.tar.gz
+    tar -cf ${repository_name}.tar ${repository_name}
+    DP_ASSERT_EQUAL "$?" "0" "Remove Cache Code of ${repository_name}"
+    cp ${repository_name}.tar ../
+    DP_ASSERT_EQUAL "$?" "0" "Copy Cache Code of ${repository_name}"
+}
+
+# get repository names and download code
+function GET_REPOSITORY_NAME()
+{
+	local base_path=${1}
+    local organization_name=${2}
+    local reposotory_path="${base_path}/${organization_name}"
+    LOG_HEAD "reposotory_path is ${reposotory_path}"
+    cd ${reposotory_path}
+    repository_names=$(ls ${reposotory_path})
+    echo ${repository_names}
+    for REPOSITORY_NAME in ${repository_names}
+    do
+    	cd ${reposotory_path}
+        if [ -d "${REPOSITORY_NAME}" ]; then
+        	CODE_PATH="${reposotory_path}/${REPOSITORY_NAME}/code/cache/actual_code"
+        	LOG_HEAD "start copy reposotory of ${REPOSITORY_NAME} and cache path is ${CODE_PATH}"
+            DOWNLOAD_CODE ${CODE_PATH} ${organization_name} ${REPOSITORY_NAME}
+           
+        fi
+    done
+}    
+
+function main() {
+    #DOWNLOAD_CODE ${CODE_PATH} ${REPOSITORY_NAME}
+    #GET_REPOSITORY_NAME ${BASE_PATH} 'mindspore'
+    CODE_PATH="${BASE_PATH}/mindspore/mindspore/code/cache/actual_code"
+    DOWNLOAD_CODE ${CODE_PATH} mindspore mindspore
+    
+}
+
+main $@
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.25">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>mindspore_community_jenkins_gitee</credentialsId>
+          <usernameVariable>GITEE_CREDENTIAL_USR</usernameVariable>
+          <passwordVariable>GITEE_CREDENTIAL_PSW</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.20">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>40</timeoutMinutes>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.13"/>
+  </buildWrappers>
+</project>

@@ -1,0 +1,871 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.41">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.8.5"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.8.5">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>Gitee平台mindspore门禁流水线</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>2000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.2.4">
+          <spec/>
+          <triggerOnPush>false</triggerOnPush>
+          <triggerOnCommitComment>false</triggerOnCommitComment>
+          <triggerOnOpenPullRequest>false</triggerOnOpenPullRequest>
+          <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+          <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+          <triggerOnUpdatePullRequest>0</triggerOnUpdatePullRequest>
+          <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+          <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+          <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+          <triggerOnNoteRequest>false</triggerOnNoteRequest>
+          <noteRegex>/retest2</noteRegex>
+          <buildInstructionFilterType>NONE</buildInstructionFilterType>
+          <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+          <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+          <skipLastCommitHasBeenBuild>false</skipLastCommitHasBeenBuild>
+          <setBuildDescription>true</setBuildDescription>
+          <branchFilterType>All</branchFilterType>
+          <includeBranchesSpec>master,r0.5</includeBranchesSpec>
+          <excludeBranchesSpec>r0.3</excludeBranchesSpec>
+          <targetBranchRegex/>
+          <secretToken>{AQAAABAAAAAwVK43IQIX3x8B9g5uWTJvfq0UBckV7AwYP0C0eWhS99/3z62xk84ffkC9RRLaaRneczOZMXIj2sDjqFc7XrnWuw==}</secretToken>
+          <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+          <cancelIncompleteBuildOnSamePullRequest>true</cancelIncompleteBuildOnSamePullRequest>
+          <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
+        </com.gitee.jenkins.trigger.GiteePushTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.92">
+    <script>/*
+################
+# Pipeline env #
+################
+*/
+def setEnvCI(String sourceBranch) {
+    env.CODE_PATH = "/home/jenkins/share-data/${CODE_PLATFORM}/${ORGANIZATION_NAME}/${REPOSITORY_NAME}/code/${PIPELINE_TYPE}/${BUILD_ID}"
+    
+    // Jumper node IP for smoke test(big IP, small IP)
+    env.SHARE_COMPUTER_BIG_IP = '114.116.220.20'
+    env.SHARE_COMPUTER_SMALL_IP = '192.168.0.240'
+    
+    // If upgrade ascend
+    if (sourceBranch =~ 'upgrade_ascend') {
+        env.MS_PIPELINE_ORGANIZATION_NAME = "${giteeSourceNamespace}"
+        env.MS_PIPELINE_BRANCH = "${giteeSourceBranch}"
+    } else {
+        env.MS_PIPELINE_ORGANIZATION_NAME = 'mindspore'
+        env.MS_PIPELINE_BRANCH = 'master'
+    }
+}
+
+def setEnvGate(String platformType='gitee') {
+    env.PIPELINE_TYPE = 'gate'
+    env.CODE_PLATFORM = 'gitee'
+    env.ORGANIZATION_NAME = "${giteeTargetNamespace}"
+    env.REPOSITORY_NAME = "${giteeTargetRepoName}"
+    env.GIT_USER_EMAIL = "${giteeUserEmail}"
+    env.GIT_SOURCE_BRANCH = "${giteeSourceBranch}"
+    env.GIT_TARGET_BRANCH = "${giteeTargetBranch}"
+    env.GIT_PR_NUMBER = "${giteePullRequestIid}"
+    env.PIPELINE_GATE_TYPE = 'MS_ALL'
+    
+    // Event type
+    if (giteeActionType.toUpperCase() == 'NOTE') {
+        env.GIT_TRIGGER_PHRASE = "${giteeTriggerPhrase}"
+    } else {
+        env.GIT_TRIGGER_PHRASE = '/retest'
+    }
+    
+    // CI repo
+    setEnvCI(env.GIT_SOURCE_BRANCH)
+}
+
+def setEnvVersion(String platformType='gitee') {
+    env.CODE_PLATFORM = 'gitee'
+    env.GIT_TARGET_BRANCH = "${TARGET_BRANCH}"
+    
+    // Used only for pipeline gate
+    env.GIT_USER_EMAIL = 'NULL'
+    env.GIT_SOURCE_BRANCH = 'NULL'
+    env.GIT_PR_NUMBER = 'NULL'
+    env.GIT_TRIGGER_PHRASE = 'NULL'
+    
+    // CI repo
+    setEnvCI(env.GIT_SOURCE_BRANCH)
+}
+
+
+/*
+###############
+# Common func #
+###############
+*/
+def excuteShellScript(String jobName, String scriptPath, String paramsList='') {
+    sh label: jobName, script: """
+    #!/bin/bash
+    set +xe
+    
+    # Running on agent
+    echo "Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})"
+    
+    # Source assert
+    source ${CODE_PATH}/ms-pipeline/public/assert.sh
+    [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Source assert is failed." &amp;&amp; exit 1
+    
+    # Execute script
+    sh ${CODE_PATH}/ms-pipeline/${scriptPath} -w ${WORKSPACE} ${paramsList}
+    DP_ASSERT_EQUAL "\$?" "0" "Execute project of ${jobName}"
+    """
+}
+
+def excuteBatScript(String jobName, String scriptPath, String paramsList='') {
+    withCredentials([sshUserPrivateKey(credentialsId: 'share_compute_rsa_jenkins', keyFileVariable: 'SHARE_COMPUTER_RSA_KEY', usernameVariable: 'SHARE_COMPUTER_RSA_USR')]) {
+        bat label: jobName, script: """
+        @echo off
+        @rem Running on agent
+        echo Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})
+        
+        @rem Set env
+        SET GIT_BASH=C:\\Program Files\\Git\\bin\\bash
+        SET WINRAR=C:\\Program Files\\WinRAR\\winrar
+        SET SCP=scp -q -r -o StrictHostKeychecking=no -i %SHARE_COMPUTER_RSA_KEY%
+        SET RETURNCODE=0
+    
+        @rem Copy ms-pipeline
+        "%GIT_BASH%" -c "cd \${WORKSPACE}; rm -rf ms-pipeline &amp;&amp; rm -f ms-pipeline.tar"
+        "%GIT_BASH%" -c "\${SCP} ${SHARE_COMPUTER_RSA_USR}@${SHARE_COMPUTER_SMALL_IP}:${CODE_PATH}/ms-pipeline.tar \${WORKSPACE}"
+        IF NOT %errorlevel% == 0 (
+            echo [ERROR] Copy ms-pipeline is failed.
+            set RETURNCODE=1
+            goto run_end
+        )
+        cd /d %WORKSPACE%
+        "%WINRAR%" x -y ms-pipeline.tar
+    
+        @rem Call script
+        call ${WORKSPACE}\\ms-pipeline\\${scriptPath} "%WORKSPACE%" "${CODE_PATH}" "${SHARE_COMPUTER_SMALL_IP}" "${PIPELINE_TYPE}" ${paramsList}
+        IF NOT %errorlevel% == 0 (
+            echo [ERROR] Execute project of ${jobName} is failed.
+            set RETURNCODE=1
+            goto run_end
+        )
+        echo [INFO]
+        echo [INFO
+        echo [INFO Execute project of ${jobName} is success.
+    
+        :run_end
+            exit /b %RETURNCODE%
+        """
+    }
+}
+
+def commonLinux(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                excuteShellScript(jobName, scriptPath, paramsList)
+            }
+        }
+    }
+}
+
+def commonWindows(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}"){
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                excuteBatScript(jobName, scriptPath, paramsList)
+            }
+        }
+    }
+}
+
+def getParallelJobs(def jobsList, def funcName, def scriptDirPath) {
+    def parallelJobsRun = [:]
+    jobsList.each { job -&gt;
+        def jobName = job[0]
+        def nodeLabel = job[1]
+        def projectTimeout = job[2]
+        def scriptPath = scriptDirPath + job[3]
+        def paramsList = job[4]
+        def branch = {
+            if (paramsList) {
+                funcName(jobName, nodeLabel, projectTimeout, scriptPath, paramsList)
+            } else {
+                funcName(jobName, nodeLabel, projectTimeout, scriptPath)
+            }
+        }
+        parallelJobsRun["${jobName}"] = branch
+    }
+    return parallelJobsRun
+}
+
+
+/*
+#############
+# Init Gate #
+#############
+*/
+def addOrRemoveLabel(String OWNER, String PROJECT, String PR_NUMBER, String ACCESS_TOKEN, ArrayList ADD_LABELS, ArrayList REMOVE_LABLES) {
+    if (!(OWNER?.trim() &amp;&amp; PROJECT?.trim() &amp;&amp; PR_NUMBER?.trim() &amp;&amp; ACCESS_TOKEN?.trim()))  {
+        throw new Exception("[ERROR] Any of 'OWNER', 'PROJECT', 'PR_NUMBER', 'ACCESS_TOKEN' should not be empty")
+    }
+    for (int i = 0; i &lt; 3; i++) {
+        try {
+            // Delete PR label
+            println "[INFO] Going to update pr label. URL:https://gitee.com/${OWNER}/${PROJECT}/pulls/${PR_NUMBER}, Add:${ADD_LABELS}, Delete:${REMOVE_LABLES}"
+            REMOVE_LABLES.eachWithIndex { v, index -&gt;
+                def requestUrl = sprintf("https://gitee.com/api/v5/repos/%s/%s/pulls/%s/labels/%s?access_token=%s", OWNER, PROJECT, PR_NUMBER, v, ACCESS_TOKEN)
+                println requestUrl
+                def response = httpRequest quiet: true, consoleLogResponseBody: false,
+                               contentType: 'APPLICATION_JSON',
+                               customHeaders: [[name: "User-Agent", value: "MindSpore"]],
+                               httpMode: 'DELETE',
+                               url: requestUrl,
+                               ignoreSslErrors: true,
+                               validResponseCodes: "204,404";
+                println response
+                return response
+            }
+
+            // Add new PR label
+            def requestUrl = sprintf("https://gitee.com/api/v5/repos/%s/%s/pulls/%s/labels?access_token=%s", OWNER, PROJECT, PR_NUMBER, ACCESS_TOKEN)
+            def prNameStr = ADD_LABELS.join(',')
+            def updatedLabels = """
+                                ["${prNameStr}"]
+                                """
+            println requestUrl
+            def response = httpRequest quiet: true, consoleLogResponseBody: false,
+                           contentType: 'APPLICATION_JSON',
+                           customHeaders: [[name: "User-Agent", value: "MindSpore"]],
+                           httpMode: 'POST',
+                           requestBody: updatedLabels,
+                           url: requestUrl,
+                           ignoreSslErrors: true,
+                           validResponseCodes: "201";
+            println response
+            return response
+        } catch(Exception ex) {
+            println "[WARNING] Exception:${ex}"
+        }
+        if (i == 2) {
+            println "[ERROR] Failed to update pr label. URL:https://gitee.com/${OWNER}/${PROJECT}/pulls/${PR_NUMBER}, Add:${ADD_LABELS}, Delete:${REMOVE_LABLES}"
+            return false
+        }
+        sleep(3)
+    }
+}
+
+def addPullRequestLabel(String owner, String repo, String prNumber, ArrayList addLabel) {
+    ArrayList removeLabel = ["ci-pipeline-passed", "ci-pipeline-passed-t", "ci-pipeline-failed", "ci-pipeline-running"]
+    withCredentials([string(credentialsId: 'gitee_token_id', variable: 'GITEE_TOKEN')]) {
+        this.addOrRemoveLabel(owner, repo, prNumber, "${GITEE_TOKEN}", addLabel, removeLabel)
+    }
+}
+
+def postStatusOfPipelineRunning(String owner, String repo, String prNumber) {
+    sleep(3)
+    retry(3) {
+        addGiteeMRComment comment: ":large_blue_circle: The pipeline is running. Please wait a moment... ([Link](${RUN_DISPLAY_URL}))"
+    }
+    addPullRequestLabel(owner, repo, prNumber, ["ci-pipeline-running"])
+}
+
+
+/*
+#################
+# Download code #
+#################
+*/
+def downloadCode(String jobName, String nodeLabel, int projectTimeout, String scriptPath) {
+    node("${nodeLabel}"){
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                
+                withCredentials([usernamePassword(credentialsId: 'mindspore_community_jenkins_gitee', passwordVariable: 'GITEE_CREDENTIAL_PSW', usernameVariable: 'GITEE_CREDENTIAL_USR')]) {
+                    sh label: jobName, script: """
+                    #!/bin/bash
+                    set +xe
+                    
+                    # Running on agent
+                    echo "Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})"
+                    
+                    # Git clone code of ms-pipeline
+                    echo -e "\n[INFO] Git clone code of ms-pipeline."
+                    for ((i=0; i&lt;3; i++)); do
+                        rm -rf ${WORKSPACE}/ms-pipeline
+                        git clone https://${GITEE_CREDENTIAL_USR}:${GITEE_CREDENTIAL_PSW}@gitee.com/${MS_PIPELINE_ORGANIZATION_NAME}/ms-pipeline.git -b ${MS_PIPELINE_BRANCH}
+                        [ \$? -eq 0 ] &amp;&amp; break
+                    done
+                    [ \${i} -eq 3 ] &amp;&amp; echo "[ERROR] Git clone code of ms-pipeline is failed." &amp;&amp; exit 1
+                    ls -ld ${WORKSPACE}/ms-pipeline
+                    
+                    # Get ci branch
+                    /usr/local/python/python375/bin/python3 ${WORKSPACE}/ms-pipeline/pipeline/bin/code/get_branch.py --config_path=${WORKSPACE}/ms-pipeline/pipeline/conf/mapping/mapping_branch.yaml --repo_name=${REPOSITORY_NAME} --target_branch=${GIT_TARGET_BRANCH} &gt; ${WORKSPACE}/get_branch.log 2&gt;&amp;1
+                    CI_TARGET_BRANCH=\$(cat ${WORKSPACE}/get_branch.log|tail -n 1|grep 'ci_target_branch: '|awk '{print \$NF}')
+                    if [ -z "\${CI_TARGET_BRANCH}" ]; then
+                        CI_TARGET_BRANCH=${GIT_TARGET_BRANCH}
+                    fi
+                    
+                    # Git checkout branch
+                    if [ "${MS_PIPELINE_ORGANIZATION_NAME}" = "mindspore" ] &amp;&amp; [ "\${CI_TARGET_BRANCH}" != "master" ]; then
+                        cd ${WORKSPACE}/ms-pipeline
+                        git branch -a|grep "remotes/origin/\${CI_TARGET_BRANCH}\$" &gt; /dev/null 2&gt;&amp;1
+                        if [ \$? -eq 0 ] &amp;&amp; [ "\${CI_TARGET_BRANCH}" != "${MS_PIPELINE_BRANCH}" ]; then
+                            echo -e "\n[INFO] Git checkout branch."
+                            git checkout \${CI_TARGET_BRANCH}
+                            git branch
+                        fi
+                    fi
+                    
+                    # Support third-party organization
+                    if [ ! -d "${WORKSPACE}/ms-pipeline/pipeline/mindspore/${REPOSITORY_NAME}/config/${ORGANIZATION_NAME}" ]; then
+                        cp -a ${WORKSPACE}/ms-pipeline/pipeline/mindspore/${REPOSITORY_NAME}/config/mindspore ${WORKSPACE}/ms-pipeline/pipeline/mindspore/${REPOSITORY_NAME}/config/${ORGANIZATION_NAME}
+                    fi
+                    
+                    # Source assert
+                    source ${WORKSPACE}/ms-pipeline/public/assert.sh
+                    [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Source assert is failed." &amp;&amp; exit 1
+                    
+                    # Download code
+                    sh ${WORKSPACE}/ms-pipeline/${scriptPath} -w "${WORKSPACE}" -p "${CODE_PLATFORM}" -o "${ORGANIZATION_NAME}" -r "${REPOSITORY_NAME}" -e "${GIT_USER_EMAIL}" -s "${GIT_SOURCE_BRANCH}" -m "${GIT_TARGET_BRANCH}" -n "${GIT_PR_NUMBER}" -g "${GIT_TRIGGER_PHRASE}" -t "${PIPELINE_TYPE}" -b "${BUILD_ID}" -j "${JOB_NAME}"
+                    DP_ASSERT_EQUAL "\$?" "0" "Execute project of ${jobName}"
+                    """
+                }
+            }
+        }
+    }
+}
+
+
+/*
+##############
+# Code check #
+##############
+*/
+def codeCheckResultAnalysis(String jobName) {
+    if ("${jobName}" == "Check_Cppcheck") {
+        recordIssues(tools: [cppCheck(pattern: 'cppcheck-style.xml')])
+        sh label: 'Cppcheck Result', script: """set +xe; echo "${jobName}: &lt;${BUILD_URL}cppcheck&gt;";"""
+    } else if ("${jobName}" == "Check_Cpplint") {
+        recordIssues(tools: [cppLint(pattern: 'cpplint.log')])
+        sh label: 'Cpplint Result', script: """set +xe; echo "${jobName}: &lt;${BUILD_URL}cpplint&gt;";"""
+    } else if ("${jobName}" == "Check_Pylint") {
+        recordIssues(tools: [pyLint(pattern: 'pylint.log')])
+        sh label: 'Pylint Result', script: """set +xe; echo "${jobName}: &lt;${BUILD_URL}pylint&gt;";"""
+    }
+}
+
+def codeCheck(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                try {
+                    excuteShellScript(jobName, scriptPath, paramsList)
+                } catch (Exception ex) {
+                    codeCheckResultAnalysis(jobName)
+                    sh 'exit 1'
+                }
+            }
+        }
+    }
+}
+
+def codeCheck_Version(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                try {
+                    excuteShellScript(jobName, scriptPath, paramsList)
+                } catch (Exception ex) {
+                    codeCheckResultAnalysis(jobName)
+                    if (['Check_ClangFormat'].contains(jobName)) {
+                        sh 'exit 1'
+                    }
+                }
+            }
+        }
+    }
+}
+
+def codeCheck_Docs(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                try {
+                    excuteShellScript(jobName, scriptPath, paramsList)
+                } catch (Exception ex) {
+                    codeCheckResultAnalysis(jobName)
+                    if (['Check_Markdownlint', 'Check_Tab', 'Check_Codespell'].contains(jobName)) {
+                        sh 'exit 1'
+                    }
+                    
+                    // For docs repo
+                    if ((env.REPOSITORY_NAME == 'docs') &amp;&amp; (jobName == 'Check_Pylint')) {
+                        sh 'exit 1'
+                    }
+                }
+            }
+        }
+    }
+}
+
+def codeCheckStage(String owner, String repo, String pipelineType) {
+    // Pylint timeout
+    def timeoutPylint = 30
+    if (pipelineType != 'gate') {
+        timeoutPylint = 90
+    }
+    
+    // Job list
+    def jobsList = [["Check_ClangFormat", "x86-check-ubuntu", 10, "check_clangformat.sh"],
+                    ["Check_Cppcheck", "x86-check-ubuntu", 10, "check_cppcheck.sh"],
+                    ["Check_Cpplint", "x86-check-ubuntu", 10, "check_cpplint.sh"],
+                    ["Check_Pylint", "x86-check-ubuntu", timeoutPylint, "check_pylint.sh"],
+                    ["Check_Shellcheck", "x86-check-ubuntu", 10, "check_shellcheck.sh"],
+                    ["Check_Markdownlint", "x86-check-ubuntu", 10, "check_markdownlint.sh"],
+                    ["Check_Tab", "x86-check-ubuntu", 10, "check_tab.sh"],
+                    ["Check_Cmakelint", "x86-check-ubuntu", 10, "check_cmakelint.sh"],
+                    ["Check_Codespell", "x86-check-ubuntu", 10, "check_codespell.sh"]]
+    
+    def funcName = this.&amp;codeCheck_Version
+    if (pipelineType == 'gate') {
+        if (['book', 'community', 'course', 'docs'].contains(repo)) {
+            funcName = this.&amp;codeCheck_Docs
+        } else {
+            funcName = this.&amp;codeCheck
+        }
+        
+        // For graphengine or code sync
+        if (['graphengine', 'akg', 'akg-binary'].contains(repo) || ((GIT_SOURCE_BRANCH.length() &gt;= 9) &amp;&amp; (GIT_SOURCE_BRANCH.substring(0,9) == 'code_sync'))) {
+            funcName = this.&amp;codeCheck_Version
+        }
+    }
+    
+    return getParallelJobs(jobsList, funcName, "pipeline/bin/check/")
+}
+
+
+/*
+##############
+# Smoke test #
+##############
+*/
+def excuteSmokeScript(String jobName, String scriptPath, String paramsList='') {
+    withCredentials([usernamePassword(credentialsId: 'share_computer_jenkins', passwordVariable: 'SHARE_COMPUTER_CREDENTIAL_PSW', usernameVariable: 'SHARE_COMPUTER_CREDENTIAL_USR'), usernamePassword(credentialsId: 'ftp-smoke-log-jenkins', passwordVariable: 'FTP_SMOKE_LOG_PSW', usernameVariable: 'FTP_SMOKE_LOG_USR')]) {
+        sh label: jobName, script: """
+        #!/bin/bash
+        set +xe
+        
+        # Running on agent
+        echo "Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})"
+        
+        # Copy ms-pipeline
+        cd ${WORKSPACE}
+        rm -f ms-pipeline.tar
+        sshpass -p "${SHARE_COMPUTER_CREDENTIAL_PSW}" scp -q -r -o StrictHostKeychecking=no ${SHARE_COMPUTER_CREDENTIAL_USR}@${SHARE_COMPUTER_BIG_IP}:${CODE_PATH}/ms-pipeline.tar ${WORKSPACE}/
+        [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Copy ms-pipeline is failed." &amp;&amp; exit 1
+        rm -rf ms-pipeline
+        tar -xf ms-pipeline.tar &gt; /dev/null 2&gt;&amp;1
+        
+        # Source assert
+        source ${WORKSPACE}/ms-pipeline/public/assert.sh
+        [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Source assert is failed." &amp;&amp; exit 1
+        
+        # Execute script
+        sh ${WORKSPACE}/ms-pipeline/${scriptPath} -w ${WORKSPACE} -n ${SHARE_COMPUTER_BIG_IP} ${paramsList}
+        DP_ASSERT_EQUAL "\$?" "0" "Execute project of ${jobName}"
+        """
+    }
+}
+
+def smokeTest(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                excuteSmokeScript(jobName, scriptPath, paramsList)
+            }
+        }
+    }
+}
+
+def smokeTest2_NPU(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    withCredentials([usernamePassword(credentialsId: 'download_from_repo_ftp', passwordVariable: 'REPO_FTP_DOWNLOAD_PSW', usernameVariable: 'REPO_FTP_DOWNLOAD_USR')]) {
+        smokeTest(jobName, nodeLabel, projectTimeout, scriptPath, paramsList)
+    }
+}
+
+def smokeTest2_CPU(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    withCredentials([usernamePassword(credentialsId: 'download_from_repo_ftp', passwordVariable: 'REPO_FTP_DOWNLOAD_PSW', usernameVariable: 'REPO_FTP_DOWNLOAD_USR')]) {
+        commonLinux(jobName, nodeLabel, projectTimeout, scriptPath, paramsList)
+    }
+}
+
+def getSmokeNodeLabel(def organizationName, def repositoryName, def targetBranch, def nodeType='ascend910') {
+    def smokeNodeLabel = ''
+    if (nodeType == 'gpu') {
+        smokeNodeLabel = 'smoke-gpu'
+    } else if (nodeType == 'lite') {
+        smokeNodeLabel = 'smoke-lite'
+    } else if (nodeType =~ 'ascend') {
+        if (organizationName == 'ms-incubator') {
+            smokeNodeLabel = "smoke-${nodeType}-incubator"
+        } else {
+            if (targetBranch != 'master') {
+                smokeNodeLabel = "smoke-${nodeType}-${targetBranch}"
+            } else {
+                smokeNodeLabel = "smoke-${nodeType}"
+            }
+        }
+    }
+    
+    return smokeNodeLabel
+}
+
+
+/*
+###############
+# Release FTP #
+###############
+*/
+def releaseFTP(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                withCredentials([sshUserPrivateKey(credentialsId: 'repo.mindspore.cn', keyFileVariable: 'REPO_FTP_KEY', passphraseVariable: '', usernameVariable: 'REPO_FTP_USER')]) {
+                    excuteShellScript(jobName, scriptPath, paramsList)
+                }
+            }
+        }
+    }
+}
+
+def releasePackageOfPipeline(String pipelineType, String newestFlag='') {
+    def jobsList = []
+    if (pipelineType == 'gate') {
+        jobsList = [["Release_FTP", "x86-check-ubuntu", 15, "release_ftp_gate.sh"]]
+    } else {
+        jobsList = [["Release_FTP", "x86-check-ubuntu", 15, "release_ftp_version.sh", "-f ${newestFlag}"]]
+    }
+    return getParallelJobs(jobsList, this.&amp;releaseFTP, "pipeline/bin/release/")
+}
+
+
+/*
+########
+# Post #
+########
+*/
+def deletePipelineCode(String codePath) {
+    node('x86-check-ubuntu') {
+        timeout(time: 5, unit: 'MINUTES') {
+            sh label: "Delete_Code", script: """
+                rm -rf ${codePath}
+            """
+        }
+    }
+}
+
+// Delete comments
+//   Comment1: /retest*
+//   Comment2: The pipeline is running. Please wait a moment...
+def deleteGiteeComments(String owner, String repo, String prNumber) {
+    node('x86-check-ubuntu') {
+        ws("workspace/Delete_Comments") {
+            timeout(time: 3, unit: 'MINUTES') {
+                cleanWs()
+                withCredentials([string(credentialsId: 'gitee_token_id', variable: 'GITEE_TOKEN')]) {
+                    sh label: 'Delete_Comments', script: """
+                    #!/bin/bash
+                    set +xe
+
+                    # Running on agent
+                    echo "Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})"
+
+                    # Source assert
+                    source ${CODE_PATH}/ms-pipeline/public/assert.sh
+                    [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Source assert is failed." &amp;&amp; exit 1
+
+                    # Execute script
+                    echo -e "\n[INFO] Delete comments."
+                    /usr/local/python/python375/bin/python3 ${CODE_PATH}/ms-pipeline/pipeline/bin/gitee/gitee_comments.py -f ${CODE_PATH}/ms-pipeline/pipeline/conf/gitee/gitee_api.yaml -a ${GITEE_TOKEN} -o ${owner} -r ${repo} -p ${prNumber} -t delete &gt; ${WORKSPACE}/gitee_comments.log 2&gt;&amp;1
+                    if [ \$? -ne 0 ]; then
+                        cat ${WORKSPACE}/gitee_comments.log
+                    fi
+                    """
+                }
+            }
+        }
+    }
+}
+
+def postResultOfPipelineGate(String owner, String repo, String prNumber, String pipelineResult, String codePath='/tmp/ms', String pipelineMode='GATE') {
+    println("currentBuild.result = ${pipelineResult}")
+    
+    // Get path of release package
+    def releasePath = ""
+    try {
+        releasePath = readFile("${codePath}/release_path.txt").trim().replaceAll("\\s*|\t|\r|\n", "")
+    } catch(Exception ex) {
+        println "[WARNING] Read file(${codePath}/release_path.txt) is failed."
+    }
+    
+    // Report result
+    if(pipelineResult == 'SUCCESS') {
+        def successIcon = 'white_check_mark'
+        def successLabel = ["ci-pipeline-passed"]
+        
+        // Debug mode
+        if(pipelineMode == 'DEBUG') {
+            successIcon = 'green_heart'
+            successLabel = ["ci-pipeline-passed-t"]
+        }
+        
+        retry(3) {
+            addGiteeMRComment comment: "| Project Name | Build Result | Details |\n| --- | --- | --- |\n|  [${JOB_NAME}](${releasePath}) | :${successIcon}: **SUCCESS** | [${BUILD_ID}](${RUN_DISPLAY_URL}) |\n"
+        }
+        addPullRequestLabel(owner, repo, prNumber, successLabel)
+        echo '[INFO] The pipeline run success.'
+    } else {
+        retry(3) {
+            addGiteeMRComment comment: "| Project Name | Build Result | Details |\n| --- | --- | --- |\n|  [${JOB_NAME}](${releasePath}) | :x: **FAILURE** | [${BUILD_ID}](${RUN_DISPLAY_URL}) |\n"
+        }
+        addPullRequestLabel(owner, repo, prNumber, ["ci-pipeline-failed"])
+        echo '[ERROR] The pipeline run failed.'
+    }
+    
+    // Delete code
+    deletePipelineCode(codePath)
+}
+
+def postResultOfPipelineVersion(String pipelineResult, String codePath='/tmp/ms', String pipelineMode='VERSION') {
+    println("currentBuild.result = ${pipelineResult}")
+    if(pipelineResult == 'SUCCESS') {
+        echo '[INFO] The pipeline run success.'
+    } else {
+        echo '[ERROR] The pipeline run failed.'
+    }
+    
+    // Release logs
+    if(pipelineMode != 'DEBUG') {
+        releaseFTP("Release_Logs", "x86-check-ubuntu", 10, "pipeline/bin/release/release_logs_version.sh", "-n ${JOB_NAME}")
+    }
+    
+    // Delete code
+    deletePipelineCode(codePath)
+}
+
+node('x86-generic-slaves') {
+    this.setEnvGate('gitee')
+    
+    try {
+        stage('post-status'){
+            this.postStatusOfPipelineRunning(ORGANIZATION_NAME, REPOSITORY_NAME, GIT_PR_NUMBER)
+        }
+        //stage('download-code') {
+        //    this.downloadCode("Download_Code", "x86-check-ubuntu", 12, "pipeline/bin/code/download_code.sh")
+        //    PIPELINE_TASK_TYPE = readFile("${CODE_PATH}/task_type.txt").trim().replaceAll("\\s*|\t|\r|\n", "")
+        //}
+        //stage('code-check') {
+        //    parallel this.codeCheckStage(ORGANIZATION_NAME, REPOSITORY_NAME, PIPELINE_TYPE)
+        //}
+        //stage('compile') {
+        //    def parallelJobsRun = [:]
+        //    
+        //    // Linux cloud
+        //    def jobsList = []
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_DOCS'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList += [["Compile_ME", "x86-build-ubuntu", 60, "mindspore_compile.sh", "-p me"]]
+        //    }
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList += [["Compile_CPU_X86_CentOS_PY390", "x86-build-centos", 60, "mindspore_compile.sh", "-p cpu -t centos_x86 -v python390"]]
+        //    }
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_UT', 'MS_UT_CPP', 'MS_UT_PYTHON'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList += [["Compile_UT", "x86-build-ubuntu", 60, "mindspore_compile.sh", "-p ms-ut"]]
+        //    }
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_ST', 'MS_ST_ASCEND'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList += [["Compile_Ascend_ARM_CentOS", "arm-build-centos", 60, "mindspore_compile.sh", "-p ascend -t centos_aarch64 -c ascend910"],
+        //                     ["Compile_Ascend310_ARM_EulerOS", "arm-build-euleros", 60, "mindspore_compile.sh", "-p ascend -t euleros_aarch64 -c ascend310"]]
+        //    }
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_ST', 'MS_ST_GPU'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList += [["Compile_GPU_X86_CentOS_Cuda10", "x86-build-centos", 60, "mindspore_compile.sh", "-p gpu -t centos_x86 -c cuda-10.1"]]
+        //    }
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_ST', 'MS_ST_CPU'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList += [["Compile_CPU_X86_CentOS", "x86-build-centos", 60, "mindspore_compile.sh", "-p cpu -t centos_x86"]]
+        //    }
+        //    
+        //    // Linux lite
+        //    if (['MS_ALL', 'MS_LITE', 'MS_CLOUD_LITE'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList += [["Compile_Lite_ARM32", "x86-build-ubuntu", 45, "mindspore_compile.sh", "-p lite -t android_aarch32 -l inference"],
+        //                     ["Compile_Lite_ARM64", "x86-build-ubuntu", 45, "mindspore_compile.sh", "-p lite -t android_aarch64 -l inference"],
+        //                     ["Compile_Lite_X86", "x86-build-ubuntu", 45, "mindspore_compile.sh", "-p lite -t ubuntu_x86 -l inference"],
+        //                     ["Compile_Lite_ARM32_Train", "x86-build-ubuntu", 45, "mindspore_compile.sh", "-p lite -t android_aarch32 -l train"],
+        //                     ["Compile_Lite_ARM64_Train", "x86-build-ubuntu", 45, "mindspore_compile.sh", "-p lite -t android_aarch64 -l train"],
+        //                     ["Compile_Lite_X86_Train", "x86-build-ubuntu", 45, "mindspore_compile.sh", "-p lite -t ubuntu_x86 -l train"],
+        //                     ["Compile_Lite_X86_SSE", "x86-build-ubuntu", 45, "mindspore_compile.sh", "-p lite -t ubuntu_x86 -l inference -i sse"],
+        //                     ["Compile_Lite_X86_AVX", "x86-build-ubuntu", 45, "mindspore_compile.sh", "-p lite -t ubuntu_x86 -l inference -i avx"]]
+        //    }
+        //    if (['MS_ALL', 'MS_LITE', 'MS_CLOUD_LITE'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList += [["Compile_Lite_Java_AVX", "x86-build-ubuntu", 45, "mindspore_compile.sh", "-p lite -t aar -g java -i avx"]]
+        //    }
+        //    
+        //    // Windows cloud
+        //    def jobsList2 = []
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_ST', 'MS_ST_CPU'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList2 += [["Compile_CPU_Windows", "x86-build-windows", 60, "mindspore_compile.bat", "cpu"]]
+        //    }
+        //    
+        //    // Windows lite
+        //    if (['MS_ALL', 'MS_LITE', 'MS_CLOUD_LITE'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList2 += [["Compile_Lite_Windows", "x86-build-windows", 45, "mindspore_compile.bat", "lite"]]
+        //    }
+        //    if (['MS_ALL', 'MS_LITE'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList2 += [["Compile_Lite_Windows_SSE", "x86-build-windows", 45, "mindspore_compile.bat", "lite sse"],
+        //                      ["Compile_Lite_Windows_AVX", "x86-build-windows", 45, "mindspore_compile.bat", "lite avx"]]
+        //    }
+        //    
+        //    // Run jobs
+        //    parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux, "pipeline/mindspore/${REPOSITORY_NAME}/scripts/")
+        //    parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList2, this.&amp;commonWindows, "pipeline\\mindspore\\${REPOSITORY_NAME}\\scripts\\windows\\")
+        //    parallel parallelJobsRun
+        //}
+        //stage('ut-test') {
+        //    def parallelJobsRun = [:]
+        //    
+        //    // Linux cloud
+        //    def jobsList = []
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_UT', 'MS_UT_CPP'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList += [["UT_CPP", "x86-build-ubuntu", 6, "mindspore_ut.sh", "-t cpp"]]
+        //    }
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_UT', 'MS_UT_PYTHON'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList += [["UT_Python_Stage1", "x86-build-ubuntu", 15, "mindspore_ut.sh", "-t python -s stage1"],
+        //                     ["UT_Python_Stage2", "x86-build-ubuntu", 15, "mindspore_ut.sh", "-t python -s stage2"],
+        //                     ["UT_Python_Stage3", "x86-build-ubuntu", 15, "mindspore_ut.sh", "-t python -s stage3"],
+        //                     ["UT_Python_Stage4", "x86-build-ubuntu", 15, "mindspore_ut.sh", "-t python -s stage4"]]
+        //    }
+        //    
+        //    // Windows lite
+        //    def jobsList2 = []
+        //    if (['MS_ALL', 'MS_LITE', 'MS_CLOUD_LITE'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList2 += [["Smoke_Lite_Windows", "x86-build-windows", 15, "mindspore_smoke_lite.bat", ""]]
+        //    }
+        //    
+        //    // Run jobs
+        //    parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux, "pipeline/mindspore/${REPOSITORY_NAME}/scripts/")
+        //    parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList2, this.&amp;commonWindows, "pipeline\\mindspore\\${REPOSITORY_NAME}\\scripts\\windows\\")
+        //    parallel parallelJobsRun
+        //}
+        //stage('smoke-test') {
+        //    def parallelJobsRun = [:]
+        //    
+        //    // Linux cloud
+        //    def jobsList = []
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_ST', 'MS_ST_ASCEND'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        def smokeNodeLabelAscend310 = this.getSmokeNodeLabel(ORGANIZATION_NAME, REPOSITORY_NAME, GIT_TARGET_BRANCH, 'ascend310')
+        //        def smokeNodeLabelAscend910 = this.getSmokeNodeLabel(ORGANIZATION_NAME, REPOSITORY_NAME, GIT_TARGET_BRANCH, 'ascend910')
+        //        
+        //        // If upgrade ascend
+        //        if (GIT_SOURCE_BRANCH =~ 'upgrade_ascend') {
+        //            smokeNodeLabelAscend310 = smokeNodeLabelAscend310 + '-upgrade'
+        //            smokeNodeLabelAscend910 = smokeNodeLabelAscend910 + '-upgrade'
+        //        }
+        //        
+        //        // Support multiple label
+        //        smokeNodeLabelAscend310 = "${smokeNodeLabelAscend310} || ascend310-ms${BUILD_ID}"
+        //        smokeNodeLabelAscend910 = "${smokeNodeLabelAscend910} || ascend910-ms${BUILD_ID}"
+        //        
+        //        jobsList += [["Smoke_Ascend", smokeNodeLabelAscend910, 120, "mindspore_smoke.sh", "-p ascend"],
+        //                     ["Smoke_Ascend310", smokeNodeLabelAscend310, 15, "mindspore_smoke_cpp.sh", "-c ascend310"]]
+        //    }
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_ST', 'MS_ST_GPU'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        def smokeNodeLabelGpu = this.getSmokeNodeLabel(ORGANIZATION_NAME, REPOSITORY_NAME, GIT_TARGET_BRANCH, 'gpu')
+        //        smokeNodeLabelGpu = "${smokeNodeLabelGpu} || gpu-ms${BUILD_ID}"
+        //        jobsList += [["Smoke_GPU", smokeNodeLabelGpu, 90, "mindspore_smoke.sh", "-p gpu"]]
+        //    }
+        //    
+        //    // Linux lite
+        //    if (['MS_ALL', 'MS_LITE', 'MS_CLOUD_LITE'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        smokeNodeLabelLite_1 = "smoke-lite-x86 || lite-ms${BUILD_ID}"
+        //        smokeNodeLabelLite_2 = "smoke-lite-phone || lite2-ms${BUILD_ID}"
+        //        smokeNodeLabelLite_3 = "smoke-lite-huawei || lite3-ms${BUILD_ID}"
+        //        jobsList += [["Smoke_Lite_X86", smokeNodeLabelLite_1, 60, "mindspore_smoke_lite.sh", "-l inference -t x86-all"],
+        //                     ["Smoke_Lite_ARM_CPU", smokeNodeLabelLite_2, 90, "mindspore_smoke_lite.sh", "-l inference -t arm_cpu"],
+        //                     ["Smoke_Lite_ARM_NPU", smokeNodeLabelLite_3, 60, "mindspore_smoke_lite.sh", "-l inference -t gpu_npu"],
+        //                     ["Smoke_Lite_Train", smokeNodeLabelLite_2, 30, "mindspore_smoke_lite.sh", "-l train"]]
+        //    }
+        //    
+        //    // Linux cloud
+        //    def jobsList2 = []
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_ST', 'MS_ST_CPU'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList2 += [["Smoke_CPU_Ubuntu", "x86-build-ubuntu", 15, "mindspore_smoke_cpu_ubuntu.sh", ""]]
+        //    }
+        //    
+        //    // Windows cloud
+        //    def jobsList3 = []
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_ST', 'MS_ST_CPU'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList3 += [["Smoke_CPU_Windows", "x86-build-windows", 15, "mindspore_smoke_cpu.bat"]]
+        //    }
+        //    
+        //    // Windows lite
+        //    if (['MS_ALL', 'MS_LITE'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        jobsList3 += [["Smoke_Lite_Windows_SSE", "x86-build-windows", 15, "mindspore_smoke_lite.bat", "sse"],
+        //                      ["Smoke_Lite_Windows_AVX", "x86-build-windows", 15, "mindspore_smoke_lite.bat", "avx"]]
+        //    }
+        //    
+        //    // Run jobs
+        //    parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;smokeTest, "pipeline/mindspore/${REPOSITORY_NAME}/scripts/")
+        //    parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList2, this.&amp;commonLinux, "pipeline/mindspore/${REPOSITORY_NAME}/scripts/")
+        //    parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList3, this.&amp;commonWindows, "pipeline\\mindspore\\${REPOSITORY_NAME}\\scripts\\windows\\")
+        //    if (['MS_ALL', 'MS_CLOUD', 'MS_CLOUD_LITE', 'MS_LITE', 'MS_ST', 'MS_ST_ASCEND', 'MS_ST_GPU', 'MS_ST_CPU'].contains(PIPELINE_TASK_TYPE.toString())) {
+        //        parallelJobsRun &lt;&lt; this.releasePackageOfPipeline(PIPELINE_TYPE)
+        //    }
+        //    parallelJobsRun.failFast = true
+        //    parallel parallelJobsRun
+        //}
+        currentBuild.result = 'SUCCESS'
+    } catch(Exception ex) {
+        println("[ERROR] ${ex}")
+        currentBuild.result = 'FAILURE'
+    } finally {
+        this.postResultOfPipelineGate(ORGANIZATION_NAME, REPOSITORY_NAME, GIT_PR_NUMBER, currentBuild.result, CODE_PATH)
+    }
+}
+
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

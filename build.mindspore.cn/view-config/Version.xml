@@ -1,0 +1,46 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>Version</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>Akg_Gitee_Version</string>
+    <string>AkgBinary_Gitee_Version</string>
+    <string>DockerImage_MindSpore</string>
+    <string>Federated_Gitee_Version</string>
+    <string>GoldenStick_Gitee_Version</string>
+    <string>Graphlearning_Gitee_Version</string>
+    <string>Hub_Gitee_Version</string>
+    <string>IdePlugin_Gitee_Version</string>
+    <string>MindArmour_Gitee_Version</string>
+    <string>MindInsight_Gitee_Version</string>
+    <string>MindQuantum_Gitee_Version</string>
+    <string>MindScience_Gitee_Version</string>
+    <string>MindSpore_Gitee_Version</string>
+    <string>MindSpore_Gitee_Version_Debug</string>
+    <string>MindSpore_Gitee_Version_Website</string>
+    <string>MindSpore_Gitee_Version_Weekly</string>
+    <string>Mindspore_SCA_Version</string>
+    <string>Qinling-Flyspeech_Gitee_Version</string>
+    <string>Reinforcement_Gitee_Version</string>
+    <string>Release_UploadObs</string>
+    <string>Release_UploadPYPI</string>
+    <string>Serving_Gitee_Version</string>
+    <string>Vision_Gitee_Version</string>
+    <string>Xai_Gitee_Version</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+    <hudson.plugins.favorite.column.FavoriteColumn plugin="favorite@2.3.3"/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

@@ -1,0 +1,165 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description>jenkins节点镜像更新</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>300</daysToKeep>
+        <numToKeep>1000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <org.jvnet.jenkins.plugins.nodelabelparameter.NodeParameterDefinition plugin="nodelabelparameter@1.8.1">
+          <name>BUILD_NODE</name>
+          <allowedSlaves>
+            <string>docker-arm-slave-0</string>
+            <string>docker-x86-slave-0</string>
+          </allowedSlaves>
+          <defaultSlaves>
+            <string>docker-x86-slave-0</string>
+          </defaultSlaves>
+          <triggerIfResult>allowMultiSelectionForConcurrentBuilds</triggerIfResult>
+          <allowMultiNodeSelection>true</allowMultiNodeSelection>
+          <triggerConcurrentBuilds>true</triggerConcurrentBuilds>
+          <ignoreOfflineNodes>false</ignoreOfflineNodes>
+          <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
+        </org.jvnet.jenkins.plugins.nodelabelparameter.NodeParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>MIDDLE_PATH</name>
+          <description>dockerfile中间目录：
+ci/check/ubuntu_x86
+ci/compile/centos_aarch64
+ci/compile/centos_x86
+ci/compile/euleros_aarch64
+ci/compile/euleros_x86
+ci/compile/ubuntu_aarch64
+ci/compile/ubuntu_x86
+ci/smoke/euleros_aarch64
+release/compile/mindspore-ascend/centos_x86
+release/compile/mindspore-ascend/centos_aarch64
+release/compile/mindspore-lite</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>ci/check/ubuntu_x86</string>
+              <string>ci/compile/centos_aarch64</string>
+              <string>ci/compile/centos_x86</string>
+              <string>ci/compile/euleros_aarch64</string>
+              <string>ci/compile/euleros_x86</string>
+              <string>ci/compile/ubuntu_aarch64</string>
+              <string>ci/compile/ubuntu_x86</string>
+              <string>ci/smoke/euleros_aarch64</string>
+              <string>release/compile/mindspore-ascend/centos_x86</string>
+              <string>release/compile/mindspore-ascend/centos_aarch64</string>
+              <string>release/compile/mindspore-lite</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>RUNPACK_DATE</name>
+          <description>run包日期，默认为空</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -e
+
+##################
+# Init parameter #
+##################
+# Init parameter
+DOCKER_BUILD_PARAMS="-m ${MIDDLE_PATH}"
+if [ -n "${RUNPACK_DATE}" ] &amp;&amp; [[ "${MIDDLE_PATH}" =~ "release/compile/mindspore-ascend" ]]; then
+	DOCKER_BUILD_PARAMS+=" -d ${RUNPACK_DATE}"
+fi
+
+
+#########################
+# Git clone ms-pipeline #
+#########################
+echo "[INFO] Git clone of ms-pipeline."
+for ((i=0; i&lt;3; i++)); do
+    rm -rf ${WORKSPACE}/ms-pipeline
+    git clone https://${GITEE_CREDENTIAL_USR}:${GITEE_CREDENTIAL_PSW}@gitee.com/wmzheng2020/ms-pipeline.git -b master &gt; /dev/null 2&gt;&amp;1
+    if [ $? -eq 0 ]; then
+      	break
+    fi
+    sleep $((RANDOM%15+5))
+done
+if [ "$i" -eq 3 ]; then
+  	echo "[ERROR] Git clone of ms-pipeline failed."
+  	exit 1
+fi
+
+
+#############
+# Pulic lib #
+#############
+# Source assert
+source ${WORKSPACE}/ms-pipeline/public/assert.sh
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Source assert is failed."
+    exit 1
+fi
+
+
+################
+# Docker build #
+################
+LOG_HEAD "Docker build."
+cd ${WORKSPACE}/ms-pipeline/docker/dockerfile
+sh docker_build.sh ${DOCKER_BUILD_PARAMS}
+DP_ASSERT_EQUAL "$?" "0" "Docker build of ${MIDDLE_PATH}"</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.39">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter/>
+      <externalDelete/>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.25">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>hwc-mindspore-docker-image</credentialsId>
+          <usernameVariable>HWC_PUSH_IMAGE_USER</usernameVariable>
+          <passwordVariable>HWC_PUSH_IMAGE_PSW</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>mindspore_community_jenkins_gitee</credentialsId>
+          <usernameVariable>GITEE_CREDENTIAL_USR</usernameVariable>
+          <passwordVariable>GITEE_CREDENTIAL_PSW</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.13"/>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@1.0.0">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

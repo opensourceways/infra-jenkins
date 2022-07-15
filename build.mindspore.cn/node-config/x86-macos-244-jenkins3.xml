@@ -1,0 +1,37 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<slave>
+  <name>x86-macos-244-jenkins3</name>
+  <description>x86-build-macos</description>
+  <remoteFS>/Users/jenkins3/agent-working-dir</remoteFS>
+  <numExecutors>1</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.31.5">
+    <host>121.37.54.244</host>
+    <port>22</port>
+    <credentialsId>user_jenkins3</credentialsId>
+    <launchTimeoutSeconds>60</launchTimeoutSeconds>
+    <maxNumRetries>10</maxNumRetries>
+    <retryWaitTime>15</retryWaitTime>
+    <sshHostKeyVerificationStrategy class="hudson.plugins.sshslaves.verifiers.NonVerifyingKeyVerificationStrategy"/>
+    <tcpNoDelay>true</tcpNoDelay>
+  </launcher>
+  <label>x86-build-macos</label>
+  <nodeProperties>
+    <hudson.slaves.EnvironmentVariablesNodeProperty>
+      <envVars serialization="custom">
+        <unserializable-parents/>
+        <tree-map>
+          <default>
+            <comparator class="hudson.util.CaseInsensitiveComparator"/>
+          </default>
+          <int>2</int>
+          <string>JAVA_HOME</string>
+          <string>/Library/Java/JavaVirtualMachines/jdk-11.0.2.jdk/Contens/Home</string>
+          <string>PATH</string>
+          <string>$JAVA_HOME:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/local/libexec/gnubin:/Library/Apple/usr/bin</string>
+        </tree-map>
+      </envVars>
+    </hudson.slaves.EnvironmentVariablesNodeProperty>
+  </nodeProperties>
+</slave>

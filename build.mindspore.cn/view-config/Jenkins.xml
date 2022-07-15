@@ -1,0 +1,31 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>Jenkins</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>Jenkins_Clean_Cache</string>
+    <string>Jenkins_Clean_KernelMeta</string>
+    <string>Jenkins_Clean_Memory</string>
+    <string>Jenkins_Clean_ShareCode</string>
+    <string>Jenkins_CleanWs</string>
+    <string>Jenkins_Reboot_Node</string>
+    <string>Jenkins_Reboot_Node_Timer</string>
+    <string>Jenkins_Recreate_Docker</string>
+    <string>Jenkins_Set_Timezone</string>
+    <string>Jenkins_Time_Sync</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

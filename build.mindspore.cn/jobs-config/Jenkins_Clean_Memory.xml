@@ -1,0 +1,149 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description>手动或定时清楚ascend环境缓存</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.2.1"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>15</daysToKeep>
+        <numToKeep>1000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.82">
+          <name>NODE_IP</name>
+          <description>node ip</description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>20</visibleItemCount>
+          <type>PT_CHECKBOX</type>
+          <value>8.92.9.83,8.92.9.96,8.92.9.56,8.92.9.57,8.92.9.58,8.92.9.71,8.92.9.73,8.92.9.85,8.92.9.86,8.92.9.87,8.92.9.88,8.92.9.89,8.92.9.42,8.92.9.45,8.92.9.76,8.92.9.77,8.92.9.69,8.92.9.82</value>
+          <defaultValue>8.92.9.83,8.92.9.96,8.92.9.56,8.92.9.57,8.92.9.58,8.92.9.71,8.92.9.73,8.92.9.85,8.92.9.86,8.92.9.87,8.92.9.88,8.92.9.89,8.92.9.42,8.92.9.45,8.92.9.76,8.92.9.77,8.92.9.69,8.92.9.82</defaultValue>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+          <descriptionPropertyValue>8.92.9.83 (ascend310-83),8.92.9.96 (ascend310-96),8.92.9.56 (ascend-56),8.92.9.57 (ascend-57),8.92.9.58 (ascend-58),8.92.9.71 (ascend-71),8.92.9.73 (ascend-73),8.92.9.85 (ascend-85),8.92.9.86 (ascend-86),8.92.9.87 (ascend-87),8.92.9.88 (ascend-88),8.92.9.89 (ascend-89),8.92.9.42 (gpu-42),8.92.9.45 (gpu-45),8.92.9.76 (gpu-76),8.92.9.77 (gpu-77),8.92.9.69 (lite-69),8.92.9.82 (lite-82)</descriptionPropertyValue>
+          <projectName>Jenkins_Clean_Memory</projectName>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>smoke-schedule</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>05 6 * * *
+05 12 * * *
+05 18 * * *
+05 22 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+# Init parameter
+SSHPASS="sshpass -p ${BLUE_SMOKE_PASSWORD}"
+SSH="${SSHPASS} ssh -q -o StrictHostKeychecking=no"
+NODE_IP_LIST="${NODE_IP//,/ }"
+
+# Clean memory
+function CLEAN_MEMORY() {
+    local node_ip_list=($@)
+    local flag_check=0
+    local i=0
+    local process_pid=()
+    
+    # Clean memory
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        ${SSH} ${BLUE_SMOKE_USER}@${node_ip_list[i]} "if [ -f /proc/sys/vm/drop_caches ]; then \
+                                                          echo 1 &gt; /proc/sys/vm/drop_caches; \
+                                                      fi" &gt; /dev/null 2&gt;&amp;1 &amp;
+        process_pid[${i}]=$(echo $!)
+    done
+
+    # Check result
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        wait ${process_pid[i]}
+        if [ "$?" -ne 0 ]; then
+            echo "Node[${node_ip_list[i]}] - Clean memory failed."
+            flag_check=1
+        else
+            echo "Node[${node_ip_list[i]}] - Clean memory success."
+        fi
+    done
+    
+    # Return result
+    if [ "${flag_check}" -ne "0" ]; then
+        echo "[ERROR] Clean memory of all nodes is failed."
+    else
+        echo "[INFO] Clean memory of all nodes is success."
+    fi
+}
+
+# Check memory
+function CHECK_MEMORY() {
+    local node_ip_list=($@)
+    local i=0
+
+    # Check memory
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        echo -e "\nNode[${node_ip_list[i]}]: "
+        ${SSH} ${BLUE_SMOKE_USER}@${node_ip_list[i]} "free -h"
+    done
+}
+
+
+function main() {
+    # Clean memory
+    echo -e "\n[INFO] Clean memory."
+    CLEAN_MEMORY "${NODE_IP_LIST}"
+
+    # Check memory
+    echo -e "\n[INFO] Check memory."
+    CHECK_MEMORY "${NODE_IP_LIST}"
+}
+
+main $@
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.39">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter/>
+      <externalDelete/>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.24">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>user_root</credentialsId>
+          <usernameVariable>BLUE_SMOKE_USER</usernameVariable>
+          <passwordVariable>BLUE_SMOKE_PASSWORD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.12"/>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.5">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

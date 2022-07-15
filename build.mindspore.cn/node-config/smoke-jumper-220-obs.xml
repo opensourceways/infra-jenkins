@@ -1,0 +1,21 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<slave>
+  <name>smoke-jumper-220-obs</name>
+  <description></description>
+  <remoteFS>/home/obsutil/agent-working-dir</remoteFS>
+  <numExecutors>1</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.31.5">
+    <host>192.168.0.240</host>
+    <port>22</port>
+    <credentialsId>user_obsutil</credentialsId>
+    <launchTimeoutSeconds>60</launchTimeoutSeconds>
+    <maxNumRetries>10</maxNumRetries>
+    <retryWaitTime>15</retryWaitTime>
+    <sshHostKeyVerificationStrategy class="hudson.plugins.sshslaves.verifiers.NonVerifyingKeyVerificationStrategy"/>
+    <tcpNoDelay>true</tcpNoDelay>
+  </launcher>
+  <label>smoke-jumper-obs</label>
+  <nodeProperties/>
+</slave>

@@ -1,0 +1,190 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Sault版本更新</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>15</daysToKeep>
+        <numToKeep>1000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>ORGANIZATION_NAME</name>
+          <description>组织名称</description>
+          <defaultValue>mindspore</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TARGET_BRANCH</name>
+          <description>版本分支</description>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>GIT_COMMIT_ID</name>
+          <description>指定commitid（说明：如果为空，为当前分支最新代码）</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DISPATCH_TIMEOUT</name>
+          <description>设置用例或者任务超时时间，多设置时中间以&apos;,&apos;分割，例如：case_exceedtime=720,exceedtime=7200</description>
+          <defaultValue>case_exceedtime=720,exceedtime=9000</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>CASE_INTERVERS</name>
+          <description>设置8P和8P或者1P和8P用例时间间隔，多设置时中间以&apos;,&apos;分割，例如：after/ASCEND_ARM_EULEROS=6, before/ASCEND_ARM_EULEROS=18</description>
+          <defaultValue>after/ASCEND_ARM_EULEROS=6,before/ASCEND_ARM_EULEROS=12</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.82">
+          <name>NODE_IP</name>
+          <description>node ip</description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>20</visibleItemCount>
+          <type>PT_CHECKBOX</type>
+          <value>8.92.9.56,8.92.9.57,8.92.9.58,8.92.9.60,8.92.9.61,8.92.9.71,8.92.9.73,8.92.9.85,8.92.9.86,8.92.9.87,8.92.9.88,8.92.9.89,8.92.9.35,8.92.9.36,8.92.9.37,8.92.9.42,8.92.9.45,8.92.9.76,8.92.9.77,8.92.9.124,8.92.9.125,8.92.9.126,124.71.176.132</value>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+          <descriptionPropertyValue>8.92.9.56 (smoke-ascend-56),8.92.9.57 (smoke-ascend-57),8.92.9.58 (smoke-ascend-58),8.92.9.60 (smoke-ascend-60),8.92.9.61 (smoke-ascend-61),8.92.9.71 (smoke-ascend-71),8.92.9.73 (smoke-ascend-73),8.92.9.85 (smoke-ascend-85),8.92.9.86 (smoke-ascend-86),8.92.9.87 (smoke-ascend-87),8.92.9.88 (smoke-ascend-88),8.92.9.89 (smoke-ascend-89),8.92.9.35 (smoke-gpu-35),8.92.9.36 (smoke-gpu-36),8.92.9.37 (smoke-gpu-37),8.92.9.42 (smoke-gpu-42),8.92.9.45 (smoke-gpu-45),8.92.9.76 (smoke-gpu-76),8.92.9.77 (smoke-gpu-77),8.92.9.124 (smoke-gpu-124),8.92.9.125 (smoke-gpu-125),8.92.9.126 (smoke-gpu-126),124.71.176.132 (smoke-gpu-132)</descriptionPropertyValue>
+          <projectName>Sault_Update</projectName>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>smoke-schedule</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+# Init parameter
+SSHPASS=&quot;sshpass -p ${BLUE_SMOKE_PASSWORD}&quot;
+SCP=&quot;${SSHPASS} scp -q -r -o StrictHostKeychecking=no&quot;
+SSH=&quot;${SSHPASS} ssh -q -o StrictHostKeychecking=no&quot;
+DES_PATH=&quot;/home/jenkins/config&quot;
+SAULT_CONFIG_PATH=&quot;${WORKSPACE}/sault/auto_deploy/config/sault_config.yaml&quot;
+
+# Git clone
+echo -e &quot;\n[INFO] Git clone of sault.&quot;
+cd ${WORKSPACE}
+for ((i=0; i&lt;3; i++)); do
+    rm -rf ${WORKSPACE}/sault
+    git clone https://${GITEE_CREDENTIAL_USR}:${GITEE_CREDENTIAL_PSW}@gitee.com/${ORGANIZATION_NAME}/sault.git -b ${TARGET_BRANCH}
+    if [ $? -eq 0 ]; then
+        break
+    fi
+    sleep $((RANDOM%15+5))
+done
+
+# Checkout commit-id
+if [ -n &quot;${GIT_COMMIT_ID}&quot; ]; then
+    echo -e &quot;\n[INFO] Git checkout ${GIT_COMMIT_ID}.&quot;
+    cd ${WORKSPACE}/sault
+    git checkout ${GIT_COMMIT_ID}
+fi
+
+# Display branch and commitID
+echo -e &quot;\n[INFO] Display branch and commitID.&quot;
+cd ${WORKSPACE}/sault
+echo &quot;Branch: $(git branch|head -n 1|awk -F &apos;* &apos; &apos;{print $NF}&apos;)&quot;
+echo &quot;CommitID: $(git rev-parse HEAD)&quot;
+
+# Set timeout
+for timeout_param in ${DISPATCH_TIMEOUT//,/ }; do
+    echo -e &quot;\n[INFO] Set timeout ${timeout_param}.&quot;
+	config_key=$(echo ${timeout_param}|awk -F&apos;=&apos; &apos;{print $1}&apos;)
+	config_value=$(echo ${timeout_param}|awk -F&apos;=&apos; &apos;{print $2}&apos;)
+    old_config=$(cat ${SAULT_CONFIG_PATH}|grep -n &quot; ${config_key}: &quot;)
+    old_config_line=$(echo ${old_config}|awk -F&apos;:&apos; &apos;{print $1}&apos;)
+    old_config_value=$(echo ${old_config}|awk -F&apos;:&apos; &apos;{print $NF}&apos;)
+    sed -i &quot;${old_config_line}s#${old_config_value}# ${config_value}#&quot; ${SAULT_CONFIG_PATH}
+    cat ${SAULT_CONFIG_PATH}|grep &quot; ${config_key}: &quot;
+done
+
+# Set case intervals
+for interval_param in ${CASE_INTERVERS//,/ }; do
+    echo -e &quot;\n[INFO] Set case interval ${interval_param}.&quot;
+    config_key_pre=$(echo ${interval_param}|awk -F&apos;/&apos; &apos;{print $1}&apos;)
+    config_key=$(echo ${interval_param}|awk -F&apos;/&apos; &apos;{print $NF}&apos;|awk -F&apos;=&apos; &apos;{print $1}&apos;)
+    config_value=$(echo ${interval_param}|awk -F&apos;=&apos; &apos;{print $2}&apos;)
+    old_config=$(cat ${SAULT_CONFIG_PATH}|grep -A 5 -n &quot;${config_key_pre}:&quot;|grep &quot;${config_key}&quot;)
+    old_config_line=$(echo ${old_config}|awk -F&apos;-&apos; &apos;{print $1}&apos;)
+    old_config_value=$(echo ${old_config}|awk -F&apos;:&apos; &apos;{print $NF}&apos;)
+    sed -i &quot;${old_config_line}s#${old_config_value}# ${config_value}#&quot; ${SAULT_CONFIG_PATH}
+    cat ${SAULT_CONFIG_PATH}|grep -A 5 &quot; ${config_key_pre}:&quot;|grep &quot;${config_key}&quot;
+done
+
+
+# Pack code
+echo -e &quot;\n[INFO] Pack code.&quot;
+cd ${WORKSPACE}
+rm -f sault.tar.gz
+tar -zcf sault.tar.gz sault
+ls -l ${WORKSPACE}|egrep -v &apos;^total&apos;
+
+# Generate sha256 file
+echo -e &quot;\n[INFO] Generate sha256 file.&quot;
+cd ${WORKSPACE}
+sha256sum sault.tar.gz &gt; sault.tar.gz.sha256
+cat sault.tar.gz.sha256
+
+# Copy sault to node
+echo -e &quot;\n[INFO] Copy sault to node.&quot;
+for ONE_NODE in ${NODE_IP//,/ }; do
+    echo &quot;Node[${ONE_NODE}]: &quot;
+    ${SSH} ${BLUE_SMOKE_USER}@${ONE_NODE} &quot;mkdir -p ${DES_PATH}; rm -f ${DES_PATH}/sault.tar.gz*&quot;
+    ${SCP} ${WORKSPACE}/sault.tar.gz* ${BLUE_SMOKE_USER}@${ONE_NODE}:/home/jenkins/config/
+    ${SSH} ${BLUE_SMOKE_USER}@${ONE_NODE} &quot;cd ${DES_PATH}; ls -ld sault.tar.gz*&quot;
+done</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.39">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.25">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>user_jenkins</credentialsId>
+          <usernameVariable>BLUE_SMOKE_USER</usernameVariable>
+          <passwordVariable>BLUE_SMOKE_PASSWORD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>mindspore_community_jenkins_gitee</credentialsId>
+          <usernameVariable>GITEE_CREDENTIAL_USR</usernameVariable>
+          <passwordVariable>GITEE_CREDENTIAL_PSW</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.13"/>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@1.0.0">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,1299 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.41">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.8.5"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.8.5">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>Gitee平台federated版本流水线</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>180</daysToKeep>
+        <numToKeep>500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>ORGANIZATION_NAME</name>
+          <description>组织名称（mindspore: 开源仓; ms-incubator: 内源仓）</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>mindspore</string>
+              <string>ms-incubator</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>REPOSITORY_NAME</name>
+          <description>代码仓名称</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>federated</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>PIPELINE_TYPE</name>
+          <description>流水线类型（daily: 每日构建; version: 版本构建）</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>daily</string>
+              <string>developly</string>
+              <string>version</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TARGET_BRANCH</name>
+          <description>版本分支</description>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>NEWEST_FLAG</name>
+          <description>是否为newest版本（true：是；false：否）
+注意：手动出包请选择false</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>false</string>
+              <string>true</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers/>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.92">
+    <script>/*
+################
+# Pipeline env #
+################
+*/
+def setEnvCI(String sourceBranch) {
+    env.CODE_PATH = "/home/jenkins/share-data/${CODE_PLATFORM}/${ORGANIZATION_NAME}/${REPOSITORY_NAME}/code/${PIPELINE_TYPE}/${BUILD_ID}"
+    
+    // Jumper node IP for smoke test(big IP, small IP)
+    env.SHARE_COMPUTER_BIG_IP = '114.116.220.20'
+    env.SHARE_COMPUTER_SMALL_IP = '192.168.0.240'
+    
+    // If upgrade ascend
+    if (sourceBranch =~ 'upgrade_ascend') {
+        env.CI_PIPELINE_ORGANIZATION_NAME = "${giteeSourceNamespace}"
+        env.CI_PIPELINE_BRANCH = "${giteeSourceBranch}"
+    } else {
+        env.CI_PIPELINE_ORGANIZATION_NAME = 'lllrt'
+        env.CI_PIPELINE_BRANCH = 'dev'
+    }
+}
+
+def setEnvGate(String platformType='gitee') {
+    env.PIPELINE_TYPE = 'gate'
+    env.CODE_PLATFORM = 'gitee'
+    env.ORGANIZATION_NAME = "${giteeTargetNamespace}".toLowerCase()
+    env.REPOSITORY_NAME = "${giteeTargetRepoName}".toLowerCase()
+    env.GIT_USER_EMAIL = "${giteeUserEmail}"
+    env.GIT_SOURCE_BRANCH = "${giteeSourceBranch}"
+    env.GIT_TARGET_BRANCH = "${giteeTargetBranch}"
+    env.GIT_PR_NUMBER = "${giteePullRequestIid}"
+    env.PIPELINE_GATE_TYPE = 'MS_ALL'
+    
+    // Event type
+    if (giteeActionType.toUpperCase() == 'NOTE') {
+        env.GIT_TRIGGER_PHRASE = "${giteeTriggerPhrase}"
+    } else {
+        env.GIT_TRIGGER_PHRASE = '/retest'
+    }
+
+    // UT grouping
+    if (env.REPOSITORY_NAME == "mindspore") {
+        env.UT_GROUPS = 10
+        env.UT_THREAD_NUMS = 24
+    }
+    
+    // CI repo
+    setEnvCI(env.GIT_SOURCE_BRANCH)
+}
+
+def setEnvVersion(String platformType='gitee') {
+    env.PIPELINE_TYPE = "${PIPELINE_TYPE}"
+    env.CODE_PLATFORM = 'gitee'
+    env.ORGANIZATION_NAME = "${ORGANIZATION_NAME}".toLowerCase()
+    env.REPOSITORY_NAME = "${REPOSITORY_NAME}".toLowerCase()
+    env.GIT_TARGET_BRANCH = "${TARGET_BRANCH}"
+    env.NEWEST_FLAG = "${NEWEST_FLAG}"
+
+    // Used only for pipeline gate
+    env.GIT_USER_EMAIL = 'NULL'
+    env.GIT_SOURCE_BRANCH = 'NULL'
+    env.GIT_PR_NUMBER = 'NULL'
+    env.GIT_TRIGGER_PHRASE = 'NULL'
+
+    // UT grouping
+    if (env.REPOSITORY_NAME == "mindspore")  {
+        env.UT_GROUPS = 10
+        env.UT_THREAD_NUMS = 24
+    }
+    
+    // CI repo
+    setEnvCI(env.GIT_SOURCE_BRANCH)
+}
+
+
+/*
+###############
+# Common func #
+###############
+*/
+def excuteShellScript(String jobName, String scriptPath, String paramsList='') {
+    sh label: jobName, script: """
+    #!/bin/bash
+    set +xe
+    
+    # Running on agent
+    echo "Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})"
+    
+    # Source assert
+    source ${CODE_PATH}/ms-pipeline/public/assert.sh
+    [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Source assert is failed." &amp;&amp; exit 1
+    
+    # Execute script
+    sh ${CODE_PATH}/ms-pipeline/${scriptPath} -w ${WORKSPACE} ${paramsList}
+    DP_ASSERT_EQUAL "\$?" "0" "Execute project of ${jobName}"
+    """
+}
+
+def excuteBatScript(String jobName, String scriptPath, String paramsList='') {
+    withCredentials([sshUserPrivateKey(credentialsId: 'share_compute_rsa_jenkins', keyFileVariable: 'SHARE_COMPUTER_RSA_KEY', usernameVariable: 'SHARE_COMPUTER_RSA_USR')]) {
+        bat label: jobName, script: """
+        @echo off
+        @rem Running on agent
+        echo Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})
+        
+        @rem Set env
+        SET GIT_BASH=C:\\Program Files\\Git\\bin\\bash
+        SET WINRAR=C:\\Program Files\\WinRAR\\winrar
+        SET SCP=scp -q -r -o StrictHostKeychecking=no -i %SHARE_COMPUTER_RSA_KEY%
+        SET RETURNCODE=0
+    
+        @rem Copy ms-pipeline
+        "%GIT_BASH%" -c "cd \${WORKSPACE}; rm -rf ms-pipeline &amp;&amp; rm -f ms-pipeline.tar"
+        "%GIT_BASH%" -c "\${SCP} ${SHARE_COMPUTER_RSA_USR}@${SHARE_COMPUTER_SMALL_IP}:${CODE_PATH}/ms-pipeline.tar \${WORKSPACE}"
+        IF NOT %errorlevel% == 0 (
+            echo [ERROR] Copy ms-pipeline is failed.
+            set RETURNCODE=1
+            goto run_end
+        )
+        cd /d %WORKSPACE%
+        "%WINRAR%" x -y ms-pipeline.tar
+    
+        @rem Call script
+        call ${WORKSPACE}\\ms-pipeline\\${scriptPath} "%WORKSPACE%" "${CODE_PATH}" "${PIPELINE_TYPE}" ${paramsList}
+        IF NOT %errorlevel% == 0 (
+            echo [ERROR] Execute project of ${jobName} is failed.
+            set RETURNCODE=1
+            goto run_end
+        )
+        echo [INFO] Execute project of ${jobName} is success.
+    
+        :run_end
+            exit /b %RETURNCODE%
+        """
+    }
+}
+
+def commonLinux(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                excuteShellScript(jobName, scriptPath, paramsList)
+            }
+        }
+    }
+}
+
+def credentialsLinux(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                withCredentials([usernamePassword(credentialsId: 'mindspore_community_jenkins_gitee', passwordVariable: 'GITEE_CREDENTIAL_PSW', usernameVariable: 'GITEE_CREDENTIAL_USR')]) {
+                    excuteShellScript(jobName, scriptPath, paramsList)
+                }
+            }
+        }
+    }
+}
+
+def commonWindows(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}"){
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                excuteBatScript(jobName, scriptPath, paramsList)
+            }
+        }
+    }
+}
+
+def getParallelJobs(def jobsList, def funcName, def scriptDirPath='') {
+    def parallelJobsRun = [:]
+    jobsList.each { job -&gt;
+        def jobName = job[0]
+        def nodeLabel = job[1]
+        def projectTimeout = job[2]
+        def scriptPath = scriptDirPath + job[3]
+        def paramsList = job[4]
+        def branch = {
+            if (paramsList) {
+                funcName(jobName, nodeLabel, projectTimeout, scriptPath, paramsList)
+            } else {
+                funcName(jobName, nodeLabel, projectTimeout, scriptPath)
+            }
+        }
+        parallelJobsRun["${jobName}"] = branch
+    }
+    return parallelJobsRun
+}
+
+def getParallelFunc(def jobsList, def funcName, def paramsList='') {
+    def parallelJobsRun = [:]
+    jobsList.each { job -&gt;
+        def branch = {
+            if (paramsList) {
+                funcName(paramsList)
+            } else {
+                funcName()
+            }
+        }
+        parallelJobsRun["${job}"] = branch
+    }
+    return parallelJobsRun
+}
+
+/*
+#############
+# Init Gate #
+#############
+*/
+def addOrRemoveLabel(String OWNER, String PROJECT, String PR_NUMBER, String ACCESS_TOKEN, ArrayList ADD_LABELS, ArrayList REMOVE_LABLES) {
+    if (!(OWNER?.trim() &amp;&amp; PROJECT?.trim() &amp;&amp; PR_NUMBER?.trim() &amp;&amp; ACCESS_TOKEN?.trim()))  {
+        throw new Exception("[ERROR] Any of 'OWNER', 'PROJECT', 'PR_NUMBER', 'ACCESS_TOKEN' should not be empty")
+    }
+    for (int i = 0; i &lt; 3; i++) {
+        try {
+            // Delete PR label
+            println "[INFO] Going to update pr label. URL:https://gitee.com/${OWNER}/${PROJECT}/pulls/${PR_NUMBER}, Add:${ADD_LABELS}, Delete:${REMOVE_LABLES}"
+            REMOVE_LABLES.eachWithIndex { v, index -&gt;
+                def requestUrl = sprintf("https://gitee.com/api/v5/repos/%s/%s/pulls/%s/labels/%s?access_token=%s", OWNER, PROJECT, PR_NUMBER, v, ACCESS_TOKEN)
+                println requestUrl
+                def response = httpRequest quiet: true, consoleLogResponseBody: false,
+                               contentType: 'APPLICATION_JSON',
+                               customHeaders: [[name: "User-Agent", value: "MindSpore"]],
+                               httpMode: 'DELETE',
+                               url: requestUrl,
+                               ignoreSslErrors: true,
+                               validResponseCodes: "204,404";
+                println response
+                return response
+            }
+
+            // Add new PR label
+            def requestUrl = sprintf("https://gitee.com/api/v5/repos/%s/%s/pulls/%s/labels?access_token=%s", OWNER, PROJECT, PR_NUMBER, ACCESS_TOKEN)
+            def prNameStr = ADD_LABELS.join(',')
+            def updatedLabels = """
+                                ["${prNameStr}"]
+                                """
+            println requestUrl
+            def response = httpRequest quiet: true, consoleLogResponseBody: false,
+                           contentType: 'APPLICATION_JSON',
+                           customHeaders: [[name: "User-Agent", value: "MindSpore"]],
+                           httpMode: 'POST',
+                           requestBody: updatedLabels,
+                           url: requestUrl,
+                           ignoreSslErrors: true,
+                           validResponseCodes: "201";
+            println response
+            return response
+        } catch(Exception ex) {
+            println "[WARNING] Exception:${ex}"
+        }
+        if (i == 2) {
+            println "[ERROR] Failed to update pr label. URL:https://gitee.com/${OWNER}/${PROJECT}/pulls/${PR_NUMBER}, Add:${ADD_LABELS}, Delete:${REMOVE_LABLES}"
+            return false
+        }
+        sleep(3)
+    }
+}
+
+def addPullRequestLabel(String owner, String repo, String prNumber, ArrayList addLabel) {
+    ArrayList removeLabel = ["ci-pipeline-passed", "ci-pipeline-passed-t", "ci-pipeline-failed", "ci-pipeline-running"]
+    withCredentials([string(credentialsId: 'gitee_token_id', variable: 'GITEE_TOKEN')]) {
+        this.addOrRemoveLabel(owner, repo, prNumber, "${GITEE_TOKEN}", addLabel, removeLabel)
+    }
+}
+
+def getCodeCheckToken() {
+    // Get token
+    withCredentials([string(credentialsId: 'code_check_token_id', variable: 'CODE_CHECK_TOKEN')]) {
+        for (int i = 0; i &lt; 3; i++){
+            def response = httpRequest \
+                           contentType: 'APPLICATION_JSON_UTF8',
+                           httpMode: 'GET',
+                           url: "https://majun.osinfra.cn:8384/api/openlibing/codecheck/token/${CODE_CHECK_TOKEN}",
+                           validResponseCodes: "200,500";
+            if (response.status == 200) {
+                def jsonRet = readJSON text: response.content
+                if ( jsonRet.code == "200" ) {
+                    return jsonRet.data
+                }
+            }
+
+            if (i == 2) {
+                println "[ERROR] Get code check token failed, please check."
+                return false
+            }
+        }
+    }
+
+}
+
+def triggerCodeCheck(String owner, String repo, String prNumber) {
+    // Get token
+    def dyToken = getCodeCheckToken()
+
+    if (!dyToken){
+        return false
+    }
+    // Code check
+    for (int i = 0; i &lt; 3; i++){
+        def response = httpRequest \
+                       contentType: 'APPLICATION_JSON_UTF8',
+                       httpMode: 'GET',
+                       url: "https://majun.osinfra.cn:8384/api/openlibing/codecheck/task?pr_url=https://gitee.com/${owner}/${repo}/pulls/${prNumber}&amp;token=${dyToken}",
+                       validResponseCodes: "200,500";
+        if (response.status == 200) {
+            def jsonRet = readJSON text: response.content
+            if ( jsonRet.code == "200" ) {
+                env.CODE_CHECK_TASK_ID = jsonRet.task_id
+                env.CODE_CHECK_UUID = jsonRet.uuid
+                return true
+            } else {
+                println "[WARNING] The code check error is: ${jsonRet.msg}"
+                if (i==2) {
+                    return true
+                }
+                continue
+            }
+        }
+
+        if (i == 2) {
+            println "[ERROR] Trigger code check failed, please check."
+            return false
+        }
+    }
+}
+
+def getCodeCheckResult() {
+    // Get token
+    def dyToken = getCodeCheckToken()
+
+    if (!dyToken){
+        return false
+    }
+
+    // Get result
+    if (!env.CODE_CHECK_TASK_ID) {
+        def jsonRet = [state: "pass"]
+        return jsonRet
+    }
+    for (int i = 0; i &lt; 6; i++){
+        def response = httpRequest \
+                       contentType: 'APPLICATION_JSON_UTF8',
+                       httpMode: 'GET',
+                       url: "https://majun.osinfra.cn:8384/api/openlibing/codecheck/${CODE_CHECK_TASK_ID}/status?uuid=${CODE_CHECK_UUID}&amp;token=${dyToken}",
+                       validResponseCodes: "200,500";
+        if (response.status == 200) {
+            def jsonRet = readJSON text: response.content
+            if ( jsonRet.code == "200" ) {
+                return jsonRet
+            } else if (jsonRet.code == "100") {
+                if (i==5) {
+                    println '[ERROR] Does not get code check result.'
+                    return false
+                }
+                sleep(10)
+                continue
+            } else {
+                println "[ERROR] The code check error is: ${jsonRet.msg}"
+                return false
+            }
+        }
+        if (i==5) {
+            println '[ERROR] Does not get code check result.'
+            return false
+        }
+        sleep(10)
+    }
+}
+
+def postStatusOfPipelineRunning(String owner, String repo, String prNumber, Boolean codeCheck=false) {
+    sleep(3)
+    retry(3) {
+        addGiteeMRComment comment: ":large_blue_circle: The pipeline is running. Please wait a moment... ([Link](${RUN_DISPLAY_URL}))"
+    }
+
+    addPullRequestLabel(owner, repo, prNumber, ["ci-pipeline-running"])
+
+    // Code check
+    if (codeCheck) {
+        if (!triggerCodeCheck(owner, repo, prNumber)){
+            sh 'exit 1'
+        }
+    }
+}
+
+def codeCheckRunning(String owner, String repo, String prNumber) {
+    retry(3) {
+        addGiteeMRComment comment: ":large_blue_circle: The code check is running. Please wait a moment... ([Link](${RUN_DISPLAY_URL}))"
+    }
+
+    // Code check
+    if (!triggerCodeCheck(owner, repo, prNumber)){
+        sh 'exit 1'
+    }
+
+    sleep(240)
+
+    // Comment result
+    def commentResult = "| Project Name | Build Result | Details |\n| --- | --- | --- |\n"
+
+    // Get Code check Result
+    def jsonRet = getCodeCheckResult()
+    if (jsonRet &amp;&amp; jsonRet.state == "pass" ) {
+        commentResult = commentResult + "|  Code_Check | :green_heart: **SUCCESS** | [RESULT](${jsonRet.data}) |\n"
+    }else if (jsonRet &amp;&amp; jsonRet.state == "no pass" ) {
+        commentResult = commentResult + "|  Code_Check | :x: **FAILURE** | [RESULT](${jsonRet.data}) |\n"
+    }else{
+        commentResult = commentResult + "|  Code_Check | :x: **ERROR** | NO RESULT |\n"
+    }
+    retry(3) {
+        addGiteeMRComment comment: "${commentResult}"
+    }
+}
+
+def checkCodeCheckResult(int checkTimes=1) {
+    for (int i = 0; i &lt; checkTimes; i++) {
+        if (!env.CODE_CHECK_RET) {
+            def jsonRet = getCodeCheckResult()
+            if (jsonRet &amp;&amp; jsonRet.state == 'no pass') {
+                sh 'exit 1'
+            } else if (jsonRet &amp;&amp; jsonRet.state == 'pass') {
+                env.CODE_CHECK_RET = 'pass'
+            }
+            if (checkTimes == 1 || (jsonRet &amp;&amp; jsonRet.state == 'pass' &amp;&amp; jsonRet.data)) {
+                break
+            } else {
+                sleep(60)
+            }
+        }
+    }
+}
+
+// Node grouping
+def nodeGrouping(String nodePrefix, Map groupInfo) {
+    def nodeGroupMap = [:]
+    def nodeNum = 0
+
+    for ( groupType in groupInfo ) {
+        nodeGroupMap[groupType.key] = ""
+        def endNum = nodeNum + groupType.value
+
+        for (groupId in nodeNum..&lt;endNum) {
+            if ( !nodeGroupMap[groupType.key] ) {
+                nodeGroupMap[groupType.key] = "${nodePrefix}-${groupId}"
+            } else {
+                nodeGroupMap[groupType.key] += " || ${nodePrefix}-${groupId}"
+            }
+        }
+        nodeNum += groupType.value
+    }
+    return nodeGroupMap
+}
+
+
+/*
+#################
+# Download code #
+#################
+*/
+def downloadCode(String jobName, String nodeLabel, int projectTimeout, String scriptPath) {
+    node("${nodeLabel}"){
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+
+                withCredentials([usernamePassword(credentialsId: 'mindspore_community_jenkins_gitee', passwordVariable: 'GITEE_CREDENTIAL_PSW', usernameVariable: 'GITEE_CREDENTIAL_USR')]) {
+                    sh label: jobName, script: """
+                    #!/bin/bash
+                    set +xe
+
+                    # Running on agent
+                    echo "Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})"
+
+                    # Git clone code of ms-pipeline
+                    echo -e "\n[INFO] Git clone code of ms-pipeline."
+                    for ((i=0; i&lt;3; i++)); do
+                        rm -rf ${WORKSPACE}/ms-pipeline
+                        git clone https://${GITEE_CREDENTIAL_USR}:${GITEE_CREDENTIAL_PSW}@gitee.com/${CI_PIPELINE_ORGANIZATION_NAME}/ms-pipeline.git -b ${CI_PIPELINE_BRANCH}
+                        [ \$? -eq 0 ] &amp;&amp; break
+                    done
+                    [ \${i} -eq 3 ] &amp;&amp; echo "[ERROR] Git clone code of ms-pipeline is failed." &amp;&amp; exit 1
+                    ls -ld ${WORKSPACE}/ms-pipeline
+
+                    # Get ci branch
+                    /usr/local/python/python375/bin/python3 ${WORKSPACE}/ms-pipeline/pipeline/bin/code/get_branch.py --config_path=${WORKSPACE}/ms-pipeline/pipeline/conf/mapping/mapping_branch.yaml --repo_name=${REPOSITORY_NAME} --target_branch=${GIT_TARGET_BRANCH} &gt; ${WORKSPACE}/get_branch.log 2&gt;&amp;1
+                    CI_TARGET_BRANCH=\$(cat ${WORKSPACE}/get_branch.log|tail -n 1|grep 'ci_target_branch: '|awk '{print \$NF}')
+                    if [ -z "\${CI_TARGET_BRANCH}" ]; then
+                        CI_TARGET_BRANCH=${GIT_TARGET_BRANCH}
+                    fi
+
+                    # Git checkout branch
+                    if [ "${CI_PIPELINE_ORGANIZATION_NAME}" = "mindspore" ] &amp;&amp; [ "\${CI_TARGET_BRANCH}" != "master" ]; then
+                        cd ${WORKSPACE}/ms-pipeline
+                        git branch -a|grep "remotes/origin/\${CI_TARGET_BRANCH}\$" &gt; /dev/null 2&gt;&amp;1
+                        if [ \$? -eq 0 ] &amp;&amp; [ "\${CI_TARGET_BRANCH}" != "${CI_PIPELINE_BRANCH}" ]; then
+                            echo -e "\n[INFO] Git checkout branch."
+                            git checkout \${CI_TARGET_BRANCH}
+                            git branch
+                        fi
+                    fi
+
+                    # Support third-party organization
+                    if [ ! -d "${WORKSPACE}/ms-pipeline/pipeline/mindspore/${REPOSITORY_NAME}/config/${ORGANIZATION_NAME}" ]; then
+                        cp -a ${WORKSPACE}/ms-pipeline/pipeline/mindspore/${REPOSITORY_NAME}/config/mindspore ${WORKSPACE}/ms-pipeline/pipeline/mindspore/${REPOSITORY_NAME}/config/${ORGANIZATION_NAME}
+                    fi
+
+                    # Source assert
+                    source ${WORKSPACE}/ms-pipeline/public/assert.sh
+                    [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Source assert is failed." &amp;&amp; exit 1
+
+                    # Download code
+                    sh ${WORKSPACE}/ms-pipeline/${scriptPath} -w "${WORKSPACE}" -p "${CODE_PLATFORM}" -o "${ORGANIZATION_NAME}" -r "${REPOSITORY_NAME}" -e "${GIT_USER_EMAIL}" -s "${GIT_SOURCE_BRANCH}" -m "${GIT_TARGET_BRANCH}" -n "${GIT_PR_NUMBER}" -g "${GIT_TRIGGER_PHRASE}" -t "${PIPELINE_TYPE}" -b "${BUILD_ID}" -j "${JOB_NAME}"
+                    DP_ASSERT_EQUAL "\$?" "0" "Execute project of ${jobName}"
+                    """
+                }
+            }
+        }
+    }
+}
+
+
+/*
+##############
+# Code check #
+##############
+*/
+def codeCheckResultAnalysis(String jobName) {
+    if ("${jobName}" == "Check_Cppcheck") {
+        recordIssues(tools: [cppCheck(pattern: 'cppcheck-style.xml')])
+        sh label: 'Cppcheck Result', script: """set +xe; echo "${jobName}: &lt;${BUILD_URL}cppcheck&gt;";"""
+    } else if ("${jobName}" == "Check_Cpplint") {
+        recordIssues(tools: [cppLint(pattern: 'cpplint.log')])
+        sh label: 'Cpplint Result', script: """set +xe; echo "${jobName}: &lt;${BUILD_URL}cpplint&gt;";"""
+    } else if ("${jobName}" == "Check_Pylint") {
+        recordIssues(tools: [pyLint(pattern: 'pylint.log')])
+        sh label: 'Pylint Result', script: """set +xe; echo "${jobName}: &lt;${BUILD_URL}pylint&gt;";"""
+    }
+}
+def codeCheckWithCredentialsId(String jobName, String scriptPath, String paramsList=''){
+    withCredentials([string(credentialsId: paramsList, variable: 'credentialsId')]) {
+         excuteShellScript(jobName, scriptPath, paramsList)
+        if(jobName=="Check_Scanoss"){
+                def sbomPath = "${CODE_PATH}/ms-pipeline/pipeline/bin/code/sbom.json"
+                def sourceFile = "${WORKSPACE}/${REPOSITORY_NAME}"
+                def resultUrl = "https://api.osinfra.cn"
+                 for (int i = 0; i &lt; 3; i++) {
+                    try{
+                        sca authCode: "${credentialsId}", credentialsId: '', method: 'WebHook', methodChoose: '0', sbomFile:" ${sbomPath}", scanossCredentials: '', sourceFile: "${sourceFile}", sudoOrder: '', url: "${resultUrl}", urlChoose: ''
+                        break
+                    }catch (Exception ex) {
+                        println("scanoss pr failed ${i} time")
+                        if (i == 2) {
+                            println "[ERROR] Failed to Scan pr by scanoss with reason ${ex}"
+                            sh 'exit 1'
+                        }
+                    } 
+                }
+               excuteShellScript('checkResult','pipeline/bin/check/check_scanoss_result.sh','')
+            }
+        }
+}
+def codeCheck(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                try {
+                    if(jobName=="Check_Scanoss"){
+                        codeCheckWithCredentialsId( jobName, scriptPath, paramsList)
+                    }else{
+                        excuteShellScript(jobName, scriptPath, paramsList)
+                    }
+                } catch (Exception ex) {
+                    codeCheckResultAnalysis(jobName)
+                    sh 'exit 1'
+                }
+            }
+        }
+    }
+}
+
+def codeCheck_Version(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                try {
+                    excuteShellScript(jobName, scriptPath, paramsList)
+                } catch (Exception ex) {
+                    codeCheckResultAnalysis(jobName)
+                    if (['Check_ClangFormat'].contains(jobName)) {
+                        sh 'exit 1'
+                    }
+                }
+            }
+        }
+    }
+}
+
+def codeCheck_Docs(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                try {
+                    excuteShellScript(jobName, scriptPath, paramsList)
+                } catch (Exception ex) {
+                    codeCheckResultAnalysis(jobName)
+                    if (['Check_Markdownlint', 'Check_Tab', 'Check_Codespell', 'Check_Rstlint', 'Check_Notebooklint'].contains(jobName)) {
+                        sh 'exit 1'
+                    }
+
+                    // For docs repo
+                    if ((env.REPOSITORY_NAME == 'docs') &amp;&amp; (jobName == 'Check_Pylint')) {
+                        sh 'exit 1'
+                    }
+                    // For course repo
+                    if ((env.REPOSITORY_NAME == 'course') &amp;&amp; (jobName == 'Check_Pylint' || jobName == 'Check_Cpplint' )) {
+                        sh 'exit 1'
+                    }
+                }
+            }
+        }
+    }
+}
+
+def codeCheckStage(String owner, String repo, String pipelineType) {
+    // Pylint timeout
+    def timeoutPylint = 30
+    def timeoutCpplint = 30
+    if (pipelineType != 'gate') {
+        timeoutPylint = 120
+    }
+
+    // Job list
+    def jobsList = [["Check_ClangFormat", "x86-check-ubuntu", 10, "check_clangformat.sh"],
+                    ["Check_Cppcheck", "x86-check-ubuntu", 10, "check_cppcheck.sh"],
+                    ["Check_Cpplint", "x86-check-ubuntu", timeoutCpplint, "check_cpplint.sh"],
+                    ["Check_Pylint", "x86-check-ubuntu", timeoutPylint, "check_pylint.sh"],
+                    ["Check_Rstlint", "x86-check-ubuntu", 10, "check_rstlint.sh"],
+                    ["Check_Linklint", "x86-check-ubuntu", timeoutPylint, "check_linklint.sh"],
+                    ["Check_Shellcheck", "x86-check-ubuntu", 10, "check_shellcheck.sh"],
+                    ["Check_Markdownlint", "x86-check-ubuntu", 10, "check_markdownlint.sh"],
+                    ["Check_Tab", "x86-check-ubuntu", 10, "check_tab.sh"],
+                    ["Check_Cmakelint", "x86-check-ubuntu", 10, "check_cmakelint.sh"],
+                    ["Check_Notebooklint", "x86-check-ubuntu", 10, "check_notebooklint.sh"],
+                    ["Check_Codespell", "x86-check-ubuntu", 10, "check_codespell.sh"],
+                    ["Check_Darglint", "x86-check-ubuntu", timeoutPylint, "check_darglint.sh"],
+                    ["Check_Lizard", "x86-check-ubuntu", 10, "check_lizard.sh"]]
+
+    // For code diff
+    if (pipelineType == 'gate') {
+        jobsList += [["Check_DT_Design", "x86-check-ubuntu", 10, "check_different.sh"]]
+        jobsList += [["Check_Scanoss", "x86-check-ubuntu", 10, "check_scanoss.sh", 'SCANOSS_TOKEN']]
+    }
+
+    // For code docs
+    if ((pipelineType == 'gate') &amp;&amp; (GIT_SOURCE_BRANCH.length() &gt;= 9) &amp;&amp; (GIT_SOURCE_BRANCH.substring(0,9) == 'code_docs')) {
+        jobsList -= [["Check_Lizard", "x86-check-ubuntu", 10, "check_lizard.sh"]]
+    }
+
+    def funcName = this.&amp;codeCheck_Version
+    if (pipelineType == 'gate') {
+        if (['book', 'community', 'course', 'docs'].contains(repo)) {
+            funcName = this.&amp;codeCheck_Docs
+        } else {
+            funcName = this.&amp;codeCheck
+        }
+
+        // For graphengine or code sync
+        if (['graphengine', 'akg', 'akg-binary'].contains(repo) || ((GIT_SOURCE_BRANCH.length() &gt;= 9) &amp;&amp; (GIT_SOURCE_BRANCH.substring(0,9) == 'code_sync'))) {
+            funcName = this.&amp;codeCheck_Version
+        }
+    }
+
+    return getParallelJobs(jobsList, funcName, "pipeline/bin/check/")
+}
+
+
+/*
+##############
+# Smoke test #
+##############
+*/
+def excuteSmokeScript(String jobName, String scriptPath, String paramsList='') {
+    withCredentials([sshUserPrivateKey(credentialsId: 'share_compute_rsa_jenkins', keyFileVariable: 'SHARE_COMPUTER_RSA_KEY', usernameVariable: 'SHARE_COMPUTER_RSA_USR'), usernamePassword(credentialsId: 'ftp-smoke-log-jenkins', passwordVariable: 'FTP_SMOKE_LOG_PSW', usernameVariable: 'FTP_SMOKE_LOG_USR'), usernamePassword(credentialsId: 'user_root', passwordVariable: 'SMOKE_REBOOT_PSW', usernameVariable: 'SMOKE_REBOOT_USR')]) {
+        sh label: jobName, script: """
+        #!/bin/bash
+        set +xe
+
+        # Running on agent
+        echo "Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})"
+
+        # Copy ms-pipeline
+        cd ${WORKSPACE}
+        rm -f ms-pipeline.tar
+        scp -q -r -o StrictHostKeychecking=no -i ${SHARE_COMPUTER_RSA_KEY} ${SHARE_COMPUTER_RSA_USR}@${SHARE_COMPUTER_BIG_IP}:${CODE_PATH}/ms-pipeline.tar ${WORKSPACE}/
+        [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Copy ms-pipeline is failed." &amp;&amp; exit 1
+        rm -rf ms-pipeline
+        tar -xf ms-pipeline.tar &gt; /dev/null 2&gt;&amp;1
+
+        # Source assert
+        source ${WORKSPACE}/ms-pipeline/public/assert.sh
+        [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Source assert is failed." &amp;&amp; exit 1
+
+        # Execute script
+        sh ${WORKSPACE}/ms-pipeline/${scriptPath} -w ${WORKSPACE} ${paramsList}
+        DP_ASSERT_EQUAL "\$?" "0" "Execute project of ${jobName}"
+        """
+    }
+}
+
+def smokeTest(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                excuteSmokeScript(jobName, scriptPath, paramsList)
+            }
+        }
+    }
+}
+
+def smokeTest2(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                try {
+                    excuteSmokeScript(jobName, scriptPath, paramsList)
+                } catch(Exception ex) {
+                    println("[ERROR] Excute ${jobName} failed, exception is ${ex}.")
+                }
+            }
+        }
+    }
+}
+
+def smokeTest2_NPU(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    withCredentials([usernamePassword(credentialsId: 'download_from_repo_ftp', passwordVariable: 'REPO_FTP_DOWNLOAD_PSW', usernameVariable: 'REPO_FTP_DOWNLOAD_USR')]) {
+        smokeTest(jobName, nodeLabel, projectTimeout, scriptPath, paramsList)
+    }
+}
+
+def smokeTest2_CPU(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    withCredentials([usernamePassword(credentialsId: 'download_from_repo_ftp', passwordVariable: 'REPO_FTP_DOWNLOAD_PSW', usernameVariable: 'REPO_FTP_DOWNLOAD_USR')]) {
+        commonLinux(jobName, nodeLabel, projectTimeout, scriptPath, paramsList)
+    }
+}
+
+def getSmokeNodeLabel(def organizationName, def repositoryName, def targetBranch, def nodeType='ascend910') {
+    def smokeNodeLabel = ''
+    if (nodeType == 'gpu') {
+        smokeNodeLabel = 'smoke-gpu'
+    } else if (nodeType == 'lite') {
+        smokeNodeLabel = 'smoke-lite'
+    } else if (nodeType =~ 'ascend') {
+        if (organizationName == 'ms-incubator') {
+            smokeNodeLabel = "smoke-${nodeType}-incubator"
+        } else {
+            if (targetBranch != 'master') {
+                smokeNodeLabel = "smoke-${nodeType}-${targetBranch}"
+            } else {
+                smokeNodeLabel = "smoke-${nodeType}"
+            }
+        }
+    }
+
+    return smokeNodeLabel
+}
+
+
+/*
+###############
+# Release FTP #
+###############
+*/
+def releaseFTP(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                withCredentials([sshUserPrivateKey(credentialsId: 'repo.mindspore.cn', keyFileVariable: 'REPO_FTP_KEY', passphraseVariable: '', usernameVariable: 'REPO_FTP_USER')]) {
+                    excuteShellScript(jobName, scriptPath, paramsList)
+                }
+            }
+        }
+    }
+}
+
+def releasePYPI(String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList='') {
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES') {
+                cleanWs()
+                withCredentials([usernamePassword(credentialsId: 'mindspore_pypi', passwordVariable: 'PYPI_PWD', usernameVariable: 'PYPI_USR')]) {
+                    excuteSmokeScript(jobName, scriptPath, paramsList)
+                }
+            }
+        }
+    }
+}
+
+def releasePackageOfPYPI() {
+    def jobsList = [["Release_PYPI", "update-build", 180, "release_pypi_version.sh"]]
+    return getParallelJobs(jobsList, this.&amp;releasePYPI, "pipeline/bin/release/")
+}
+
+def releasePackageOfPipeline(String pipelineType, String newestFlag='') {
+    def jobsList = []
+    if (pipelineType == 'gate') {
+        jobsList = [["Release_FTP", "x86-check-ubuntu", 15, "release_ftp_gate.sh"]]
+    } else {
+        jobsList = [["Release_FTP", "x86-check-ubuntu", 60, "release_ftp_version.sh", "-f ${newestFlag}"]]
+    }
+    return getParallelJobs(jobsList, this.&amp;releaseFTP, "pipeline/bin/release/")
+}
+
+
+/*
+########
+# Post #
+########
+*/
+def deletePipelineCode(String codePath) {
+    node('x86-check-ubuntu') {
+        timeout(time: 5, unit: 'MINUTES') {
+            sh label: "Delete_Code", script: """
+                rm -rf ${codePath}
+            """
+        }
+    }
+}
+
+// Delete comments
+//   Comment1: /retest*
+//   Comment2: The pipeline is running. Please wait a moment...
+def deleteGiteeComments(String owner, String repo, String prNumber) {
+    node('x86-check-ubuntu') {
+        ws("workspace/Delete_Comments") {
+            timeout(time: 3, unit: 'MINUTES') {
+                cleanWs()
+                withCredentials([string(credentialsId: 'gitee_token_id', variable: 'GITEE_TOKEN')]) {
+                    sh label: 'Delete_Comments', script: """
+                    #!/bin/bash
+                    set +xe
+
+                    # Running on agent
+                    echo "Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})"
+
+                    # Source assert
+                    source ${CODE_PATH}/ms-pipeline/public/assert.sh
+                    [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Source assert is failed." &amp;&amp; exit 1
+
+                    # Execute script
+                    echo -e "\n[INFO] Delete comments."
+                    /usr/local/python/python375/bin/python3 ${CODE_PATH}/ms-pipeline/pipeline/bin/gitee/gitee_comments.py -f ${CODE_PATH}/ms-pipeline/pipeline/conf/gitee/gitee_api.yaml -a ${GITEE_TOKEN} -o ${owner} -r ${repo} -p ${prNumber} -t delete &gt; ${WORKSPACE}/gitee_comments.log 2&gt;&amp;1
+                    if [ \$? -ne 0 ]; then
+                        cat ${WORKSPACE}/gitee_comments.log
+                    fi
+                    """
+                }
+            }
+        }
+    }
+}
+
+def postResultOfPipelineGate(String owner, String repo, String prNumber, String pipelineResult, String codePath='/tmp/ms', String pipelineMode='GATE', Boolean codeCheck=false) {
+    println("currentBuild.result = ${pipelineResult}")
+
+    // Get path of release package
+    def releasePath = ""
+    try {
+        releasePath = readFile("${codePath}/release_path.txt").trim().replaceAll("\\s*|\t|\r|\n", "")
+    } catch(Exception ex) {
+        println "[WARNING] Read file(${codePath}/release_path.txt) is failed."
+    }
+
+    // Set successIcon
+    def successIcon = 'white_check_mark'
+    def successLabel = ["ci-pipeline-passed"]
+
+    // Debug mode
+    if(pipelineMode == 'DEBUG') {
+        successIcon = 'green_heart'
+        successLabel = ["ci-pipeline-passed-t"]
+    }
+
+    // Comment result
+    def commentResult = "| Project Name | Build Result | Details |\n| --- | --- | --- |\n"
+    def codeCheckSuccess = true
+
+    // Get Code check result
+	if (codeCheck &amp;&amp; pipelineResult != 'ABORTED') {
+        // Code check
+        def jsonRet = getCodeCheckResult()
+		if (jsonRet &amp;&amp; jsonRet['data']) {
+			result="[RESULT](${jsonRet.data})"
+		} else{
+			result="RESULT"
+		}
+        if (jsonRet &amp;&amp; (jsonRet['state'] == 'pass')) {
+            commentResult = commentResult + "|  Code_Check | :${successIcon}: **SUCCESS** | ${result} |\n"
+        } else if (jsonRet &amp;&amp; jsonRet['state'] == 'no pass') {
+            commentResult = commentResult + "|  Code_Check | :x: **FAILURE** | ${result} |\n"
+            codeCheckSuccess = false
+        }
+    }
+    
+    // Report result
+    if (pipelineResult == 'SUCCESS') {
+        retry(3) {
+            addGiteeMRComment comment: "${commentResult}|  [${JOB_NAME}](${releasePath}) | :${successIcon}: **SUCCESS** | [${BUILD_ID}](${RUN_DISPLAY_URL}) |\n"
+        }
+        addPullRequestLabel(owner, repo, prNumber, successLabel)
+        if (codeCheckSuccess){
+            addPullRequestLabel(owner, repo, prNumber, successLabel)
+        } else {
+            addPullRequestLabel(owner, repo, prNumber, ["ci-pipeline-failed"])
+        }
+        echo '[INFO] The pipeline run success.'
+    } else {
+        retry(3) {
+            addGiteeMRComment comment: "${commentResult}|  [${JOB_NAME}](${releasePath}) | :x: **FAILURE** | [${BUILD_ID}](${RUN_DISPLAY_URL}) |\n"
+        }
+        addPullRequestLabel(owner, repo, prNumber, ["ci-pipeline-failed"])
+        echo '[ERROR] The pipeline run failed.'
+    }
+    
+    // Delete obsolete comments
+    if(pipelineMode != 'DEBUG') {
+        deleteGiteeComments(owner, repo, prNumber)
+    }
+    
+    // Delete code
+    deletePipelineCode(codePath)
+}
+
+def postResultOfPipelineVersion(String pipelineResult, String codePath='/tmp/ms', String pipelineMode='VERSION') {
+    println("currentBuild.result = ${pipelineResult}")
+    if(pipelineResult == 'SUCCESS') {
+        echo '[INFO] The pipeline run success.'
+    } else {
+        echo '[ERROR] The pipeline run failed.'
+    }
+    
+    // Release logs
+    if(pipelineMode != 'DEBUG') {
+        releaseFTP("Release_Logs", "x86-check-ubuntu", 10, "pipeline/bin/release/release_logs_version.sh", "-n ${JOB_NAME}")
+    }
+    
+    // Delete code
+    deletePipelineCode(codePath)
+}
+
+
+/*
+####################
+# Ascend so update #
+####################
+*/
+def extractSO() {
+    def jobsList = [["Extract_Ascend_SO", "smoke-nfs-30", 180, "extract_ascend_so.sh", "-s hisi"]]
+    return getParallelJobs(jobsList, this.&amp;extractSoOfAscend, "tools/ascend/compile/")
+}
+
+def extractSoOfAscend (String jobName, String nodeLabel, int projectTimeout, String scriptPath, String paramsList=''){
+    node("${nodeLabel}") {
+        ws("workspace/${jobName}") {
+            timeout(time: projectTimeout, unit: 'MINUTES'){
+                cleanWs()
+
+                withCredentials([sshUserPrivateKey(credentialsId: 'share_compute_rsa_jenkins', keyFileVariable: 'SHARE_COMPUTER_RSA_KEY', usernameVariable: 'SHARE_COMPUTER_RSA_USR'), usernamePassword(credentialsId: 'share_computer_jenkins', passwordVariable: 'SHARE_COMPUTER_PSW', usernameVariable: 'SHARE_COMPUTER_USER')]) {
+                    sh label: jobName, script: """
+                    #!/bin/bash
+                    set +xe
+
+                    # Running on agent
+                    echo "Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})"
+
+                    # Copy ms-pipeline
+                    cd ${WORKSPACE}
+                    rm -f ms-pipeline.tar
+                    scp -q -r -o StrictHostKeychecking=no -i ${SHARE_COMPUTER_RSA_KEY} ${SHARE_COMPUTER_RSA_USR}@${SHARE_COMPUTER_BIG_IP}:${CODE_PATH}/ms-pipeline.tar ${WORKSPACE}/
+                    [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Copy ms-pipeline is failed." &amp;&amp; exit 1
+                    rm -rf ms-pipeline
+                    tar -xf ms-pipeline.tar &gt; /dev/null 2&gt;&amp;1
+
+                    # Source assert
+                    source ${WORKSPACE}/ms-pipeline/public/assert.sh
+                    [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Source assert is failed." &amp;&amp; exit 1
+
+                    # Execute script
+                    sh ${WORKSPACE}/ms-pipeline/${scriptPath} -w ${WORKSPACE} ${paramsList}
+                    DP_ASSERT_EQUAL "\$?" "0" "Execute project of ${jobName}"
+                    """
+                }
+            }
+        }
+    }
+}
+
+/*
+#############################
+# Ascend run package update #
+#############################
+*/
+def checkUpgradeEnv(String jobName, String nodeLabel, String envType, String operationType="driver-&gt;firmware", String uninstallFlag="true", int projectTimeout=100) {
+    node("${nodeLabel}") {
+        // Get nodeLabel
+        def upgradeNodeLabel = "smoke-ascend910-upgrade"
+        def nodeLabelName = "smoke-ascend"
+        def nodeTrueName = ""
+        def upgradeInfoMap = [:]
+        if (envType == "ASCEND910") {
+            nodeTrueName = "smoke-ascend-"
+            if (GIT_TARGET_BRANCH == "master") {
+                upgradeNodeLabel = "smoke-ascend910-upgrade"
+                nodeLabelName = "smoke-ascend"
+            } else {
+                upgradeNodeLabel = "smoke-ascend910-${GIT_TARGET_BRANCH}-upgrade"
+                nodeLabelName = "smoke-ascend"
+            }
+        } else if (envType == "ASCEND310") {
+            nodeTrueName = "smoke-ascend310-"
+            if (GIT_TARGET_BRANCH == "master") {
+                upgradeNodeLabel = "smoke-ascend310-upgrade"
+                nodeLabelName = "smoke-ascend"
+            } else {
+                upgradeNodeLabel = "smoke-ascend310-${GIT_TARGET_BRANCH}-upgrade"
+                nodeLabelName = "smoke-ascend"
+            }
+        }
+        def nodeLists=nodesByLabel "${upgradeNodeLabel}"
+        if (nodeLists) {
+            return
+        }
+
+        // Get path of release package
+        def nodeIP=""
+        def versionDate=""
+        def nodeListMatcher=""
+        def nodeNamesList=[]
+        try {
+            def envStr = readFile("${CODE_PATH}/ms-pipeline/pipeline/conf/env/env.sh").trim()
+            def driverTypeMatcher = envStr =~ /ASCEND910_DRIVER_PKG_PATH=.*\/ascend910\/(\d+)/
+            def toolsTypeMatcher = envStr =~ /ASCEND910_TOOLS_PKG_PATH=.*\/ascend910\/(\d+)/
+            if (envType == 'ASCEND910') {
+                nodeListMatcher = envStr =~ /ASCEND910_NODES="(.*)"/
+            } else if (envType == 'ASCEND310') {
+                nodeListMatcher = envStr =~ /ASCEND310_NODES="(.*)"/
+            }
+            if (driverTypeMatcher) {
+                upgradeInfoMap["driver_version_date"]=driverTypeMatcher[-1][-1]
+                println "[INFO] The driver run package date of upgrade is $upgradeInfoMap.driver_version_date ."
+            }
+            if (toolsTypeMatcher) {
+                upgradeInfoMap["tools_version_date"]=toolsTypeMatcher[-1][-1]
+                println "[INFO] The tools run package date of upgrade is $upgradeInfoMap.tools_version_date ."
+            }
+            if (nodeListMatcher) {
+                nodeIP=nodeListMatcher[0][1]
+                nodeTrueName += nodeIP.split(",")[0].split('\\.')[-1]
+                upgradeInfoMap["node_ip"]=nodeIP
+                upgradeInfoMap["node_true_name"]=nodeTrueName
+                println "[INFO] The update run package node is ${nodeTrueName}."
+            }
+        } catch(Exception ex) {
+            println "[WARNING] Read file env.sh is failed, error is ${ex}."
+            return
+        }
+
+        // Reset label
+        println "[INFO] Ready to set node label to none."
+        def hudsonOb = hudson.model.Hudson.instance
+        hudsonOb.slaves.findAll { it.nodeName.contains("${nodeTrueName}") }.each { slave -&gt;
+            println "[INFO] Begin to set node ${slave.nodeName} label to none."
+            slave.labelString = ""
+            nodeNamesList &lt;&lt; slave.nodeName
+        }
+        hudsonOb.save()
+        println "[INFO] Set node label to none success."
+        upgradeInfoMap["node_names_list"]=nodeNamesList
+
+        if (envType == 'ASCEND910') {
+            env.ASCEND910_UPGRADE_MAP = groovy.json.JsonOutput.toJson(upgradeInfoMap)
+        } else if (envType == 'ASCEND310') {
+            env.ASCEND310_UPGRADE_MAP = groovy.json.JsonOutput.toJson(upgradeInfoMap)
+        }
+    }
+}
+
+def checkNodeBusy(String jobName, String nodeTrueName) {
+    // check node whether running
+    println "[INFO] Begin to check the node of ${nodeTrueName} whether free."
+    node("${nodeTrueName}") {
+        sh label: jobName, script: """
+        #!/bin/bash
+        set +xe
+
+        # Running on agent
+        echo "The Agent ${NODE_NAME} now is free."
+        """
+    }
+}
+
+def updateRunPkg(String jobName, String nodeIPList, String driverVersionDate, String toolsVersionDate, String versionType="euleros2.8_aarch64", String operationType="driver-&gt;firmware", String uninstallFlag="true", int projectTimeout=100) {
+    // update run package
+    node("smoke-schedule-30") {
+        ws("workspace/${jobName}") {
+            cleanWs()
+            timeout(time: projectTimeout, unit: 'MINUTES'){
+                withEnv(["NODE_IP_LIST=${nodeIPList}", "DRIVER_VERSION_DATE=${driverVersionDate}", "TOOLS_VERSION_DATE=${toolsVersionDate}", "VERSION_TYPE=${versionType}", "OPERATOR_TYPE=${operationType}", "UNINSTALL_FLAG=${uninstallFlag}"]) {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'share_compute_rsa_jenkins', keyFileVariable: 'SHARE_COMPUTER_RSA_KEY', usernameVariable: 'SHARE_COMPUTER_RSA_USR'), usernamePassword(credentialsId: 'user_root', passwordVariable: 'BLUE_ASCEND_PASSWORD', usernameVariable: 'BLUE_ASCEND_USER')]) {
+                        sh label: jobName, script: """
+                        #!/bin/bash
+                        set +xe
+
+                        # Running on agent
+                        echo "Agent: ${NODE_NAME} (${JENKINS_URL}computer/${NODE_NAME})"
+
+                        # Copy ms-pipeline
+                        cd ${WORKSPACE}
+                        rm -f ms-pipeline.tar
+                        scp -q -r -o StrictHostKeychecking=no -i ${SHARE_COMPUTER_RSA_KEY} ${SHARE_COMPUTER_RSA_USR}@${SHARE_COMPUTER_BIG_IP}:${CODE_PATH}/ms-pipeline.tar ${WORKSPACE}/
+                        [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Copy ms-pipeline is failed." &amp;&amp; exit 1
+                        rm -rf ms-pipeline
+                        tar -xf ms-pipeline.tar &gt; /dev/null 2&gt;&amp;1
+
+                        # Source assert
+                        source ${WORKSPACE}/ms-pipeline/public/assert.sh
+                        [ \$? -ne 0 ] &amp;&amp; echo "[ERROR] Source assert is failed." &amp;&amp; exit 1
+
+                        # Execute script
+                        sh ${WORKSPACE}/ms-pipeline/tools/ascend/deploy/deploy_ascend.sh
+                        DP_ASSERT_EQUAL "\$?" "0" "Update ${driverVersionDate} ascend run package"
+                        """
+                    }
+                }
+                println "[INFO] Update node of ${nodeIPList} run package ${driverVersionDate} is success."
+            }
+        }
+    }
+}
+
+def setNodeLabel(String nodeTrueName, String envType) {
+    // Set upgrade node label
+    println "[INFO] Ready to set node  ${nodeTrueName} label to upgrade."
+    def hudsonOb = hudson.model.Hudson.instance
+    hudsonOb.slaves.findAll { it.nodeName.contains("${nodeTrueName}") }.each { slave -&gt;
+        if (envType == "ASCEND910") {
+            if (GIT_TARGET_BRANCH == "master") {
+                slave.labelString = "smoke-ascend910-upgrade"
+            } else {
+                slave.labelString = "smoke-ascend910-${GIT_TARGET_BRANCH}-upgrade"
+            }
+        } else if (envType == "ASCEND310") {
+            if (GIT_TARGET_BRANCH == "master") {
+                slave.labelString = "smoke-ascend310-upgrade"
+            } else {
+                slave.labelString = "smoke-ascend310-${GIT_TARGET_BRANCH}-upgrade"
+            }
+        }
+        println "[INFO] Set node  ${nodeTrueName} label to ${slave.labelString} is success."
+    }
+    hudsonOb.save()
+}
+
+
+node('x86-generic-slaves') {
+    this.setEnvVersion('gitee')
+    
+    try {
+        stage('download-code') {
+            this.downloadCode("Download_Code", "x86-check-ubuntu", 8, "pipeline/bin/code/download_code.sh")
+        }
+        stage('compile'){
+            def parallelJobsRun = [:]
+            def jobsList = [["Compile_X86_CentOS", "x86-build-centos", 10, "federated_compile.sh"],
+                            ["Compile_X86_CentOS_PY38", "x86-build-centos", 10, "federated_compile.sh","-v python38"],
+                            ["Compile_X86_CentOS_PY39", "x86-build-centos", 10, "federated_compile.sh","-v python39"]]
+            def jobsList2 = [["Compile_ARM_CentOS", "arm-build-centos", 10, "federated_compile.sh"],
+                             ["Compile_ARM_CentOS_PY38", "arm-build-centos", 10, "federated_compile.sh","-v python38"],
+                             ["Compile_ARM_CentOS_PY39", "arm-build-centos", 10, "federated_compile.sh","-v python39"]]
+            parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux,"pipeline/mindspore/${REPOSITORY_NAME}/scripts/")
+            parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList2, this.&amp;commonLinux,"pipeline/mindspore/${REPOSITORY_NAME}/scripts/")              
+            parallel parallelJobsRun
+        }
+        stage('llt-test&amp;code-check'){
+            def parallelJobsRun = [:]
+            def jobsList = [["UT-Python","x86-build-ubuntu",10,"federated_ut.sh"]]
+            parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux,"pipeline/mindspore/${REPOSITORY_NAME}/scripts/")
+            parallelJobsRun &lt;&lt; this.releasePackageOfPipeline(PIPELINE_TYPE, NEWEST_FLAG)
+            parallelJobsRun &lt;&lt; this.codeCheckStage(ORGANIZATION_NAME, REPOSITORY_NAME, PIPELINE_TYPE)
+            parallel parallelJobsRun
+        }
+        currentBuild.result = 'SUCCESS'
+    } catch(Exception ex) {
+        println("[ERROR] ${ex}")
+        currentBuild.result = 'FAILURE'
+    } finally {
+        this.postResultOfPipelineVersion(currentBuild.result, CODE_PATH)
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

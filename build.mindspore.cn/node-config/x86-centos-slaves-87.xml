@@ -1,0 +1,19 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<slave>
+  <name>x86-centos-slaves-87</name>
+  <description></description>
+  <remoteFS>/home/jenkins/agent-working-dir</remoteFS>
+  <numExecutors>1</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.slaves.JNLPLauncher">
+    <workDirSettings>
+      <disabled>false</disabled>
+      <internalDir>remoting</internalDir>
+      <failIfWorkDirIsMissing>false</failIfWorkDirIsMissing>
+    </workDirSettings>
+    <webSocket>false</webSocket>
+  </launcher>
+  <label>x86 x86-build-centos</label>
+  <nodeProperties/>
+</slave>

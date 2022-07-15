@@ -1,0 +1,142 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.41">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.8.5"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.8.5">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>Gitee平台mindspore门禁调试流水线&#13;
+----------------------------------------&#13;
+1. 检查&#13;
+代码检查：/retest_check&#13;
+codecheck代码检查：/retest_code_check&#13;
+&#13;
+2. 编译出包&#13;
+Ascend910版本：/retest_compile_ascend（ARM euleros版本）&#13;
+Ascend310版本：/retest_compile_ascend310（ARM euleros版本）&#13;
+GPU(cuda10) CentOS版本：/retest_compile_gpu_cuda10&#13;
+GPU(cuda11) CentOS版本：/retest_compile_gpu_cuda11&#13;
+CPU CentOS(X86)版本：/retest_compile_cpu_x86&#13;
+CPU CentOS(ARM)版本：/retest_compile_cpu_arm&#13;
+CPU Windows版本：/retest_compile_windows&#13;
+CPU MacOS(X86)版本：/retest_compile_cpu_x86_macos&#13;
+CPU MacOS(ARM)版本：/retest_compile_cpu_arm_macos&#13;
+Lite IOS版本：/retest_compile_lite_ios&#13;
+&#13;
+3. UT测试&#13;
+UT全量测试：/retest_ut&#13;
+UT CPP测试：/retest_ut_cpp&#13;
+UT Python调试：/retest_ut_python&#13;
+&#13;
+4. ST测试&#13;
+Ascend910(level0)用例测试：/retest_smoke_ascend&#13;
+Ascend910(level1)用例测试：/retest_smoke_ascend_level1&#13;
+Ascend910(level0)用例测试：/retest_smoke_ascend_fullcase（跑完所有用例才退出）&#13;
+Ascend910(level1)用例测试：/retest_smoke_ascend_level1_fullcase（跑完所有用例才退出）&#13;
+Ascend310用例测试：/retest_smoke_ascend310&#13;
+GPU(cuda10:level0)用例测试：/retest_smoke_gpu_cuda10&#13;
+GPU(cuda10:level1)用例测试：/retest_smoke_gpu_cuda10_level1&#13;
+GPU(cuda10:level0)用例测试：/retest_smoke_gpu_cuda10_fullcase（跑完所有用例才退出）&#13;
+GPU(cuda10:level1)用例测试：/retest_smoke_gpu_cuda10_level1_fullcase（跑完所有用例才退出）&#13;
+GPU(cuda11:level0)用例测试：/retest_smoke_gpu_cuda11&#13;
+GPU(cuda11:level1)用例测试：/retest_smoke_gpu_cuda11_level1&#13;
+GPU(cuda11:level0)用例测试：/retest_smoke_gpu_cuda11_fullcase（跑完所有用例才退出）&#13;
+GPU(cuda11:level1)用例测试：/retest_smoke_gpu_cuda11_level1_fullcase（跑完所有用例才退出）&#13;
+CPU CentOS X86(level0)用例测试：/retest_smoke_cpu_x86&#13;
+CPU CentOS X86(level1)用例测试：/retest_smoke_cpu_x86_level1&#13;
+CPU CentOS X86(level0)用例测试：/retest_smoke_cpu_x86_fullcase（跑完所有用例才退出）&#13;
+CPU CentOS X86(level1)用例测试：/retest_smoke_cpu_x86_level1_fullcase（跑完所有用例才退出）&#13;
+CPU CentOS ARM(level0)用例测试：/retest_smoke_cpu_arm&#13;
+CPU CentOS ARM(level1)用例测试：/retest_smoke_cpu_arm_level1&#13;
+CPU CentOS ARM(level0)用例测试：/retest_smoke_cpu_arm_fullcase（跑完所有用例才退出）&#13;
+CPU CentOS ARM(level1)用例测试：/retest_smoke_cpu_arm_level1_fullcase（跑完所有用例才退出）&#13;
+CPU Windows(level0)用例测试：/retest_smoke_cpu_windows&#13;
+CPU Windows(level1)用例测试：/retest_smoke_cpu_windows_level1&#13;
+CPU Windows(level0)用例测试：/retest_smoke_cpu_windows_fullcase（跑完所有用例才退出）&#13;
+CPU Windows(level1)用例测试：/retest_smoke_cpu_windows_level1_fullcase（跑完所有用例才退出）&#13;
+CPU MacOS X86(level0)用例测试：/retest_smoke_cpu_x86_macos&#13;
+CPU MacOS X86(level1)用例测试：/retest_smoke_cpu_x86_macos_level1&#13;
+CPU MacOS X86(level0)用例测试：/retest_smoke_cpu_x86_macos_fullcase（跑完所有用例才退出）&#13;
+CPU MacOS X86(level1)用例测试：/retest_smoke_cpu_x86_macos_level1_fullcase（跑完所有用例才退出）&#13;
+CPU MacOS ARM(level0)用例测试：/retest_smoke_cpu_arm_macos&#13;
+CPU MacOS ARM(level1)用例测试：/retest_smoke_cpu_arm_macos_level1&#13;
+CPU MacOS ARM(level0)用例测试：/retest_smoke_cpu_arm_macos_fullcase（跑完所有用例才退出）&#13;
+CPU MacOS ARM(level1)用例测试：/retest_smoke_cpu_arm_macos_level1_fullcase（跑完所有用例才退出）</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>1000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.2.4">
+          <spec/>
+          <triggerOnPush>false</triggerOnPush>
+          <triggerOnCommitComment>false</triggerOnCommitComment>
+          <triggerOnOpenPullRequest>false</triggerOnOpenPullRequest>
+          <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+          <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+          <triggerOnUpdatePullRequest>0</triggerOnUpdatePullRequest>
+          <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+          <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+          <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+          <triggerOnNoteRequest>true</triggerOnNoteRequest>
+          <noteRegex>/retest_(check|code_check|compile.*|ut.*|smoke.*)</noteRegex>
+          <buildInstructionFilterType>NONE</buildInstructionFilterType>
+          <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+          <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+          <skipLastCommitHasBeenBuild>false</skipLastCommitHasBeenBuild>
+          <setBuildDescription>true</setBuildDescription>
+          <branchFilterType>All</branchFilterType>
+          <includeBranchesSpec>master,r0.2</includeBranchesSpec>
+          <excludeBranchesSpec>r0.1</excludeBranchesSpec>
+          <targetBranchRegex/>
+          <secretToken>{AQAAABAAAAAwoRoMb4fkLNXQ8sqVMeDcQzBKWEpHTRZ5XN0nwMcIZeeQi0Fc/ApgcoK5JrA7sG/91sPwbQxiDt7T977aA8U4Ig==}</secretToken>
+          <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+          <cancelIncompleteBuildOnSamePullRequest>true</cancelIncompleteBuildOnSamePullRequest>
+          <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
+        </com.gitee.jenkins.trigger.GiteePushTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.92">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.2">
+      <configVersion>2</configVersion>
+      <userRemoteConfigs>
+        <hudson.plugins.git.UserRemoteConfig>
+          <url>https://gitee.com/mindspore/ms-pipeline</url>
+          <credentialsId>mindspore_community_jenkins_gitee</credentialsId>
+        </hudson.plugins.git.UserRemoteConfig>
+      </userRemoteConfigs>
+      <branches>
+        <hudson.plugins.git.BranchSpec>
+          <name>*/master</name>
+        </hudson.plugins.git.BranchSpec>
+      </branches>
+      <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+      <submoduleCfg class="empty-list"/>
+      <extensions/>
+    </scm>
+    <scriptPath>pipeline/groovy/schedule/gitee_gate.groovy</scriptPath>
+    <lightweight>true</lightweight>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

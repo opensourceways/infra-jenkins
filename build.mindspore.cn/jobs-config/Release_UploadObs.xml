@@ -1,0 +1,247 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description>MindSpore项目版本发布包上传至华为云OBS</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>180</daysToKeep>
+        <numToKeep>500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>VERSION_DIR</name>
+          <description>版本目录（例如：0.6.0-beta）</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MINDSPORE_URL</name>
+          <description>mindspore版本路径（例如：https://repo.mindspore.cn/mindspore/mindspore/version/202007/20200722/r0.6_20200722222028_760cd6829b4acecbb0a2c70294f7bcaa225fb560/）
+说明：URL最后要加上'/'</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MINDINSIGHT_URL</name>
+          <description>mindinsight版本路径（例如：https://repo.mindspore.cn/mindspore/mindinsight/version/202007/20200723/r0.6_20200723125212_c35b45ffae933876f28e4b503e5ea6324778ae9a/）
+说明：URL最后要加上'/'</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MINDARMOUR_URL</name>
+          <description>mindarmour版本路径（例如：https://repo.mindspore.cn/mindspore/mindarmour/version/202007/20200723/r0.6_20200723190107_5ea2ecb7577cad50c966bdc5d27ab7328f4f427e/）
+说明：URL最后要加上'/'</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MINDQUANTUM_URL</name>
+          <description>mindquantum版本路径（例如：https://repo.mindspore.cn/mindspore/mindquantum/version/202103/20210327/r0.1_20210327152033_1ac8f79efb792970aa566255d539722387cd9815/）
+说明：URL最后要加上'/'</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MINDSCIENCE_URL</name>
+          <description>mindscience版本路径（例如：https://repo.mindspore.cn/mindspore/mindscience/version/202103/20210327/r0.1_20210327152033_1ac8f79efb792970aa566255d539722387cd9815/）
+说明：URL最后要加上'/'</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>REINFORCEMENT_URL</name>
+          <description>reinforcement版本路径（例如：https://repo.mindspore.cn/mindspore/reinforcement/version/202103/20210327/r0.1_20210327152033_1ac8f79efb792970aa566255d539722387cd9815/）
+说明：URL最后要加上'/'</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>GRAPHLEARNING_URL</name>
+          <description>graphlearning版本路径（例如：https://repo.mindspore.cn/mindspore/graphlearning/version/202103/20210327/r0.1_20210327152033_1ac8f79efb792970aa566255d539722387cd9815/）
+说明：URL最后要加上'/'</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>SERVING_URL</name>
+          <description>serving版本路径（例如：https://repo.mindspore.cn/mindspore/serving/version/202012/20201228/r1.1_20201228041521_18e949967c250d55a8883305c990944dbe40e5f5/）
+说明：URL最后要加上'/'</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>IDEPLUGIN_URL</name>
+          <description>ide-plugin版本路径（例如：https://repo.mindspore.cn/mindspore/ide-plugin/version/202103/20210327/r0.1_20210327152033_1ac8f79efb792970aa566255d539722387cd9815/）
+说明：URL最后要加上'/'</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>VISION_URL</name>
+          <description>vision版本路径（例如：https://repo.mindspore.cn/mindspore/vision/version/202103/20210327/r0.1_20210327152033_1ac8f79efb792970aa566255d539722387cd9815/）
+说明：URL最后要加上'/'</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>HUB_URL</name>
+          <description>hub版本路径（例如：https://repo.mindspore.cn/mindspore/hub/version/202009/20200922/r1.0_20200922185457_3160dba1c1590c195ba0ecae0eee1a08e4c2acc7/）
+说明：URL最后要加上'/'</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>XAI_URL</name>
+          <description>xai版本路径（例如：https://repo.mindspore.cn/mindspore/xai/version/202103/20210327/r0.1_20210327152033_1ac8f79efb792970aa566255d539722387cd9815/）
+说明：URL最后要加上'/'</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>smoke-jumper-220-obs</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash 
+
+# Init obsutil config
+#obsutil config -i=${ak} -k=${sk} -e=obs.cn-north-4.myhuaweicloud.com
+
+# Init parameter
+BUCKET_NAME="ms-release"
+CUT_DIRS_NUMBER=6
+REPOS_NAME='MindSpore MindInsight MindArmour MindQuantum MindScience Reinforcement GraphLearning Serving Vision Hub Xai IdePlugin'
+
+
+##################
+# Common Library #
+##################
+# Color
+Red='\e[0;31m'          # Red
+Green='\e[0;32m'        # Green
+BRed='\e[1;31m'         # Red
+BGreen='\e[1;32m'       # Green
+Color_Off='\e[0m'       # Text Reset
+
+# Log head
+function LOG_HEAD() {
+    local assert_msg=${1}
+    echo -e "\n${BGreen}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log info
+function LOG_INFO() {
+    local assert_msg=${1}
+    echo -e "${Green}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log error
+function LOG_ERROR() {
+    local assert_msg=${1}
+    echo -e "${BRed}[ERROR] ${assert_msg}${Color_Off}"
+}
+
+# Assert A is equal to B
+# True: equal
+# False: not equal
+function DP_ASSERT_EQUAL() {
+    local actual_value=${1}
+    local expect_value=${2}
+    local assert_msg=${3}
+    if [ "${actual_value}" != "${expect_value}" ]; then
+        LOG_ERROR "${assert_msg} is failed."
+        exit 1
+    else
+        LOG_INFO "${assert_msg} is success."
+    fi
+}
+
+
+##########
+# Upload #
+##########
+# Check input parameter
+if [ -z "${VERSION_DIR}" ]; then
+    LOG_ERROR "Please check input parameter!"
+    exit 1
+fi
+
+# Check obs directory before upload
+LOG_HEAD "Check obs directory before upload."
+obsutil ls -s obs://${BUCKET_NAME}/${VERSION_DIR} &gt; ${WORKSPACE}/obs_list.txt
+DP_ASSERT_EQUAL "$?" "0" "Display obs directory"
+cat ${WORKSPACE}/obs_list.txt|tail -n 3
+FLAG_CHECK=$(cat ${WORKSPACE}/obs_list.txt|grep "Total size of prefix \(.*\) is:"|awk '{print $NF}')
+#DP_ASSERT_EQUAL "${FLAG_CHECK}" "0B" "Check obs directory"
+
+# Clear upload directory
+rm -rf ${WORKSPACE}/${VERSION_DIR}
+
+# Download package
+for repo in ${REPOS_NAME}; do
+    repo_url_name=$(typeset -u var_name; var_name=${repo}_url; echo $var_name)
+    repo_url="$(eval echo '$'"$repo_url_name")"
+    if [ -n "${repo_url}" ]; then
+        mkdir -p ${WORKSPACE}/${VERSION_DIR}/${repo}
+        # Download package
+        LOG_HEAD "Download ${repo} package."
+        cd ${WORKSPACE}/${VERSION_DIR}/${repo}
+        if [ "${repo}" = "MindSpore" ]; then
+            wget --no-check-certificate --tries=3 --timeout=180 -q --http-user=${REPO_FTP_DOWNLOAD_USR} --http-passwd=${REPO_FTP_DOWNLOAD_PSW} -r -l 0 -np -nH -R index.html*,*x86_64.zip,*aarch64.zip,*ascend_ge --cut-dirs=${CUT_DIRS_NUMBER} ${repo_url}/
+        else
+            wget --no-check-certificate --tries=3 --timeout=60 -q --http-user=${REPO_FTP_DOWNLOAD_USR} --http-passwd=${REPO_FTP_DOWNLOAD_PSW} -r -l 0 -np -nH -R index.html* --cut-dirs=${CUT_DIRS_NUMBER} ${repo_url}/
+        fi
+        DP_ASSERT_EQUAL "$?" "0" "Download ${repo} package"
+    fi
+done
+
+tree ${WORKSPACE}/${VERSION_DIR}
+
+
+# Upload to OBS
+LOG_HEAD "Upload to huaweilcoud OBS."
+obsutil cp ${WORKSPACE}/${VERSION_DIR} obs://${BUCKET_NAME} -r -f
+DP_ASSERT_EQUAL "$?" "0" "Upload package"
+
+# Display obs directory after upload
+LOG_HEAD "Display obs directory after upload."
+obsutil ls -s obs://${BUCKET_NAME}/${VERSION_DIR}
+DP_ASSERT_EQUAL "$?" "0" "Display obs directory"
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.39">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter/>
+      <externalDelete/>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.25">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>download_from_repo_ftp</credentialsId>
+          <usernameVariable>REPO_FTP_DOWNLOAD_USR</usernameVariable>
+          <passwordVariable>REPO_FTP_DOWNLOAD_PSW</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.13"/>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@1.0.0">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,56 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>Gate</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>Aicc_Tools_Gitee_Gate</string>
+    <string>Aircas-Project_Gitee_Gate</string>
+    <string>Akg_Gitee_Gate</string>
+    <string>Akg_Gitee_Gate_Debug</string>
+    <string>AkgBinary_Gitee_Gate</string>
+    <string>Book_Gitee_Gate</string>
+    <string>Community_Gitee_Gate</string>
+    <string>Contrib_Gitee_Gate</string>
+    <string>Course_Gitee_Gate</string>
+    <string>DatasetPlugin_Gitee_Gate</string>
+    <string>Docs_Gitee_Gate</string>
+    <string>Espresso_Gitee_Gate</string>
+    <string>Federated_Gitee_Gate</string>
+    <string>GoldenStick_Gitee_Gate</string>
+    <string>GraphEngine_Gitee_Gate</string>
+    <string>Graphlearning_Gitee_Gate</string>
+    <string>Hub_Gitee_Gate</string>
+    <string>IdePlugin_Gitee_Gate</string>
+    <string>Incubator_MindSpore_Gitee_Gate</string>
+    <string>MindArmour_Gitee_Gate</string>
+    <string>MindInsight_Gitee_Gate</string>
+    <string>MindQuantum_Gitee_Gate</string>
+    <string>MindScience_Gitee_Gate</string>
+    <string>MindSpore_Gitee_Gate</string>
+    <string>MindSpore_Gitee_Gate_Debug</string>
+    <string>MindText_Gitee_Gate</string>
+    <string>MindVision_Gitee_Gate</string>
+    <string>Models_Gitee_Gate</string>
+    <string>OPT_Gitee_Gate</string>
+    <string>Qinling-flyspeech_gitee_gate</string>
+    <string>Reinforcement_Gitee_Gate</string>
+    <string>Sault_Gitee_Gate</string>
+    <string>Serving_Gitee_Gate</string>
+    <string>Transformer_Gitee_Gate</string>
+    <string>Xai_Gitee_Gate</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

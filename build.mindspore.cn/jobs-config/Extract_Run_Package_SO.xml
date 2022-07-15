@@ -1,0 +1,175 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description>提取run包的so</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>15</daysToKeep>
+        <numToKeep>1000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>VERSION_DATE</name>
+          <description>提取的run包so归档版本日期: 20210626</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DRIVER_VERSION_DATE</name>
+          <description>被提取的driver等包（1-2）版本日期: 20210626</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TOOLS_VERSION_DATE</name>
+          <description>被提取的工具包（3-8）版本日期: 20210626</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>RUN_PACKAGE_SOURCE</name>
+          <description>run包来源</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>hisi</string>
+              <string>atlas</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>smoke-nfs-30</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash 
+
+# Init parameter
+scripts_root=/home/nfs/scripts/ms-pipeline
+scripts_path=${scripts_root}/tools/ascend/compile
+
+
+##################
+# Common Library #
+##################
+# Color
+Red='\e[0;31m'          # Red
+Green='\e[0;32m'        # Green
+BRed='\e[1;31m'         # Red
+BGreen='\e[1;32m'       # Green
+BCyan='\e[1;36m'        # Cyan
+Purple='\e[0;35m'       # Purple
+BPurple='\e[1;35m'      # Bold Purple
+Color_Off='\e[0m'       # Text Reset
+
+# Log head
+function LOG_HEAD() {
+    local assert_msg=${1}
+    echo -e "\n${BGreen}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log info
+function LOG_INFO() {
+    local assert_msg=${1}
+    echo -e "${Green}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log error
+function LOG_ERROR() {
+    local assert_msg=${1}
+    echo -e "${BRed}[ERROR] ${assert_msg}${Color_Off}"
+}
+
+# Assert A is equal to B
+# True: equal
+# False: not equal
+function DP_ASSERT_EQUAL() {
+    local actual_value=${1}
+    local expect_value=${2}
+    local assert_msg=${3}
+    local b_flag=${4:-"true"}
+    if [ "${actual_value}" != "${expect_value}" ]; then
+        LOG_ERROR "${assert_msg} is failed."
+        echo "ret:${actual_value}"
+        if [ "${b_flag}" = "true" ]; then
+            exit 1
+        fi
+    else
+        LOG_INFO "${assert_msg} is success."
+    fi
+}
+
+# Excute command
+function EXCUTE_COMMAND_REMOTE() {
+    local node_ip=${1}
+    local cmd=${2}
+    echo -e "${BPurple}[Command]${Color_Off} ${Purple}${cmd}${Color_Off}"
+    ${SSH} ${BLUE_ASCEND_USER}@${node_ip} "${cmd}"
+    return $?
+}
+
+
+###########
+# EXtract #
+###########
+# Update scripts
+LOG_HEAD "Update scripts"
+cd ${scripts_root}
+git checkout . &amp;&amp; git clean -xdf
+git pull
+DP_ASSERT_EQUAL "$?" "0" "Update scripts"
+
+
+# Extract so
+LOG_HEAD "Extract so"
+cd ${scripts_path}
+if [ -n "${DRIVER_VERSION_DATE}" ]; then
+	bash run.sh -v "${VERSION_DATE}" -d "${DRIVER_VERSION_DATE}" -t "${TOOLS_VERSION_DATE}" -u "${SHARE_COMPUTER_USER}" -p "${SHARE_COMPUTER_PSW}" -s "${RUN_PACKAGE_SOURCE}"
+else
+	bash run.sh -v "${VERSION_DATE}" -u "${SHARE_COMPUTER_USER}" -p "${SHARE_COMPUTER_PSW}" -s "${RUN_PACKAGE_SOURCE}"
+fi
+DP_ASSERT_EQUAL "$?" "0" "EXtract so"</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.39">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter/>
+      <externalDelete/>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.25">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>share_computer_jenkins</credentialsId>
+          <usernameVariable>SHARE_COMPUTER_USER</usernameVariable>
+          <passwordVariable>SHARE_COMPUTER_PSW</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.13"/>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@1.0.0">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

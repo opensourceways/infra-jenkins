@@ -1,0 +1,156 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description>第三库下载及更新</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>15</daysToKeep>
+        <numToKeep>1000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>THIRDPARTY_URL</name>
+          <description>第三库下载链接，例如：https://github.com/oneapi-src/oneDNN/archive/v2.2.tar.gz</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>SAVE_DIR</name>
+          <description>保存目录，参考http://tools.mindspore.cn/libs/下目录，例如：absl</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>download-build</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+# Init parameter
+SSHPASS="sshpass -p ${TOOLS_PASSWD}"
+SCP="${SSHPASS} scp -q -r -o StrictHostKeychecking=no -P 30099"
+SSH="${SSHPASS} ssh -q -o StrictHostKeychecking=no -p 30099"
+DES_PATH="/repo/mindspore/mindspore/libs/${SAVE_DIR}"
+FILE_NAME=$(echo ${THIRDPARTY_URL}|awk -F'/' '{print $NF}')
+
+
+##################
+# Common Library #
+##################
+# Color
+Red='\e[0;31m'          # Red
+Green='\e[0;32m'        # Green
+BRed='\e[1;31m'         # Red
+BGreen='\e[1;32m'       # Green
+BCyan='\e[1;36m'        # Cyan
+Purple='\e[0;35m'       # Purple
+BPurple='\e[1;35m'      # Bold Purple
+Color_Off='\e[0m'       # Text Reset
+
+# Log head
+function LOG_HEAD() {
+    local assert_msg=${1}
+    echo -e "\n${BGreen}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log info
+function LOG_INFO() {
+    local assert_msg=${1}
+    echo -e "${Green}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log error
+function LOG_ERROR() {
+    local assert_msg=${1}
+    echo -e "${BRed}[ERROR] ${assert_msg}${Color_Off}"
+}
+
+
+###########
+# EXtract #
+###########
+# Excute command
+function EXCUTE_COMMAND_REMOTE() {
+    local node_ip=${1}
+    local cmd=${2}
+    echo -e "${BPurple}[Command]${Color_Off} ${Purple}${cmd}${Color_Off}"
+    ${SSH} ${TOOLS_USER}@${node_ip} "${cmd}"
+    return $?
+}
+
+# Wget third part file
+LOG_HEAD "Wget third part file."
+cd ${WORKSPACE}
+for ((i=0; i&lt;3; i++)); do
+    rm -rf ${WORKSPACE}/${FILE_NAME}
+    wget -q --no-check-certificate ${THIRDPARTY_URL}
+    if [ $? -eq 0 ]; then
+        break
+    fi
+    sleep $((RANDOM%15+5))
+done
+
+# Check third part file
+LOG_HEAD "Check third part file."
+if [ ! -f "${WORKSPACE}/${FILE_NAME}" ]; then
+    LOG_ERROR "The third part file ${FILE_NAME} not exist, please check."
+    exit 1
+fi
+
+# SCP third party file to tools.mindspore.cn
+LOG_HEAD "SCP third party file to tools.mindspore.cn."
+EXCUTE_COMMAND_REMOTE ${TOOLS_IP} "mkdir -p ${DES_PATH}; rm -f ${DES_PATH}/${FILE_NAME}"
+${SCP} ${WORKSPACE}/${FILE_NAME} ${TOOLS_USER}@${TOOLS_IP}:${DES_PATH}/
+EXCUTE_COMMAND_REMOTE ${TOOLS_IP} "cd ${DES_PATH}; ls -ld ${FILE_NAME}"
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.39">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter/>
+      <externalDelete/>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.25">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>tools_ip</credentialsId>
+          <variable>TOOLS_IP</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>user_jenkins</credentialsId>
+          <usernameVariable>TOOLS_USER</usernameVariable>
+          <passwordVariable>TOOLS_PASSWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.13"/>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@1.0.0">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

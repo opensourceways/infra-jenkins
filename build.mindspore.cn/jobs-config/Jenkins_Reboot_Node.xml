@@ -1,0 +1,285 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description>手工重启恢复smoke节点</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>15</daysToKeep>
+        <numToKeep>1000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.82">
+          <name>NODE_IP</name>
+          <description>node ip</description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>17</visibleItemCount>
+          <type>PT_CHECKBOX</type>
+          <value>8.92.9.56,8.92.9.57,8.92.9.58,8.92.9.71,8.92.9.73,8.92.9.85,8.92.9.86,8.92.9.87,8.92.9.88,8.92.9.89,8.92.9.42,8.92.9.45,8.92.9.76,8.92.9.77,8.92.9.124,8.92.9.125,8.92.9.126</value>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+          <descriptionPropertyValue>8.92.9.56 (smoke-ascend-56),8.92.9.57 (smoke-ascend-57),8.92.9.58 (smoke-ascend-58),8.92.9.71 (smoke-ascend-71),8.92.9.73 (smoke-ascend-73),8.92.9.85 (smoke-ascend-85),8.92.9.86 (smoke-ascend-86),8.92.9.87 (smoke-ascend-87),8.92.9.88 (smoke-ascend-88),8.92.9.89 (smoke-ascend-89),8.92.9.42 (smoke-gpu-42),8.92.9.45 (smoke-gpu-45),8.92.9.76 (smoke-gpu-76),8.92.9.77 (smoke-gpu-77),8.92.9.76 (smoke-gpu-124),8.92.9.77 (smoke-gpu-125),8.92.9.76 (smoke-gpu-126)</descriptionPropertyValue>
+          <projectName>Jenkins_Reboot_Node</projectName>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>smoke-schedule</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+# Init parameter
+SSHPASS="sshpass -p ${BLUE_SMOKE_PASSWORD}"
+SSH="${SSHPASS} ssh -q -o StrictHostKeychecking=no"
+NODE_IP_LIST="${NODE_IP//,/ }"
+TIMEOUT_CHECK_NETWORK=400
+TIMEOUT_CHECK_SSH=200
+
+
+##################
+# Common Library #
+##################
+# Color
+Red='\e[0;31m'          # Red
+Green='\e[0;32m'        # Green
+BRed='\e[1;31m'         # Red
+BGreen='\e[1;32m'       # Green
+BCyan='\e[1;36m'        # Cyan
+Purple='\e[0;35m'       # Purple
+BPurple='\e[1;35m'      # Bold Purple
+Color_Off='\e[0m'       # Text Reset
+
+# Log head
+function LOG_HEAD() {
+    local assert_msg=${1}
+    echo -e "\n${BGreen}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log info
+function LOG_INFO() {
+    local assert_msg=${1}
+    echo -e "${Green}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log error
+function LOG_ERROR() {
+    local assert_msg=${1}
+    echo -e "${BRed}[ERROR] ${assert_msg}${Color_Off}"
+}
+
+# Assert A is equal to B
+# True: equal
+# False: not equal
+function DP_ASSERT_EQUAL() {
+    local actual_value=${1}
+    local expect_value=${2}
+    local assert_msg=${3}
+    local b_flag=${4:-"true"}
+    if [ "${actual_value}" != "${expect_value}" ]; then
+        LOG_ERROR "${assert_msg} is failed."
+        echo "ret:${actual_value}"
+        if [ "${b_flag}" = "true" ]; then
+            exit 1
+        fi
+    else
+        LOG_INFO "${assert_msg} is success."
+    fi
+}
+
+# Excute command
+function EXCUTE_COMMAND_REMOTE() {
+    local node_ip=${1}
+    local cmd=${2}
+    echo -e "${BPurple}[Command]${Color_Off} ${Purple}${cmd}${Color_Off}"
+    ${SSH} ${BLUE_SMOKE_USER}@${node_ip} "${cmd}"
+    return $?
+}
+
+
+##########
+# Reboot #
+##########
+# Reboot node
+function REBOOT_NODE() {
+    local node_ip_list=($@)
+    local flag_check=0
+    local i=0
+
+    # Reboot node
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        ${SSH} ${BLUE_SMOKE_USER}@${node_ip_list[i]} "reboot" &gt; /dev/null 2&gt;&amp;1
+        if [ "$?" -ne "255" ]; then
+            echo "Node[${node_ip_list[i]}] - Reboot failed."
+            flag_check=1
+        else
+            echo "Node[${node_ip_list[i]}] - Reboot success."
+        fi
+    done
+
+    # Return result
+    if [ "${flag_check}" -ne "0" ]; then
+        LOG_ERROR "Reboot all nodes is failed."
+        sleep 60
+        return 1
+    else
+        LOG_INFO "Reboot all nodes is success."
+        sleep 60
+        return 0
+    fi
+}
+
+# Check network
+function CHECK_NODE_NETWORK() {
+    local node_ip_list=($@)
+    local timeout=${TIMEOUT_CHECK_NETWORK}
+    local flag_check=0
+    local i=0
+
+    # Check network
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        timeout=${TIMEOUT_CHECK_NETWORK}
+        while [ "${timeout}" -ne "0" ]; do
+            ping -c 1 ${node_ip_list[i]} &gt; /dev/null 2&gt;&amp;1
+            if [ $? -eq 0 ]; then
+                break
+            fi
+            ((timeout-=1))
+            echo "CheckTimes=$((TIMEOUT_CHECK_NETWORK-timeout)), Node[${node_ip_list[i]}] network connect failed."
+        done
+
+        # If timeout
+        if [ "${timeout}" -eq "0" ]; then
+            LOG_ERROR "Node[${node_ip_list[i]}] - Network connect failed."
+            flag_check=1
+        else
+            LOG_INFO "Node[${node_ip_list[i]}] - Network connect success."
+        fi
+    done
+
+    # Return result
+    if [ "${flag_check}" -ne "0" ]; then
+        LOG_ERROR "Check network of all nodes is failed."
+        return 1
+    else
+        LOG_INFO "Check network of all nodes is success."
+        return 0
+    fi
+}
+
+# Check ssh
+function CHECK_NODE_SSH() {
+    local node_ip_list=($@)
+    local timeout=${TIMEOUT_CHECK_SSH}
+    local flag_check=0
+    local i=0
+
+    # Check ssh
+    for((i=0; i&lt;${#node_ip_list[@]}; i++)); do
+        timeout=${TIMEOUT_CHECK_SSH}
+        while [ "${timeout}" -ne "0" ]; do
+             ${SSH} ${BLUE_SMOKE_USER}@${node_ip_list[i]} "date" &gt; /dev/null 2&gt;&amp;1
+            if [ $? -eq 0 ]; then
+                break
+            fi
+            ((timeout-=1))
+            sleep 2
+            echo "CheckTimes=$((TIMEOUT_CHECK_SSH-timeout)), Node[${node_ip_list[i]}] ssh failed."
+        done
+
+        # If timeout
+        if [ "${timeout}" -eq "0" ]; then
+            LOG_ERROR "Node[${node_ip_list[i]}] - Check ssh failed."
+            flag_check=1
+        else
+            EXCUTE_COMMAND_REMOTE "${node_ip}" "/usr/local/Ascend/driver/tools/msnpureport -g error"
+            EXCUTE_COMMAND_REMOTE "${node_ip}" "/usr/local/Ascend/driver/tools/msnpureport -e disable"
+            EXCUTE_COMMAND_REMOTE "${node_ip}" "/usr/local/Ascend/driver/tools/msnpureport -g error -d 4"
+            EXCUTE_COMMAND_REMOTE "${node_ip}" "/usr/local/Ascend/driver/tools/msnpureport -e disable -d 4"
+            ${SSH} ${BLUE_SMOKE_USER}@${node_ip_list[i]} "ntpdate ntp.sjtu.edu.cn" &gt; /dev/null 2&gt;&amp;1
+            LOG_INFO "Node[${node_ip_list[i]}] - Check ssh success."
+        fi
+    done
+
+    # Return result
+    if [ "${flag_check}" -ne "0" ]; then
+        LOG_ERROR "Check ssh of all nodes is failed."
+        return 1
+    else
+        LOG_INFO "Check ssh of all nodes is success."
+        return 0
+    fi
+}
+
+function main() {
+    # Reboot node
+    LOG_HEAD "Reboot node."
+    REBOOT_NODE "${NODE_IP_LIST}"
+    ret1=$?
+
+    # Check network
+    LOG_HEAD "Check network."
+    CHECK_NODE_NETWORK "${NODE_IP_LIST}"
+    ret2=$?
+
+    # Check ssh
+    LOG_HEAD "Check sshd."
+    CHECK_NODE_SSH "${NODE_IP_LIST}"
+    ret3=$?
+
+    # Return result
+    if [ "${ret1}" -ne "0" ] || [ "${ret2}" -ne "0" ] || [ "${ret3}" -ne "0" ]; then
+        exit 1
+    fi
+}
+
+main $@
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.39">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter/>
+      <externalDelete/>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.25">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>user_root</credentialsId>
+          <usernameVariable>BLUE_SMOKE_USER</usernameVariable>
+          <passwordVariable>BLUE_SMOKE_PASSWORD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.13"/>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@1.0.0">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

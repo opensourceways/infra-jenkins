@@ -1,0 +1,100 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.41">
+  <actions/>
+  <description>Gitee平台akg门禁调试流水线&#13;
+----------------------------------------&#13;
+1. 检查&#13;
+代码检查：/retest_check&#13;
+codecheck代码检查：/retest_code_check&#13;
+&#13;
+2. 编译出包&#13;
+Ascend910版本：/retest_compile_ascend &#13;
+GPU CentOS版本：/retest_compile_gpu&#13;
+CPU CentOS版本：/retest_compile_cpu&#13;
+&#13;
+3. UT测试&#13;
+UT全量测试：/retest_ut&#13;
+UT CPP测试：/retest_ut_cpp&#13;
+UT Python调试：/retest_ut_python&#13;
+&#13;
+4. ST测试&#13;
+Ascend910(level0)用例测试：/retest_smoke_ascend&#13;
+Ascend910(level1)用例测试：/retest_smoke_ascend_level1&#13;
+GPU(cuda11:level0)用例测试：/retest_smoke_gpu&#13;
+GPU(cuda11:level1)用例测试：/retest_smoke_gpu_level1&#13;
+CPU CentOS(level0)用例测试：/retest_smoke_cpu&#13;
+CPU CentOS(level1)用例测试：/retest_smoke_cpu_level1</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>1000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.2.4">
+          <spec/>
+          <triggerOnPush>false</triggerOnPush>
+          <triggerOnCommitComment>false</triggerOnCommitComment>
+          <triggerOnOpenPullRequest>false</triggerOnOpenPullRequest>
+          <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+          <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+          <triggerOnUpdatePullRequest>0</triggerOnUpdatePullRequest>
+          <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+          <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+          <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+          <triggerOnNoteRequest>true</triggerOnNoteRequest>
+          <noteRegex>/retest_(check|code_check|compile.*|ut.*|smoke.*)</noteRegex>
+          <buildInstructionFilterType>NONE</buildInstructionFilterType>
+          <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+          <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+          <skipLastCommitHasBeenBuild>false</skipLastCommitHasBeenBuild>
+          <setBuildDescription>true</setBuildDescription>
+          <branchFilterType>All</branchFilterType>
+          <includeBranchesSpec/>
+          <excludeBranchesSpec/>
+          <targetBranchRegex/>
+          <secretToken>{AQAAABAAAAAwh2I33doUfNnlDv2aqKtm/ARYgCbO6lWwu8rzfOvJcwAs+bB6INhDEgQRFLaMq5AHHw3UFuTdyWIPmSuT6/IoSQ==}</secretToken>
+          <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+          <cancelIncompleteBuildOnSamePullRequest>true</cancelIncompleteBuildOnSamePullRequest>
+          <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
+        </com.gitee.jenkins.trigger.GiteePushTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.92">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.2">
+      <configVersion>2</configVersion>
+      <userRemoteConfigs>
+        <hudson.plugins.git.UserRemoteConfig>
+          <url>https://gitee.com/mindspore/ms-pipeline</url>
+          <credentialsId>mindspore_community_jenkins_gitee</credentialsId>
+        </hudson.plugins.git.UserRemoteConfig>
+      </userRemoteConfigs>
+      <branches>
+        <hudson.plugins.git.BranchSpec>
+          <name>*/master</name>
+        </hudson.plugins.git.BranchSpec>
+      </branches>
+      <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+      <submoduleCfg class="empty-list"/>
+      <extensions/>
+    </scm>
+    <scriptPath>pipeline/groovy/schedule/gitee_gate.groovy</scriptPath>
+    <lightweight>true</lightweight>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

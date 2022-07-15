@@ -1,0 +1,191 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description>MindSpore项目版本发布包上传至pypi</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>180</daysToKeep>
+        <numToKeep>500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.4">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>PACK_URL</name>
+          <description>获取版本包路径（https://www.mindspore.cn/versions）：https://ms-release.obs.cn-north-4.myhuaweicloud.com/1.2.1/MindSpore/gpu/ubuntu_x86/cuda-10.1/mindspore_gpu-1.2.1-cp37-cp37m-linux_x86_64.whl
+
+注意(上传包类型)：
+cpu/x86_64/mindspore-*-cp37-cp37m-win_amd64.whl;
+cpu/x86_64/mindspore-*-cp37-cp37m-linux_x86_64.whl;
+cpu/x86_64/mindspore-*-cp38-cp38m-linux_x86_64.whl;
+cpu/x86_64/mindspore-*-cp39-cp39m-linux_x86_64.whl;
+gpu/x86_64/cuda-11.1/mindspore_gpu-*-cp37-cp37m-linux_x86_64.whl;
+gpu/x86_64/cuda-11.1/mindspore_gpu-*-cp38-cp38m-linux_x86_64.whl;
+gpu/x86_64/cuda-11.1/mindspore_gpu-*-cp39-cp39m-linux_x86_64.whl;
+ascend/aarch64/mindspore_ascend-*-cp37-cp37m-linux_aarch64.whl
+</description>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>arm-docker-build</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+##################
+# Common Library #
+##################
+# Color
+Red='\e[0;31m'          # Red
+Green='\e[0;32m'        # Green
+BRed='\e[1;31m'         # Red
+BGreen='\e[1;32m'       # Green
+Color_Off='\e[0m'       # Text Reset
+
+# Log head
+function LOG_HEAD() {
+    local assert_msg=${1}
+    echo -e "\n${BGreen}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log info
+function LOG_INFO() {
+    local assert_msg=${1}
+    echo -e "${Green}[INFO] ${assert_msg}${Color_Off}"
+}
+
+# Log error
+function LOG_ERROR() {
+    local assert_msg=${1}
+    echo -e "${BRed}[ERROR] ${assert_msg}${Color_Off}"
+}
+
+# Assert A is equal to B
+# True: equal
+# False: not equal
+function DP_ASSERT_EQUAL() {
+    local actual_value=${1}
+    local expect_value=${2}
+    local assert_msg=${3}
+    if [ "${actual_value}" != "${expect_value}" ]; then
+        LOG_ERROR "${assert_msg} is failed."
+        exit 1
+    else
+        LOG_INFO "${assert_msg} is success."
+    fi
+}
+
+
+##########
+# Upload #
+##########
+# Check input parameter
+if [ -z "${PACK_URL}" ]; then
+    LOG_ERROR "Please check input parameter!"
+    exit 1
+fi
+
+
+# Download package
+LOG_HEAD "Download package."
+cd ${WORKSPACE}/
+if [[ "${PACK_URL}" =~ "repo.mindspore.cn" ]]; then
+    wget --http-user=${REPO_USER} --http-passwd=${REPO_PASSWD} --tries=3 --timeout=180 -q --no-check-certificate ${PACK_URL}
+else
+    wget --tries=3 --timeout=180 -q ${PACK_URL}
+fi
+DP_ASSERT_EQUAL "$?" "0" "Download ${PACK_URL}"
+ls -l ${WORKSPACE}
+
+# Rename package
+package_name=$(ls ${WORKSPACE})
+if [[ "${package_name}" =~ "linux_aarch64" ]]; then
+    if [[ "${package_name}" =~ "cp37m-linux_aarch64" ]]; then
+        new_package_name=$(echo ${package_name}|sed "s#cp37m-linux_aarch64#none-any#")
+    elif [[ "${package_name}" =~ "cp38-linux_aarch64" ]]; then
+        new_package_name=$(echo ${package_name}|sed "s#cp38-linux_aarch64#none-any#")
+    elif [[ "${package_name}" =~ "cp38m-linux_aarch64" ]]; then
+        new_package_name=$(echo ${package_name}|sed "s#cp38m-linux_aarch64#none-any#")
+    elif [[ "${package_name}" =~ "cp39-linux_aarch64" ]]; then
+        new_package_name=$(echo ${package_name}|sed "s#cp39-linux_aarch64#none-any#")
+    elif [[ "${package_name}" =~ "cp39m-linux_aarch64" ]]; then
+        new_package_name=$(echo ${package_name}|sed "s#cp39m-linux_aarch64#none-any#")
+    fi
+elif [[ "${package_name}" =~ "linux_x86_64" ]]; then
+    new_package_name=$(echo ${package_name}|sed 's#linux_x86_64#manylinux1_x86_64#')
+elif [[ "${package_name}" =~ "windows" ]]; then
+    new_package_name=$(echo ${package_name}|sed 's#windows#win_amd64#')
+elif [[ "${package_name}" =~ "macosx" ]] || [[ "${package_name}" =~ "win_amd64" ]] || [[ "${package_name}" =~ "none-any" ]] || [[ "${package_name}" =~ "manylinux1_x86_64" ]]; then
+    new_package_name=""
+else
+    LOG_ERROR "The ${package_name} is not stipulate, please check."
+    exit 1
+fi
+cd  ${WORKSPACE}
+if [ -n "${new_package_name}" ]; then
+    mv ${package_name} ${new_package_name}
+else
+    new_package_name=${package_name}
+fi
+DP_ASSERT_EQUAL "$?" "0" "Rename package name"
+ls -l ${WORKSPACE}
+
+# Upload package to PYPI
+LOG_HEAD "Upload package to PYPI."
+cd ${WORKSPACE}
+pip3 install twine &gt; /dev/null 2&gt;&amp;1
+#python3 -m twine upload -u ${PYPI_USR} -p ${PYPI_PWD}  ${new_package_name}
+/home/jenkins/archiconda3/bin/python3 -m twine upload -u ${PYPI_USR} -p ${PYPI_PWD}  ${new_package_name}
+DP_ASSERT_EQUAL "$?" "0" "Upload package"</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.39">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter/>
+      <externalDelete/>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.25">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>mindspore_pypi</credentialsId>
+          <usernameVariable>PYPI_USR</usernameVariable>
+          <passwordVariable>PYPI_PWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>download_from_repo_ftp</credentialsId>
+          <usernameVariable>REPO_USER</usernameVariable>
+          <passwordVariable>REPO_PASSWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.13"/>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@1.0.0">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

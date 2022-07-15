@@ -1,0 +1,21 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<slave>
+  <name>download-x86-slave-0</name>
+  <description></description>
+  <remoteFS>/home/jenkins/agent-working-dir</remoteFS>
+  <numExecutors>1</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.31.5">
+    <host>159.138.36.17</host>
+    <port>3042</port>
+    <credentialsId>user_jenkins_docker</credentialsId>
+    <launchTimeoutSeconds>60</launchTimeoutSeconds>
+    <maxNumRetries>10</maxNumRetries>
+    <retryWaitTime>15</retryWaitTime>
+    <sshHostKeyVerificationStrategy class="hudson.plugins.sshslaves.verifiers.NonVerifyingKeyVerificationStrategy"/>
+    <tcpNoDelay>true</tcpNoDelay>
+  </launcher>
+  <label>download-build update-build</label>
+  <nodeProperties/>
+</slave>

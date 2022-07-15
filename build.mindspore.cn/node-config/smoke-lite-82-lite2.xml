@@ -1,0 +1,21 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<slave>
+  <name>smoke-lite-82-lite2</name>
+  <description>RFCNC0FLAGD</description>
+  <remoteFS>/home/lite2/agent-working-dir</remoteFS>
+  <numExecutors>1</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.31.5">
+    <host>121.37.54.100</host>
+    <port>22</port>
+    <credentialsId>user_lite2</credentialsId>
+    <launchTimeoutSeconds>60</launchTimeoutSeconds>
+    <maxNumRetries>10</maxNumRetries>
+    <retryWaitTime>15</retryWaitTime>
+    <sshHostKeyVerificationStrategy class="hudson.plugins.sshslaves.verifiers.NonVerifyingKeyVerificationStrategy"/>
+    <tcpNoDelay>true</tcpNoDelay>
+  </launcher>
+  <label>smoke-lite-phone  smoke-lite-samsung smoke-lite-phone-cpu smoke-lite-phone-gpu-gl</label>
+  <nodeProperties/>
+</slave>
