@@ -79,7 +79,7 @@ if [ &quot;$community&quot; == &quot;openeuler&quot; ]; then
 
 echo &quot;##########begin update openeuler jenkins backup service#########&quot;
 
-PROJECT_NAME=&quot;openeuler-cn-north4-jenkins-2&quot;
+PROJECT_NAME=&quot;openeuler-cn-north4-jenkins-2-internal-service&quot;
 
 if [ -d &quot;infra-openeuler&quot; ]; then
     rm -rf &quot;infra-openeuler&quot;
@@ -89,7 +89,7 @@ if hash git 2&gt;/dev/null; then
     git config --global user.email $GIT_EMAIL
     git config --global user.name $GIT_USER
     git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-openeuler
-    cd infra-openeuler/applications/jenkins-cn-north4-2
+    cd infra-openeuler/applications/jenkins-cn-north4-2-internal-service
 else
     echo &quot;git is not existing.&quot;
 fi

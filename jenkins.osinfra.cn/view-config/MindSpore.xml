@@ -20,7 +20,6 @@
     <string>mindspore-website-publish-02</string>
     <string>mindspore-website-publish-03</string>
     <string>mindspore-website-publish-git-push-code</string>
-    <string>mindspore-xihe-docs-production-environment</string>
     <string>sunmao</string>
     <string>test-environment</string>
     <string>update-es</string>
@@ -31,6 +30,7 @@
     <string>website_sync_for_tutorials-develop</string>
     <string>website_test_for_tutorials-develop</string>
     <string>website_test_rasp</string>
+    <string>xihe/mindspore-xihe-docs-production-environment</string>
   </jobNames>
   <jobFilters/>
   <columns>

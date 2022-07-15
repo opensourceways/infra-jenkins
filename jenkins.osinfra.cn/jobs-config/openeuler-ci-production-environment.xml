@@ -43,7 +43,7 @@ set -e
 GIT_EMAIL=&quot;tommylike@gmail.com&quot;
 #IMAGE_VERSION=$(git rev-parse HEAD)
 IMAGE_VERSION=v0.0.1
-PROJECT_NAME=&quot;openeuler-cn-north4-jenkins-2&quot;
+PROJECT_NAME=&quot;openeuler-cn-north4-jenkins-2-internal-service&quot;
 
 if hash git 2&gt;/dev/null; then
     IMAGE_VERSION=$(git rev-parse HEAD)
@@ -73,7 +73,7 @@ if hash git 2&gt;/dev/null; then
     git config --global user.email $GIT_EMAIL
     git config --global user.name $GIT_USER
     git clone https://$GIT_USER:$GIT_PASS@github.com/opensourceways/infra-openeuler
-    cd infra-openeuler/applications/jenkins-cn-north4-2
+    cd infra-openeuler/applications/jenkins-cn-north4-2-internal-service
 else
     echo &quot;git is not existing.&quot;
 fi
