@@ -7,6 +7,7 @@
   <jobNames>
     <comparator class="hudson.util.CaseInsensitiveComparator"/>
     <string>GoldenStick_Gitee_Version_Debug</string>
+    <string>MindInsight_Gitee_Gate_Test</string>
     <string>MindScience_Gitee_Gate_Test</string>
     <string>MindSpore_AKG_Gitee_Scanoss_Test</string>
     <string>MindSpore_Course_Gitee_Test</string>

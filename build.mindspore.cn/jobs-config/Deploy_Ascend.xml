@@ -37,6 +37,7 @@
           <name>DRIVER_VERSION_DATE</name>
           <description>版本外发日期
 ------------------
+20220714:   开源r1.8
 20220712:   开源r1.8
 20220704：开源 r1.8
 20220628：开源 r1.8
@@ -57,6 +58,7 @@
 20200527: r0.3</description>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
+              <string>20220714</string>
               <string>20220712</string>
               <string>20220704</string>
               <string>20220628</string>
@@ -77,6 +79,7 @@
           <name>TOOLS_VERSION_DATE</name>
           <description>版本外发日期
 ------------------
+20220714:   开源r1.8
 20220712：开源 r1.8
 20220628：开源 r1.8
 20220609: 开源仓, 内源仓master
@@ -96,6 +99,7 @@
 20200527: r0.3</description>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
+              <string>20220714</string>
               <string>20220712</string>
               <string>20220704</string>
               <string>20220628</string>

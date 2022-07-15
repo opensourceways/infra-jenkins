@@ -16,7 +16,7 @@
     <sshHostKeyVerificationStrategy class="hudson.plugins.sshslaves.verifiers.NonVerifyingKeyVerificationStrategy"/>
     <tcpNoDelay>true</tcpNoDelay>
   </launcher>
-  <label>smoke-ascend310  smoke-ascend310-incubator  smoke-ascend310-r1.8</label>
+  <label>smoke-ascend310-r1.8-upgrade smoke-ascend310-upgrade</label>
   <nodeProperties>
     <hudson.slaves.EnvironmentVariablesNodeProperty>
       <envVars serialization="custom">
