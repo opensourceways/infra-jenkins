@@ -1,0 +1,264 @@
+<?xml version="1.1" encoding="UTF-8"?><flow-definition plugin="workflow-job@2.40">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.2"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.2">
+      <jobProperties/>
+      <triggers/>
+      <parameters>
+        <string>merge_dir</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>最开始设置使用脚本进行扫描，已经不用，可以删除。</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>merge_dir</name>
+          <defaultValue>CODE</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.1.15">
+          <spec/>
+          <triggerOnPush>true</triggerOnPush>
+          <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+          <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+          <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+          <triggerOnUpdatePullRequest>1</triggerOnUpdatePullRequest>
+          <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+          <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+          <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+          <triggerOnNoteRequest>true</triggerOnNoteRequest>
+          <noteRegex>/retest-static</noteRegex>
+          <ciSkip>false</ciSkip>
+          <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+          <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+          <skipLastCommitHasBeenBuild>false</skipLastCommitHasBeenBuild>
+          <setBuildDescription>true</setBuildDescription>
+          <branchFilterType>All</branchFilterType>
+          <includeBranchesSpec/>
+          <excludeBranchesSpec/>
+          <targetBranchRegex/>
+          <secretToken>{AQAAABAAAAAwIA7kqMIwXoZP8YwGOT4iJOnq2TGCDScZqOLxsRj4KrV7cPpx55v8IbOH51m+YLxAth6zowhfwp8tqEQdAcGMSw==}</secretToken>
+          <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+        </com.gitee.jenkins.trigger.GiteePushTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.87">
+    <script>#!groovy
+// import  groovy.json.JsonSlurper
+import groovy.json.*
+import java.util.Date
+def static_result = 'success'
+def filenum = 0
+def snippetnum = 0
+def totals = 0
+
+Date now = new Date()
+def year = now.year + 1900
+def month = now.month + 1
+def day = now.date
+def scanoss_website = "159.138.63.240:60040"
+
+def API_KEY = "cd849a65500b424fc82c6236626ddb1b"
+def API_URL = "https://shenzhen.scanoss.com/api/scan/direct"
+def BLACK_LIST_PATH = "/data/black.json"
+
+pipeline {
+	agent {
+		node { 
+			label "scanner-manager" 
+		}
+	}
+	parameters {
+		string(name: 'merge_dir', defaultValue: 'CODE')
+
+    }
+    stages {
+		stage ('Add Tag') {
+			steps ('Add Tag step') {
+				script{
+					echo "############ Start Static Checking ##############"
+					sh "echo ${year}-${month}-${day}"
+                    					// sh """
+					// set +x
+					// curl -X POST "https://gitee.com/api/v5/repos/opengauss/openGauss-OM/pulls/${giteePullRequestIid}/labels" \
+					// 	-H "Authorization: Bearer 79f0b20e9e195a0206c1b99bed2e600f" \
+					// 	-H "Content-Type: application/json" \
+					// 	-d '["ci-pipeline-running"]' &gt; /dev/null
+					// set +x
+					// """
+				}
+			}
+		}
+		stage ('SCANOSS')  {
+		    agent {
+				node { 
+					label "scanner-slave" 
+				}
+			}
+			steps ('sonar-steps') {
+				script {
+					try {
+						
+						echo "-------------------git pull merge--------------${giteePullRequestIid}-----"
+						
+						checkout(
+							[$class: 'GitSCM',
+							 branches: [[name: 'pull/${giteePullRequestIid}/MERGE']],
+							 doGenerateSubmoduleConfigurations: false,
+							 extensions: [[$class: 'RelativeTargetDirectory',
+							 relativeTargetDir: '${merge_dir}'],
+							 [$class: 'CleanBeforeCheckout']],
+							 submoduleCfg: [],
+							 userRemoteConfigs: [[credentialsId: 'scanoss_fortest',
+							 name: 'origin',
+							 refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/MERGE:refs/pull/*/MERGE',
+							 url: '${giteeTargetRepoHttpUrl}']]])
+						echo "-------------------deal modify code-------------------"
+						sh '''
+							rm -rf ${WORKSPACE}/${merge_dir}/modify_dir
+							mkdir -p ${WORKSPACE}/${merge_dir}/modify_dir
+							cd ${WORKSPACE}/${merge_dir}
+							git diff-tree -r --name-only --no-commit-id origin/${giteeTargetBranch} HEAD &gt; modify_list.txt
+							cat modify_list.txt
+							while read -r line
+							do
+								dir_name=${line%/*}
+								file_name=${line##*/}
+								if [ $(echo $line |grep '/') ];then
+									mkdir -p ${WORKSPACE}/${merge_dir}/modify_dir/${dir_name}
+									if [ -f "${WORKSPACE}/${merge_dir}/${line}" ]; then
+										cp -rf ${WORKSPACE}/${merge_dir}/${line} ${WORKSPACE}/${merge_dir}/modify_dir/${dir_name}
+									fi
+								else
+									mkdir -p ${WORKSPACE}/${merge_dir}/modify_dir
+									if [ -f "${WORKSPACE}/${merge_dir}/${line}" ]; then
+										cp -rf ${WORKSPACE}/${merge_dir}/${line} ${WORKSPACE}/${merge_dir}/modify_dir
+									fi
+								fi
+							done &lt; ${WORKSPACE}/${merge_dir}/modify_list.txt
+							#find ${WORKSPACE}/${merge_dir}/modify_dir -type f
+						'''
+						sh """
+						mkdir -p /data/website/html/'${year}'/'${month}'/'${day}'
+						"""
+						// def BUILD_NUMBER = 1033
+						sh """
+						set +x 
+						/usr/bin/python3 /data/scannershell/scanner.py --blacklist ${BLACK_LIST_PATH} --key ${API_KEY} --apiurl ${API_URL} ${WORKSPACE}/${merge_dir}/modify_dir &gt; /data/website/html/${year}/${month}/${day}/SCANOSS-${BUILD_NUMBER}.json
+						set +x
+						"""
+						sh """
+						echo "generate scanner success."
+						ls -l /data/website/html/${year}/${month}/${day}/SCANOSS-${BUILD_NUMBER}.json
+						"""
+							
+							// def inputFile = readFile("/data/website/html/${year}/${month}/${day}/SCANOSS-${BUILD_NUMBER}.json")
+
+							// sh """
+							// echo ${inputFile}
+							// """
+                        
+							// def InputJSON = new JsonSlurper().parseText(inputFile)
+
+							
+							def  jsonPayload =  readFile( "/data/website/html/${year}/${month}/${day}/SCANOSS-${BUILD_NUMBER}.json" )
+							// def  slurper =  new  JsonSlurper()
+							// def  InputJSON = slurper.parseText(jsonPayload)
+
+							// def file = new File("/data/website/html/${year}/${month}/${day}/SCANOSS-${BUILD_NUMBER}.json");
+						//      println(file.getText().toString());
+							def  slurper =  new JsonSlurper();
+							def  InputJSON = slurper.parseText(jsonPayload);
+
+						   
+							def info="&lt;a href='http://${scanoss_website}/${year}/${month}/${day}/SCANOSS-${BUILD_NUMBER}.json' download='result.json'&gt;Download Full json result&lt;/a&gt;"
+							def dat="&lt;table border='1' cellspacing='0' cellpadding='5' style='margin-top:20px'&gt;&lt;tr&gt;&lt;td style='1px solid black'&gt;filename&lt;/td&gt;&lt;td&gt;id&lt;/td&gt;&lt;td&gt;lines&lt;/td&gt;&lt;td&gt;oss_lines&lt;/td&gt;&lt;td&gt;matched&lt;/td&gt;&lt;td&gt;vendor&lt;/td&gt;&lt;td&gt;component&lt;/td&gt;&lt;td&gt;version&lt;/td&gt;&lt;td&gt;url&lt;/td&gt;&lt;td&gt;file&lt;/td&gt;&lt;td&gt;file_id&lt;/td&gt;&lt;td&gt;licenses&lt;/td&gt;&lt;td&gt;vulnerabilities&lt;/td&gt;&lt;/tr&gt;"
+							
+							InputJSON.each { def k ,def value -&gt;
+
+								value.each{def v -&gt;
+													
+									if (v.id == "snippet") { 
+										snippetnum++ 
+														
+									}
+									if (v.id == "file") {
+										filenum++
+														
+									}
+									if (v.id != "none") {
+										def result="&lt;tr&gt;&lt;td&gt;${k}&lt;/td&gt;&lt;td&gt;${v.id}&lt;/td&gt;&lt;td&gt;${v.lines}&lt;/td&gt;&lt;td&gt;${v.oss_lines}&lt;/td&gt;&lt;td&gt;${v.matched}&lt;/td&gt;&lt;td&gt;${v.vendor}&lt;/td&gt;&lt;td&gt;${v.component}&lt;/td&gt;&lt;td&gt;${v.version}&lt;/td&gt;&lt;td&gt;${v.url}&lt;/td&gt;&lt;td&gt;${v.file}&lt;/td&gt;&lt;td&gt;${v.file_id}&lt;/td&gt;&lt;td&gt;${v.licenses}&lt;/td&gt;&lt;td nowrap = 'nowrap' title = '${v.vulnerabilities}'&gt;${v.vulnerabilities}&lt;/td&gt;&lt;/tr&gt;"
+										dat=dat + result
+									}
+								} 
+							}
+							totals = snippetnum + filenum				
+							def sums = "&lt;table border='1' cellspacing='0' cellpadding='5' style='margin-top:20px'&gt;&lt;tr&gt;&lt;td style='1px solid black'&gt;snippet&lt;/td&gt;&lt;td&gt;file&lt;/td&gt;&lt;td&gt;total&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;${snippetnum}&lt;/td&gt;&lt;td&gt;${filenum}&lt;/td&gt;&lt;td&gt;${totals}&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;"					
+							dat=info + sums + dat + "&lt;/table&gt;"
+				
+						sh	"echo '${dat}' &gt; /data/website/html/${year}/${month}/${day}/SCANOSS-${BUILD_NUMBER}.html"
+						// new File("/data/website/html/a.html").withWriter('utf-8') { 
+						// 	writer -&gt; writer.writeLine dat
+						// } 
+						// new File("/data/website/html/${year}/${month}/${day}/SCANOSS-${BUILD_NUMBER}.html").withWriter('utf-8') { 
+						// 	writer -&gt; writer.writeLine dat
+						// } 
+						sh "echo '......end......'"
+					}
+					catch(all) {
+						echo "---- catch exception bellow ----"
+                		println all
+						static_result=sh(returnStdout: true, script: 'echo success')
+					}
+				}
+			}
+		}
+	}
+
+	post {
+		success {
+			script {
+				retry(3) {
+				    echo "-------------------post success-------------------"
+					def con = "部分匹配: ${snippetnum}  完全匹配: ${filenum}"
+					if (totals &gt; 0) {
+						addGiteeMRComment comment:  "\n 静态检查 \n |  开源扫描  | :warning: **WARNING**  |  [#${BUILD_ID}](http://${scanoss_website}/${year}/${month}/${day}/SCANOSS-${BUILD_NUMBER}.html) | ${con} |\n|  -------------  |  -------------  |  -------------  |  -------------  |\n"
+					} else {
+						addGiteeMRComment comment:  "\n 静态检查 \n |  开源扫描  | :white_check_mark: **SUCCESS**  |  [#${BUILD_ID}](http://${scanoss_website}/${year}/${month}/${day}/SCANOSS-${BUILD_NUMBER}.html) | ${con} |\n|  -------------  |  -------------  |  -------------  |  -------------  |\n"
+					}
+				}
+			}
+		}
+		unsuccessful {
+			script {
+				retry(3) {
+				    echo "-------------------post failed-------------------"
+					addGiteeMRComment comment: "\n 静态检查 \n |  开源扫描  | :x: **FAILURE**   |  [#${BUILD_ID}](http://${scanoss_website}/${year}/${month}/${day}/SCANOSS-${BUILD_NUMBER}.html) | NA |\n|  -------------  |  -------------  |  -------------  |  -------------  |\n"
+				}
+			}
+		}
+	}
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

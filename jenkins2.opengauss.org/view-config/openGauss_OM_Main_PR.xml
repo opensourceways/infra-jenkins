@@ -1,0 +1,25 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>openGauss_OM_Main_PR</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>openGauss_OM_install_upgrade</string>
+    <string>openGauss_OM_Main_PrivateBuild_PR</string>
+    <string>test_multi_code</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+    <org.jenkins.plugins.builton.BuiltOnColumn plugin="built-on-column@1.1"/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

@@ -1,0 +1,112 @@
+<?xml version="1.1" encoding="UTF-8"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.0.15"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+  </properties>
+  <scm class="org.jenkinsci.plugins.multiplescms.MultiSCM" plugin="multiple-scms@0.6">
+    <scms/>
+  </scm>
+  <assignedNode>x86-slave-1</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <customWorkspace>/usr1/gauss_jenkins/jenkins/workspace/</customWorkspace>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+echo "giteePullRequestIid: ${giteePullRequestIid}"
+echo "giteeAfterCommitSha: ${giteeAfterCommitSha}"
+echo "giteeRef: ${giteeRef}"
+
+#git config --global user.name "opengauss-bot"
+#git config --global credential.helper "store"
+rm -rf openGauss
+openGaussServer_Ssh_Repo_Ur="git@gitee.com:opengauss/openGauss-server.git"
+a=0
+flag=0
+while [ $a -lt 10 ]
+do
+   echo $a
+   rm -rf ${WORKSPACE}/openGauss
+   timeout 60 git clone "${openGaussServer_Ssh_Repo_Url}" "${WORKSPACE}/openGauss"
+   if [[ $? == 0 ]] ; then
+      flag=1
+      break
+   fi
+   a=`expr $a + 1`
+done
+
+if [[ $flag == 0 ]] ; then
+      echo "clone  clone failed!"
+      exit 1
+fi
+
+#if [ -d "${WORKSPACE}/openGauss" ]
+#then
+#	cd ${WORKSPACE}/openGauss &amp;&amp; git clean -dfx &amp;&amp; git checkout -f master &amp;&amp; git reset --hard origin/master
+#else
+#	git clone "${openGaussServer_Ssh_Repo_Url}" "${WORKSPACE}/openGauss"
+#fi
+
+# for memcheck 
+#cd ${WORKSPACE}/openGauss
+#mkdir -p Tools/memory_check
+#cp -fr /home/PrivateBuild_tools/memleak_ignore ${WORKSPACE}/openGauss/Tools/memory_check/.
+
+#sed -i -e 's/leak -fno-omit-frame-pointer/leak -fno-omit-frame-pointer -fsanitize-recover=address/g' ${WORKSPACE}/openGauss/src/Makefile.global.in
+
+cd ${WORKSPACE}
+rm -rf openGauss-third_party_binarylibs*
+
+set +x
+wget -q -P ${WORKSPACE} ftp://mpp:mpp@192.168.0.155/openGauss-third_party_binarylibs.tar.gz -O ${WORKSPACE}/openGauss-third_party_binarylibs.tar.gz
+set -x
+tar -zxf ${WORKSPACE}/openGauss-third_party_binarylibs.tar.gz -C ${WORKSPACE}
+
+
+
+chmod -R 755 /usr1
+chmod -R 755 /home/PrivateBuild_tools
+sh  /home/PrivateBuild_tools/Private_Main.sh 0</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.11.6"/>
+    <EnvInjectPasswordWrapper plugin="envinject@2.3.0">
+      <injectGlobalPasswords>true</injectGlobalPasswords>
+      <maskPasswordParameters>false</maskPasswordParameters>
+      <passwordEntries>
+        <EnvInjectPasswordEntry>
+          <name>token</name>
+          <value>{AQAAABAAAAAwYdr9WhXm4ihdv9Vf7UTjMxnlTTTZOOIid4jwGPTs5xtifRvEPdWJdJEnU1pscBEutbrt3+SUf2RwV16oxpSMwg==}</value>
+        </EnvInjectPasswordEntry>
+      </passwordEntries>
+    </EnvInjectPasswordWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,36 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>openGauss-tools</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>chameleon-build</string>
+    <string>DataStudio_build</string>
+    <string>DataStudio_PR</string>
+    <string>index-tool</string>
+    <string>openGauss-tools-backup-build</string>
+    <string>openGauss-tools-datachecker-build</string>
+    <string>openGauss-tools-loader-build</string>
+    <string>openGauss-tools-ora2og-build</string>
+    <string>openGauss_CM_Compile</string>
+    <string>openGauss_CM_PR</string>
+    <string>openGauss_DCF_Compile</string>
+    <string>openGauss_DCF_PR</string>
+    <string>Yukon-pipline</string>
+    <string>Yukon-PR-check</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+    <org.jenkins.plugins.builton.BuiltOnColumn plugin="built-on-column@1.1"/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>

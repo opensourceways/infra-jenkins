@@ -1,0 +1,134 @@
+<?xml version="1.1" encoding="UTF-8"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="org.jenkinsci.plugins.multiplescms.MultiSCM" plugin="multiple-scms@0.8">
+    <scms>
+      <hudson.plugins.git.GitSCM plugin="git@4.2.2">
+        <configVersion>2</configVersion>
+        <userRemoteConfigs>
+          <hudson.plugins.git.UserRemoteConfig>
+            <url>https://gitee.com/opengauss/DataStudio.git</url>
+            <credentialsId>e11ea793-ff17-4f9c-b586-1e54223f1618</credentialsId>
+          </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+          <hudson.plugins.git.BranchSpec>
+            <name>${branch}</name>
+          </hudson.plugins.git.BranchSpec>
+        </branches>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <submoduleCfg class="list"/>
+        <extensions>
+          <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+            <deleteUntrackedNestedRepositories>false</deleteUntrackedNestedRepositories>
+          </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+          <hudson.plugins.git.extensions.impl.CloneOption>
+            <shallow>false</shallow>
+            <noTags>false</noTags>
+            <reference/>
+            <honorRefspec>false</honorRefspec>
+          </hudson.plugins.git.extensions.impl.CloneOption>
+          <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+            <relativeTargetDir>DataStudio</relativeTargetDir>
+          </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        </extensions>
+      </hudson.plugins.git.GitSCM>
+    </scms>
+  </scm>
+  <assignedNode>website</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>45 12 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>cd $WORKSPACE
+echo "###### build openGauss DataStudio ######"
+
+time=`date "+%Y%m%d%H%M%S"`
+echo "###### build time: $time "
+
+#!/bin/bash
+export ds_tool_home=/home/dstools
+export javafx_home=/home/dstools/javafx-sdk-11.0.2
+export M2_HOME=$ds_tool_home/apache-maven-3.6.3
+#export JAVA8_HOME=$ds_tool_home/jdk1.8.0_311
+export JAVA11_HOME=$ds_tool_home/openjdk-11.0.1
+export JAVA_HOME=$JAVA11_HOME
+export PATH=$M2_HOME/bin:$JAVA_HOME/bin:$PATH
+find -path '*/test*' -delete
+find -path '*/testcode*' -delete
+find -path '*/src-test*' -delete
+
+cd ${WORKSPACE}/DataStudio/code/datastudio/ci/script
+chmod a+x compile_package.sh
+/bin/bash compile_package.sh
+cd ${WORKSPACE}/DataStudio/code/datastudio/build/
+rm -rf DataStudio_win_32.zip*
+ls -l
+tar -czvf DS_Package.tar.gz *
+
+
+# upload to obs
+package_list=$(ls DataStudio_win*)
+for package_name in ${package_list[@]};
+do
+    push_command1="obsutil cp ${package_name} obs://opengauss/latest/"
+    echo "push"
+    set +e
+    $push_command1 &gt; upload.log
+done
+
+cd ${WORKSPACE}/DataStudio/code/datastudio/docs
+docs_list=$(ls | grep "Studio")
+for doc_name in ${docs_list[@]};
+do
+    echo "---docs name $doc_name ---"
+    obsutil cp "${doc_name}" obs://opengauss/latest/
+    set +e
+done
+
+echo "######## datastudio package download path ########"
+for package_name in ${package_list[@]};
+do
+    set +e
+    echo "https://opengauss.obs.cn-south-1.myhuaweicloud.com/latest/${package_name}"
+done
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

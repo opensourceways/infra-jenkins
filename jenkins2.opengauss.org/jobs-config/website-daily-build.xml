@@ -1,0 +1,118 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description>this project is for opengauss website build every 8:15 am</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.3">
+      <giteeConnection/>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.11.3">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://gitee.com/opengauss/website.git</url>
+        <credentialsId>e11ea793-ff17-4f9c-b586-1e54223f1618</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>website||website2</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H 0 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>cd $WORKSPACE
+echo "###### build repo ######"
+
+echo "build repo is: website: $build_website and blog: $build_blog"
+
+ARGOCD_APP_PROJECT="opengauss-hk-website"
+time=`date "+%Y%m%d%H%M%S"`
+build_version="v1.0.$time"
+
+echo "build version: $build_version"
+
+GITEE_EMAIL="xiangxinyong@huawei.com"
+website_imageId=""
+
+project_name=website
+echo "###################################### build website: $build_website ######################################"
+cd "$WORKSPACE/openGauss-website"
+docker build -t ${project_name}:${build_version} .
+website_imageId=$(docker images | grep ${project_name} | grep ${build_version} | awk '{print $3}')
+sh /var/jenkins_home/swr_upload.sh opengauss  ${project_name}:${build_version}
+echo "build website successful; $website_imageId"
+
+echo "remote website images: $website_imageId"
+docker rmi -f $website_imageId
+
+if [ -d "infra" ]; then
+    rm -rf "infra"
+fi
+
+if hash git 2&gt;/dev/null; then
+    git config --global user.email $GITEE_EMAIL
+    git config --global user.name $GITEE_USER
+    git clone https://$GITEE_USER:$GITEE_PASSWD@gitee.com/opengauss/infra
+    cd infra/deploy/website
+else
+    echo "git is not existing."
+fi
+
+if hash kustomize 2&gt;/dev/null; then
+    kustomize edit set image swr.ap-southeast-1.myhuaweicloud.com/opengauss/website:${build_version}
+else
+    echo "use replace to set image."
+fi
+
+if hash git 2&gt;/dev/null; then
+    git add .
+    git commit -am "update website:${build_version}"
+    git push origin --all
+else
+    echo "git is not existing."
+fi
+
+echo "website daily build task end."</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27.1">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>e11ea793-ff17-4f9c-b586-1e54223f1618</credentialsId>
+          <usernameVariable>GITEE_USER</usernameVariable>
+          <passwordVariable>GITEE_PASSWD</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>

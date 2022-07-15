@@ -1,0 +1,255 @@
+<?xml version="1.1" encoding="UTF-8"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>branch</name>
+          <description>分支</description>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TARGET_OS</name>
+          <description>操作系统</description>
+          <defaultValue>openEulor2.0</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PKG_VERSION</name>
+          <description>包版本</description>
+          <defaultValue>3.0.0</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PKG_TYPE</name>
+          <description>release/debug/memcheck</description>
+          <defaultValue>release</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>buildNumber</name>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PKG_PRE_FIX</name>
+          <defaultValue>openGauss</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    
+  </properties>
+  <scm class="org.jenkinsci.plugins.multiplescms.MultiSCM" plugin="multiple-scms@0.8">
+    <scms>
+      <hudson.plugins.git.GitSCM plugin="git@4.2.2">
+        <configVersion>2</configVersion>
+        <userRemoteConfigs>
+          <hudson.plugins.git.UserRemoteConfig>
+            <url>${openGaussServer_Http_Repo_Url}</url>
+            <credentialsId>e11ea793-ff17-4f9c-b586-1e54223f1618</credentialsId>
+          </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+          <hudson.plugins.git.BranchSpec>
+            <name>${branch}</name>
+          </hudson.plugins.git.BranchSpec>
+        </branches>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <submoduleCfg class="list"/>
+        <extensions>
+          <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+            <deleteUntrackedNestedRepositories>false</deleteUntrackedNestedRepositories>
+          </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+          <hudson.plugins.git.extensions.impl.CheckoutOption>
+            <timeout>100</timeout>
+          </hudson.plugins.git.extensions.impl.CheckoutOption>
+          <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+            <relativeTargetDir>openGauss/lite_server</relativeTargetDir>
+          </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        </extensions>
+      </hudson.plugins.git.GitSCM>
+    </scms>
+  </scm>
+  <assignedNode>openEuler-build</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>20 12 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <customWorkspace>/usr1/gauss_jenkins/jenkins/workspace/</customWorkspace>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+cd $WORKSPACE
+
+export CODE_BASE=${WORKSPACE}/openGauss/lite_server
+export LOG_FILE=openGauss-lite.log
+export VERSION=${PKG_VERSION}
+
+rm -rf openGauss-third_party_binarylibs*
+
+# get 3rd binarylibs
+set +x
+wget -q -P ${WORKSPACE} ftp://mpp:openGauss1%232_3%24@192.168.0.155/openGauss-third_party_binarylibs.tar.gz -O ${WORKSPACE}/openGauss-third_party_binarylibs.tar.gz
+tar -zxf ${WORKSPACE}/openGauss-third_party_binarylibs.tar.gz -C ${WORKSPACE}
+set -x
+
+
+function log() {
+    local level="$1"
+    local msg_cont="$2"
+    date_time=$(date +'%F %H:%M:%S')
+
+    log_format="${date_time} [${level^^}] funcname: ${FUNCNAME[1]} line:$(caller 0 | awk '{print$1}') ${msg_cont}"
+    case "${level}" in
+        debug)
+            echo -e "${log_format}"
+            ;;
+        info)
+            echo -e "${log_format}"
+            ;;
+        warn)
+            echo -e "${log_format}"
+            ;;
+        error)
+            echo -e "${log_format}"
+            ;;
+    esac
+}
+
+function package_lite_server()
+{
+    cd ${CODE_BASE}/build/script
+    chmod +x cmake_package_mini.sh
+    sh cmake_package_mini.sh -3rd ${WORKSPACE}/openGauss-third_party_binarylibs -pkg server | tee -a "$LOG_FILE"
+
+    if [ $? -ne 0 ]; then
+        die "make install failed."
+    fi
+}
+
+
+function uplod_package() {
+    cd ${CODE_BASE}/output
+    arch=$(uname -m)
+    if [ "X$arch" == "Xaarch64" ]; then
+        dbs_dest="arm"
+    else
+        if [ -f "/etc/openEuler-release" ];then
+            dbs_dest="x86_openEuler"
+        else
+            dbs_dest="x86"
+        fi
+    fi
+
+    kernel=""
+    version=""
+    ext_version=""
+    dist_version=""
+    if [ -f "/etc/euleros-release" ]; then
+        kernel=$(cat /etc/euleros-release | awk -F ' ' '{print $1}' | tr A-Z a-z)
+        version=$(cat /etc/euleros-release | awk -F '(' '{print $2}'| awk -F ')' '{print $1}' | tr A-Z a-z)
+        ext_version=$version
+    elif [ -f "/etc/openEuler-release" ]; then
+        kernel=$(cat /etc/openEuler-release | awk -F ' ' '{print $1}' | tr A-Z a-z)
+        version=$(cat /etc/openEuler-release | awk -F '(' '{print $2}'| awk -F ')' '{print $1}' | tr A-Z a-z)
+    elif [ -f "/etc/centos-release" ]; then
+        kernel=$(cat /etc/centos-release | awk -F ' ' '{print $1}' | tr A-Z a-z)
+        version=$(cat /etc/centos-release | awk -F '(' '{print $2}'| awk -F ')' '{print $1}' | tr A-Z a-z)
+    else
+        kernel=$(lsb_release -d | awk -F ' ' '{print $2}'| tr A-Z a-z)
+        version=$(lsb_release -r | awk -F ' ' '{print $2}')
+    fi
+
+    if [ X"$kernel" == X"euleros" ]; then
+        dist_version="EULER"
+    elif [ X"$kernel" == X"centos" ]; then
+        dist_version="CentOS"
+    elif [ X"$kernel" == X"openeuler" ]; then
+        dist_version="openEuler"
+    else
+        echo "Only support EulerOS|Centos|openEuler platform."
+        echo "Kernel is $kernel"
+        exit 1
+    fi
+
+    local upload_log=upload.log
+	local upload_1_log=upload_1.log
+    rm -rf ${upload_log}
+	rm -rf ${upload_1_log}
+    #compile_command="./package_gaussdb_single.sh -m debug"
+    package_list=$(ls *.tar.gz | grep "openGauss" | xargs -n 1 basename)
+    package_num=$(ls *.tar.gz | grep "openGauss" | wc -l)
+    for package_name in ${package_list[@]};
+    do
+        sha256sum -b $package_name &gt; $package_name.sha256
+        push_command1="/home/obsutil cp ${package_name} obs://opengauss/latest/${dbs_dest}/"
+        push_command2="/home/obsutil cp ${package_name}.sha256 obs://opengauss/latest/${dbs_dest}/"
+        set +e
+        $push_command1 | tee -a $upload_log
+        $push_command2 | tee -a $upload_log
+    done
+
+    set -e
+    if [ -f $upload_log ]; then
+        # 值为1表示编译成功
+        is_uload_package_success=$(grep "Upload successfully" $upload_log | wc -l)
+        if [ $is_uload_package_success -eq $((package_num*2)) ]; then
+            log 'info' 'upload package to obs successfully '
+        else
+            log 'error' 'upload package to obs failed'
+            exit 1
+        fi
+    else
+        log 'error' 'not generate upload.log upload package to obs failed'
+        exit 1
+    fi
+    log 'info' "Download path from obs is: "
+    arch=$(uname -p)
+    echo "https://opengauss.obs.cn-south-1.myhuaweicloud.com/latest/${dbs_dest}/openGauss-Lite-${VERSION}-${dist_version}-${arch}.tar.gz"
+
+}
+
+function main()
+{
+    package_lite_server
+    uplod_package
+}
+
+main</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.11.6"/>
+  </buildWrappers>
+</project>

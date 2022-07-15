@@ -1,0 +1,20 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<slave>
+  <name>openEuler-build</name>
+  <description>openEuler-build</description>
+  <remoteFS>/var/jenkins_home</remoteFS>
+  <numExecutors>1</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.806.v2253cedd3295">
+    <host>192.168.0.240</host>
+    <port>22</port>
+    <credentialsId>b8046cdc-d849-4dea-b953-99ae4402af26</credentialsId>
+    <launchTimeoutSeconds>60</launchTimeoutSeconds>
+    <maxNumRetries>10</maxNumRetries>
+    <retryWaitTime>15</retryWaitTime>
+    <tcpNoDelay>true</tcpNoDelay>
+  </launcher>
+  <label>openEuler-build</label>
+  <nodeProperties/>
+</slave>

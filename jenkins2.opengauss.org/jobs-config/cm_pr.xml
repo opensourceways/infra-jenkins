@@ -1,0 +1,199 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.7.1"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.2.7">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.34">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>x86-slave-1</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.2.7">
+      <spec></spec>
+      <triggerOnPush>true</triggerOnPush>
+      <triggerOnCommitComment>false</triggerOnCommitComment>
+      <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+      <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+      <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
+      <triggerOnUpdatePullRequest>1</triggerOnUpdatePullRequest>
+      <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+      <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+      <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+      <triggerOnNoteRequest>true</triggerOnNoteRequest>
+      <noteRegex>/retest</noteRegex>
+      <buildInstructionFilterType>NONE</buildInstructionFilterType>
+      <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+      <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
+      <skipLastCommitHasBeenBuild>false</skipLastCommitHasBeenBuild>
+      <setBuildDescription>true</setBuildDescription>
+      <branchFilterType>All</branchFilterType>
+      <includeBranchesSpec></includeBranchesSpec>
+      <excludeBranchesSpec></excludeBranchesSpec>
+      <targetBranchRegex></targetBranchRegex>
+      <secretToken>{AQAAABAAAABw8LJ4LtCld7K24jfBWEE0thojonC+3tdHL+nAbhqw7cfLt0BIn4LoWUZTUMHYUwbPZB34MWncAoI+Fi1RalmKu5cT9o4Fg7FlAbybHmbC4ibER30zOI3/YDFrzDAq7o/0+yEFgwG4Ng0dftjJrULNl70ngD1Kd+5/TwCu1pIC9Hc=}</secretToken>
+      <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+      <cancelIncompleteBuildOnSamePullRequest>false</cancelIncompleteBuildOnSamePullRequest>
+      <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
+    </com.gitee.jenkins.trigger.GiteePushTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <customWorkspace>/usr1/gauss_jenkins/jenkins/workspace/</customWorkspace>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>echo &quot;giteePullRequestIid: ${giteePullRequestIid}&quot;
+echo &quot;giteeAfterCommitSha: ${giteeAfterCommitSha}&quot;
+echo &quot;giteeRef: ${giteeRef}&quot;
+git config --global core.compression 0
+export  giteeTargetBranch=master
+
+set +x
+function delete_labels() {
+  echo &quot;Delete labels&quot;
+  curl -X DELETE &quot;https://gitee.com/api/v5/repos/opengauss/CM/pulls/$1/labels/$3&quot; -H &quot;Authorization: Bearer $2&quot; -H &apos;Content-Type: application/json&apos; &gt; /dev/null
+}
+
+function add_running_label()
+{
+   delete_labels ${giteePullRequestIid} ${token} ci-pipeline-failed
+   delete_labels ${giteePullRequestIid} ${token} ci-pipeline-success
+
+   curl -X POST &quot;https://gitee.com/api/v5/repos/opengauss/CM/pulls/${giteePullRequestIid}/labels&quot; \
+   -H &quot;Authorization: Bearer ${token}&quot; \
+   -H &quot;Content-Type: application/json;charset=UTF-8&quot; \
+   -d &apos;[&quot;ci-pipeline-running&quot;]&apos; &gt; /dev/null
+}
+function add_failed_label(){
+   curl -X POST &quot;https://gitee.com/api/v5/repos/opengauss/CM/pulls/${giteePullRequestIid}/labels&quot; \
+   -H &quot;Authorization: Bearer ${token}&quot; \
+   -H &quot;Content-Type: application/json;charset=UTF-8&quot; \
+   -d &apos;[&quot;ci-pipeline-failed&quot;]&apos; &gt; /dev/null
+}
+
+function add_success_label(){
+   curl -X POST &quot;https://gitee.com/api/v5/repos/opengauss/CM/pulls/${giteePullRequestIid}/labels&quot; \
+   -H &quot;Authorization: Bearer ${token}&quot; \
+   -H &quot;Content-Type: application/json;charset=UTF-8&quot; \
+   -d &apos;[&quot;ci-pipeline-success&quot;]&apos; &gt; /dev/null
+}
+
+#add_running_label
+set +x
+
+cm_repo=https://gitee.com/opengauss/CM.git
+#${giteeTargetBranch}
+server_branch=master
+
+#plugin_repo=https://gitee.com/kidhasdream/Plugin.git
+#server_branch=main
+a=0
+flag=0
+while [ $a -lt 10 ]
+do
+   echo $a
+   rm -rf ${WORKSPACE}/CM
+   timeout 60 git clone -b ${server_branch} &quot;${cm_repo}&quot; &quot;${WORKSPACE}/CM&quot;
+   if [[ $? == 0 ]] ; then
+      flag=1
+      break
+   fi
+   a=`expr $a + 1`
+done
+
+if [[ $flag == 0 ]] ; then
+      echo &quot;clone code failed!&quot;
+      exit 1
+fi
+
+
+cd ${WORKSPACE}/CM
+#git rev-parse --is-inside-work-tree
+#git config remote.origin.url ${cm_repo}
+#git fetch --tags --force --progress origin ${giteeRef}:${giteeRef}
+#git checkout -b ${giteeRef} ${giteeRef}
+
+echo &quot;edit in background&quot;
+
+mkdir -p ${WORKSPACE}/openGauss/binarylibs
+cd ${WORKSPACE}
+rm -rf openGauss-third_party_binarylibs*
+rm -rf om
+set +x
+
+
+if [ $server_branch = &quot;2.0.0&quot; ] || [ $server_branch = &quot;2.0.1&quot; ]; then
+  echo &quot;user 2.0.0 version 3rd binarylibs&quot;
+ wget -q -P ${WORKSPACE} ftp://mpp:openGauss1%232_3%24@192.168.0.155/openGauss-third_party_binarylibs-2.0.0.tar.gz -O ${WORKSPACE}/openGauss-third_party_binarylibs.tar.gz
+else
+  echo &quot;user latest 3rd binarylibs&quot;
+  wget -q -P ${WORKSPACE} ftp://mpp:openGauss1%232_3%24@192.168.0.155/openGauss-third_party_binarylibs.tar.gz -O ${WORKSPACE}/openGauss-third_party_binarylibs.tar.gz
+fi
+
+
+#wget -q -P ${WORKSPACE} ftp://mpp:openGauss1%232_3%24@192.168.0.155/openGauss-third_party_binarylibs.tar.gz -O ${WORKSPACE}/openGauss-third_party_binarylibs.tar.gz
+set -x
+tar -zxf ${WORKSPACE}/openGauss-third_party_binarylibs.tar.gz
+
+
+cd ${WORKSPACE}/CM
+export CMAKEHOME=/usr/local/cmake318
+export LD_LIBRARY_PATH=$CMAKEHOMEb:$LD_LIBRARY_PATH
+export PATH=$CMAKEHOME/bin:$PATH
+sh build.sh -3rd ${WORKSPACE}/openGauss-third_party_binarylibs/  --pkg
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.44">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.NodeParameters/>
+          </configs>
+          <projects>openGauss_server_Reset_Env</projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <triggerFromChildProjects>false</triggerFromChildProjects>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+  </publishers>
+  <buildWrappers>
+    <EnvInjectPasswordWrapper plugin="envinject@2.4.0">
+      <injectGlobalPasswords>true</injectGlobalPasswords>
+      <maskPasswordParameters>false</maskPasswordParameters>
+      <passwordEntries>
+        <EnvInjectPasswordEntry>
+          <name>token</name>
+          <value>{AQAAABAAAABwi1CbvmnVEF3geFNJi4Z8xNUVqYzARX6tpAHubhqeu0S4WSS269GSr1d26rw6b8UE8fVNQWbDU6T5w7A82An1EwXLnLCCjVa/uzz60WIHjY2/6OGL644+StIcbm72FUADOoa4t/A+R/cOfj3bqYI6Qsy3NlA9BMk9RC9w6qePA3w=}</value>
+        </EnvInjectPasswordEntry>
+      </passwordEntries>
+    </EnvInjectPasswordWrapper>
+  </buildWrappers>
+</project>

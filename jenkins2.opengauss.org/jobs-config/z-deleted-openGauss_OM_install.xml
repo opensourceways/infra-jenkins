@@ -1,0 +1,224 @@
+<?xml version="1.1" encoding="UTF-8"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.0.15"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+  </properties>
+  <scm class="org.jenkinsci.plugins.multiplescms.MultiSCM" plugin="multiple-scms@0.6">
+    <scms>
+      <hudson.plugins.git.GitSCM plugin="git@4.2.2">
+        <configVersion>2</configVersion>
+        <userRemoteConfigs>
+          <hudson.plugins.git.UserRemoteConfig>
+            <url>${openGaussServer_Ssh_Repo_Url}</url>
+            <credentialsId>e11ea793-ff17-4f9c-b586-1e54223f1618</credentialsId>
+          </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+          <hudson.plugins.git.BranchSpec>
+            <name>${giteeTargetBranch}</name>
+          </hudson.plugins.git.BranchSpec>
+        </branches>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <submoduleCfg class="list"/>
+        <extensions>
+          <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+            <deleteUntrackedNestedRepositories>false</deleteUntrackedNestedRepositories>
+          </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+          <hudson.plugins.git.extensions.impl.CheckoutOption>
+            <timeout>10</timeout>
+          </hudson.plugins.git.extensions.impl.CheckoutOption>
+          <hudson.plugins.git.extensions.impl.CloneOption>
+            <shallow>false</shallow>
+            <noTags>false</noTags>
+            <reference/>
+            <timeout>10</timeout>
+            <honorRefspec>false</honorRefspec>
+          </hudson.plugins.git.extensions.impl.CloneOption>
+          <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+            <relativeTargetDir>openGauss</relativeTargetDir>
+          </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        </extensions>
+      </hudson.plugins.git.GitSCM>
+    </scms>
+  </scm>
+  <assignedNode>x86-slave-11</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <customWorkspace>/usr1/gauss_jenkins/jenkins/workspace/</customWorkspace>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+echo "giteePullRequestIid: ${giteePullRequestIid}"
+echo "giteeAfterCommitSha: ${giteeAfterCommitSha}"
+echo "giteeRef: ${giteeRef}"
+git config --global core.compression 0
+#git config --global user.name "opengauss-bot"
+#git config --global credential.helper "store"
+
+a=0
+flag=0
+while [ $a -lt 10 ]
+do
+   echo $a
+   rm -rf ${WORKSPACE}/OM
+   timeout 60 git clone -b ${giteeTargetBranch} "${openGaussOM_Ssh_Repo_Url}" "${WORKSPACE}/OM"
+   if [[ $? == 0 ]] ; then
+      flag=1
+      break
+   fi
+   a=`expr $a + 1`
+done
+
+if [[ $flag == 0 ]] ; then
+      echo "clone code failed!"
+      exit 1
+fi
+
+cd ${WORKSPACE}/OM
+git rev-parse --is-inside-work-tree
+git config remote.origin.url ${openGaussOM_Ssh_Repo_Url}
+git fetch --tags --force --progress origin ${giteeRef}:${giteeRef}
+git checkout -b ${giteeRef} ${giteeRef}
+
+
+#mkdir -p ${WORKSPACE}/openGauss/binarylibs
+cd ${WORKSPACE}
+rm -rf openGauss-third_party_binarylibs*
+rm -rf om
+set +x
+wget -q -P ${WORKSPACE} ftp://mpp:mpp@192.168.0.155/openGauss-third_party_binarylibs.tar.gz -O ${WORKSPACE}/openGauss-third_party_binarylibs.tar.gz
+set -x
+tar -zxf ${WORKSPACE}/openGauss-third_party_binarylibs.tar.gz
+
+#[ -d /home/OM ] &amp;&amp; rm -rf /home/OM
+#cp -rf ${WORKSPACE}/openGauss/src/test/regress/script/OM /home/
+
+# 打包工程
+cd ${WORKSPACE}/openGauss/build/script
+chmod +x build_opengauss.sh
+sed -i 's/make -sj 8/make -sj 6 /g' mpp_package.sh
+sed -i 's/make install -sj 8/make install -sj 6 /g' mpp_package.sh
+
+cd ${WORKSPACE}/openGauss
+sh build.sh -m release -3rd ${WORKSPACE}/openGauss-third_party_binarylibs -pkg
+
+# 打包om
+cd ${WORKSPACE}/OM
+sh build.sh -3rd ${WORKSPACE}/openGauss-third_party_binarylibs
+
+# copy om包
+cp ${WORKSPACE}/OM/package/*om.tar.gz ${WORKSPACE}/openGauss/output/.
+
+
+# 执行om
+cd /home/OM
+
+export LD_LIBRARY_PATH=/usr1/gauss_jenkins/jenkins/workspace/om/package/script/gspylib/clib:$LD_LIBRARY_PATH
+
+# 安装
+sh automated-test.sh /usr1/gauss_jenkins/jenkins/workspace
+
+#升级(基础包未传入)
+#sh auto_upgradectl.sh /usr1/gauss_jenkins/jenkins/workspace openGauss-1.0.1-CentOS-64bit.tar.gz
+
+if [ -e /home/OM/ssh/known_hosts ]
+then
+    rm -rf ~/.ssh/*
+    cp /home/OM/ssh/* ~/.ssh/
+fi
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.postbuildtask.PostbuildTask plugin="postbuild-task@1.8">
+      <tasks>
+        <hudson.plugins.postbuildtask.TaskProperties>
+          <logTexts>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>ERROR</logText>
+              <operator>OR</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>Finished: FAILURE</logText>
+              <operator>OR</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>失败</logText>
+              <operator>OR</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+          </logTexts>
+          <EscalateStatus>false</EscalateStatus>
+          <RunIfJobSuccessful>false</RunIfJobSuccessful>
+          <script>function delete_labels() {&#13;
+  echo "Delete labels"&#13;
+  curl -X DELETE "https://gitee.com/api/v5/repos/opengauss/openGauss-OM/pulls/$1/labels/$3" -H "Authorization: Bearer $2" -H 'Content-Type: application/json' &gt; /dev/null&#13;
+}&#13;
+&#13;
+delete_labels ${giteePullRequestIid} ${token} ci-pipeline-running&#13;
+&#13;
+curl -X POST "https://gitee.com/api/v5/repos/opengauss/openGauss-OM/pulls/${giteePullRequestIid}/labels" \&#13;
+-H "Authorization: Bearer ${token}" \&#13;
+-H "Content-Type: application/json" \&#13;
+-d '["ci-pipeline-failed"]' &gt; /dev/null</script>
+        </hudson.plugins.postbuildtask.TaskProperties>
+      </tasks>
+    </hudson.plugins.postbuildtask.PostbuildTask>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.36">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.NodeParameters/>
+          </configs>
+          <projects>openGauss_server_Reset_Env</projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <triggerFromChildProjects>false</triggerFromChildProjects>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+  </publishers>
+  <buildWrappers>
+    <EnvInjectPasswordWrapper plugin="envinject@2.3.0">
+      <injectGlobalPasswords>true</injectGlobalPasswords>
+      <maskPasswordParameters>false</maskPasswordParameters>
+      <passwordEntries>
+        <EnvInjectPasswordEntry>
+          <name>token</name>
+          <value>{AQAAABAAAAAwjh92NcdQAnbPV/BXsIWmWJOXELaJ1erWglbbjZL3IV4rcR5RQtsLtMwoZANdZirtVEDURTkSYERzU1TMOADAJQ==}</value>
+        </EnvInjectPasswordEntry>
+      </passwordEntries>
+    </EnvInjectPasswordWrapper>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@2.1.0">
+      <template>#${BUILD_NUMBER} --Branch:${giteeTargetBranch}</template>
+      <descriptionTemplate/>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>

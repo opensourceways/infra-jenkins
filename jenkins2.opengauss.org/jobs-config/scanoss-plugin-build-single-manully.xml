@@ -1,0 +1,41 @@
+<?xml version="1.1" encoding="UTF-8"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>scanner-slave</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <io.jenkins.plugins.builder.ScanossBuilder plugin="scanoss-jenkins@1.1-SNAPSHOT">
+      <url>https://api.osinfra.cn</url>
+      <repoUrlsAndBranches>https://gitee.com/opengauss/openGauss-OM.git:master</repoUrlsAndBranches>
+      <authCode>eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3RAMTIzNC5jb20ifQ.jcROsr6ktxQNujA-9w2CR_tLFbBliaivqojzGQ5bePI</authCode>
+      <credentialId/>
+      <SbomFile>/data/black.json</SbomFile>
+      <urlChoose>1</urlChoose>
+      <scanossCredentials/>
+    </io.jenkins.plugins.builder.ScanossBuilder>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

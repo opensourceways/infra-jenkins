@@ -1,0 +1,26 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<hudson.model.ListView>
+  <name>Plugin</name>
+  <filterExecutors>false</filterExecutors>
+  <filterQueue>false</filterQueue>
+  <properties class="hudson.model.View$PropertyList"/>
+  <jobNames>
+    <comparator class="hudson.util.CaseInsensitiveComparator"/>
+    <string>plugin_pullrequest_check</string>
+    <string>plugin_pullrequest_check_old</string>
+  </jobNames>
+  <jobFilters/>
+  <columns>
+    <hudson.views.StatusColumn/>
+    <hudson.views.WeatherColumn/>
+    <hudson.views.JobColumn/>
+    <hudson.views.LastSuccessColumn/>
+    <hudson.views.LastFailureColumn/>
+    <hudson.views.LastDurationColumn/>
+    <hudson.views.BuildButtonColumn/>
+    <org.jenkins.plugins.builton.BuiltOnColumn plugin="built-on-column@1.1"/>
+    <jenkins.plugins.jobicon.CustomIconColumn plugin="custom-job-icon@0.2"/>
+    <hudson.plugins.favorite.column.FavoriteColumn plugin="favorite@2.3.3.1"/>
+  </columns>
+  <recurse>false</recurse>
+</hudson.model.ListView>
