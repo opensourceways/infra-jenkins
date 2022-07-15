@@ -47,7 +47,7 @@
           <name>to_addr</name>
           <description>收件人邮箱地址
 a,b,c......</description>
-          <defaultValue>xiasenlin1@huawei.com,wangyiru1@huawei.com,chenyaqiang@huawei.com,zwfeng@huawei.com,bessel.wang@huawei.com,huangchengpiao@huawei.com,wangchong56@huawei.com,caodongxia@h-partners.com,liyanan32@h-partners.com</defaultValue>
+          <defaultValue>xiasenlin1@huawei.com,wangyiru1@huawei.com,chenyaqiang@huawei.com,zwfeng@huawei.com,bessel.wang@huawei.com,huangchengpiao@huawei.com,wangchong56@huawei.com,caodongxia@h-partners.com,liyanan32@h-partners.com,yaolonggang3@h-partners.com</defaultValue>
           <trim>true</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>

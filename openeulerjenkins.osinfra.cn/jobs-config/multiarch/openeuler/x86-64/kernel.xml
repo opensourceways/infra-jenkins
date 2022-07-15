@@ -137,7 +137,9 @@ git clone https://gitee.com/src-openeuler/kernel.git
 cd kernel
 git checkout openEuler-22.03-LTS-Next
 kernel_tag=$(sudo cat ./SOURCE)
-echo kernel_tag
+echo $kernel_tag
+git checkout openEuler-22.03-LTS
+chmod 777 check-kabi
 mkdir ../../OLK
 cd ../../OLK
 git clone -b $kernel_tag --depth 1 https://gitee.com/openeuler/kernel.git
@@ -148,8 +150,14 @@ echo y | sudo yum install elfutils-libelf-devel
 echo y | sudo yum install openssl-devel
 echo y | sudo yum install dwarves
 
+wget https://gitee.com/openeuler/kernel/pulls/${prid}.patch
+git config --global user.email &quot;zhengzengkai@huawei.com&quot;
+git config --global user.name &quot;zheng zengkai&quot;
+git am ${prid}.patch
+
 make openeuler_defconfig
-make -j30</command>
+make -j30
+../../src-kernel/kernel/check-kabi -k ../../src-kernel/kernel/Module.kabi_${arch} -s ./Module.symvers</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>

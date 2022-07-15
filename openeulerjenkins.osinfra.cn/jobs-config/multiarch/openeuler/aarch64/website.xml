@@ -21,102 +21,6 @@
       <permission>hudson.model.Run.Delete:liuqi</permission>
       <permission>hudson.model.Run.Update:liuqi</permission>
       <permission>hudson.scm.SCM.Tag:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:liuqi</permission>
-      <permission>hudson.model.Item.Build:liuqi</permission>
-      <permission>hudson.model.Item.Cancel:liuqi</permission>
-      <permission>hudson.model.Item.Configure:liuqi</permission>
-      <permission>hudson.model.Item.Delete:liuqi</permission>
-      <permission>hudson.model.Item.Discover:liuqi</permission>
-      <permission>hudson.model.Item.Move:liuqi</permission>
-      <permission>hudson.model.Item.Read:liuqi</permission>
-      <permission>hudson.model.Item.Workspace:liuqi</permission>
-      <permission>hudson.model.Run.Delete:liuqi</permission>
-      <permission>hudson.model.Run.Update:liuqi</permission>
-      <permission>hudson.scm.SCM.Tag:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:liuqi</permission>
-      <permission>hudson.model.Item.Build:liuqi</permission>
-      <permission>hudson.model.Item.Cancel:liuqi</permission>
-      <permission>hudson.model.Item.Configure:liuqi</permission>
-      <permission>hudson.model.Item.Delete:liuqi</permission>
-      <permission>hudson.model.Item.Discover:liuqi</permission>
-      <permission>hudson.model.Item.Move:liuqi</permission>
-      <permission>hudson.model.Item.Read:liuqi</permission>
-      <permission>hudson.model.Item.Workspace:liuqi</permission>
-      <permission>hudson.model.Run.Delete:liuqi</permission>
-      <permission>hudson.model.Run.Update:liuqi</permission>
-      <permission>hudson.scm.SCM.Tag:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:liuqi</permission>
-      <permission>hudson.model.Item.Build:liuqi</permission>
-      <permission>hudson.model.Item.Cancel:liuqi</permission>
-      <permission>hudson.model.Item.Configure:liuqi</permission>
-      <permission>hudson.model.Item.Delete:liuqi</permission>
-      <permission>hudson.model.Item.Discover:liuqi</permission>
-      <permission>hudson.model.Item.Move:liuqi</permission>
-      <permission>hudson.model.Item.Read:liuqi</permission>
-      <permission>hudson.model.Item.Workspace:liuqi</permission>
-      <permission>hudson.model.Run.Delete:liuqi</permission>
-      <permission>hudson.model.Run.Update:liuqi</permission>
-      <permission>hudson.scm.SCM.Tag:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:liuqi</permission>
-      <permission>hudson.model.Item.Build:liuqi</permission>
-      <permission>hudson.model.Item.Cancel:liuqi</permission>
-      <permission>hudson.model.Item.Configure:liuqi</permission>
-      <permission>hudson.model.Item.Delete:liuqi</permission>
-      <permission>hudson.model.Item.Discover:liuqi</permission>
-      <permission>hudson.model.Item.Move:liuqi</permission>
-      <permission>hudson.model.Item.Read:liuqi</permission>
-      <permission>hudson.model.Item.Workspace:liuqi</permission>
-      <permission>hudson.model.Run.Delete:liuqi</permission>
-      <permission>hudson.model.Run.Update:liuqi</permission>
-      <permission>hudson.scm.SCM.Tag:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:liuqi</permission>
-      <permission>hudson.model.Item.Build:liuqi</permission>
-      <permission>hudson.model.Item.Cancel:liuqi</permission>
-      <permission>hudson.model.Item.Configure:liuqi</permission>
-      <permission>hudson.model.Item.Delete:liuqi</permission>
-      <permission>hudson.model.Item.Discover:liuqi</permission>
-      <permission>hudson.model.Item.Move:liuqi</permission>
-      <permission>hudson.model.Item.Read:liuqi</permission>
-      <permission>hudson.model.Item.Workspace:liuqi</permission>
-      <permission>hudson.model.Run.Delete:liuqi</permission>
-      <permission>hudson.model.Run.Update:liuqi</permission>
-      <permission>hudson.scm.SCM.Tag:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:liuqi</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:liuqi</permission>
-      <permission>hudson.model.Item.Build:liuqi</permission>
-      <permission>hudson.model.Item.Cancel:liuqi</permission>
-      <permission>hudson.model.Item.Configure:liuqi</permission>
-      <permission>hudson.model.Item.Delete:liuqi</permission>
-      <permission>hudson.model.Item.Discover:liuqi</permission>
-      <permission>hudson.model.Item.Move:liuqi</permission>
-      <permission>hudson.model.Item.Read:liuqi</permission>
-      <permission>hudson.model.Item.Workspace:liuqi</permission>
-      <permission>hudson.model.Run.Delete:liuqi</permission>
-      <permission>hudson.model.Run.Update:liuqi</permission>
-      <permission>hudson.scm.SCM.Tag:liuqi</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
@@ -224,7 +128,8 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command/>
+      <command>echo halo
+echo nihao</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>

@@ -164,10 +164,13 @@ sudo rm -rf /usr1/openeuler/src
 src_path=/usr1/openeuler/src
 sudo mkdir -p $src_path
 
+# 清理上次遗留的构建文件
+build_script=/usr1/scripts
+build_output=/usr1/output
 
+sudo rm -rf ${build_output}
 
 # 下载构建脚本
-build_script=/usr1/scripts
 if [ ! -d &quot;$build_script&quot; ]; then
     sudo git clone https://gitee.com/openeuler/openeuler-os-build.git -b master -v $build_script
 else
@@ -187,6 +190,7 @@ sudo rm -rf $src_path/${repo}
 sudo cp -r $WORKSPACE/${repo} $src_path
 
 # 安装构建环境，下载代码
+git config --global --add safe.directory &quot;${src_path}/*&quot;
 sudo rm -rf ${src_path}/kernel-5.10
 downloadBranch=&quot;openEuler-22.03-LTS&quot;
 if [[ ${tbranch} == &quot;yocto_refactor&quot; || ${tbranch} == &quot;gitee_pages&quot; ]]; then

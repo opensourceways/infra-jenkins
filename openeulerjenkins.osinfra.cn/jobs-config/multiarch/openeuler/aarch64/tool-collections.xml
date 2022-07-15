@@ -1,27 +1,58 @@
-<?xml version='1.1' encoding='UTF-8'?>
-<project>
+<?xml version="1.0" encoding="UTF-8"?><project>
   <actions/>
-  <description></description>
+  <description/>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
       <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:linyuyao</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:linyuyao</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:linyuyao</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:linyuyao</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:linyuyao</permission>
-      <permission>hudson.model.Item.Build:linyuyao</permission>
-      <permission>hudson.model.Item.Cancel:linyuyao</permission>
-      <permission>hudson.model.Item.Configure:linyuyao</permission>
-      <permission>hudson.model.Item.Delete:linyuyao</permission>
-      <permission>hudson.model.Item.Discover:linyuyao</permission>
-      <permission>hudson.model.Item.Move:linyuyao</permission>
-      <permission>hudson.model.Item.Read:linyuyao</permission>
-      <permission>hudson.model.Item.Workspace:linyuyao</permission>
-      <permission>hudson.model.Run.Delete:linyuyao</permission>
-      <permission>hudson.model.Run.Update:linyuyao</permission>
-      <permission>hudson.scm.SCM.Tag:linyuyao</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:lixianlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:luonan</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:lixianlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:luonan</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:lixianlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:luonan</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:lixianlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:luonan</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:lixianlin</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:luonan</permission>
+      <permission>hudson.model.Item.Build:lixianlin</permission>
+      <permission>hudson.model.Item.Build:luonan</permission>
+      <permission>hudson.model.Item.Cancel:lixianlin</permission>
+      <permission>hudson.model.Item.Cancel:luonan</permission>
+      <permission>hudson.model.Item.Configure:lixianlin</permission>
+      <permission>hudson.model.Item.Configure:luonan</permission>
+      <permission>hudson.model.Item.Delete:lixianlin</permission>
+      <permission>hudson.model.Item.Delete:luonan</permission>
+      <permission>hudson.model.Item.Discover:lixianlin</permission>
+      <permission>hudson.model.Item.Discover:luonan</permission>
+      <permission>hudson.model.Item.Move:lixianlin</permission>
+      <permission>hudson.model.Item.Move:luonan</permission>
+      <permission>hudson.model.Item.Read:lixianlin</permission>
+      <permission>hudson.model.Item.Read:luonan</permission>
+      <permission>hudson.model.Item.Workspace:lixianlin</permission>
+      <permission>hudson.model.Item.Workspace:luonan</permission>
+      <permission>hudson.model.Run.Delete:lixianlin</permission>
+      <permission>hudson.model.Run.Delete:luonan</permission>
+      <permission>hudson.model.Run.Update:lixianlin</permission>
+      <permission>hudson.model.Run.Update:luonan</permission>
+      <permission>hudson.scm.SCM.Tag:lixianlin</permission>
+      <permission>hudson.scm.SCM.Tag:luonan</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:chenqi</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:chenqi</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:chenqi</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:chenqi</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:chenqi</permission>
+      <permission>hudson.model.Item.Build:chenqi</permission>
+      <permission>hudson.model.Item.Cancel:chenqi</permission>
+      <permission>hudson.model.Item.Configure:chenqi</permission>
+      <permission>hudson.model.Item.Delete:chenqi</permission>
+      <permission>hudson.model.Item.Discover:chenqi</permission>
+      <permission>hudson.model.Item.Move:chenqi</permission>
+      <permission>hudson.model.Item.Read:chenqi</permission>
+      <permission>hudson.model.Item.Workspace:chenqi</permission>
+      <permission>hudson.model.Run.Delete:chenqi</permission>
+      <permission>hudson.model.Run.Update:chenqi</permission>
+      <permission>hudson.scm.SCM.Tag:chenqi</permission>
     </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
@@ -49,7 +80,7 @@
         <hudson.model.StringParameterDefinition>
           <name>repo</name>
           <description>码云中仓库名称</description>
-          <defaultValue>kernel</defaultValue>
+          <defaultValue>tool-collections</defaultValue>
           <trim>true</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -114,13 +145,13 @@
       <hudson.plugins.git.extensions.impl.CloneOption>
         <shallow>true</shallow>
         <noTags>true</noTags>
-        <reference></reference>
+        <reference/>
         <depth>1</depth>
         <honorRefspec>true</honorRefspec>
       </hudson.plugins.git.extensions.impl.CloneOption>
     </extensions>
   </scm>
-  <assignedNode>docker-aarch64-soe-kernel</assignedNode>
+  <assignedNode>k8s-aarch64-openeuler-level2</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -129,35 +160,8 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>#!/bin/bash
-
-git init src-kernel
-cd src-kernel
-git clone https://gitee.com/src-openeuler/kernel.git
-cd kernel
-git checkout openEuler-22.03-LTS-Next
-kernel_tag=$(sudo cat ./SOURCE)
-echo $kernel_tag
-git checkout openEuler-22.03-LTS
-chmod 777 check-kabi
-mkdir ../../OLK
-cd ../../OLK
-git clone -b $kernel_tag --depth 1 https://gitee.com/openeuler/kernel.git
-cd kernel
-echo y | sudo yum install flex
-echo y | sudo yum install bison
-echo y | sudo yum install elfutils-libelf-devel
-echo y | sudo yum install openssl-devel
-echo y | sudo yum install dwarves
-
-wget https://gitee.com/openeuler/kernel/pulls/${prid}.patch
-git config --global user.email &quot;zhengzengkai@huawei.com&quot;
-git config --global user.name &quot;zheng zengkai&quot;
-git am ${prid}.patch
-
-make openeuler_defconfig
-make -j30
-../../src-kernel/kernel/check-kabi -k ../../src-kernel/kernel/Module.kabi_${arch} -s ./Module.symvers</command>
+      <command>echo halo
+pwd</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>

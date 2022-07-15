@@ -107,21 +107,24 @@ fi
 # https://gitee.com/openeuler/pkgship
 # https://pkgmanage.openeuler.org/Packagemanagement
 
-osc r openEuler:Mainline --xml &gt; openeuler_mainline_result_20220707.xml
-osc r openEuler:Epol --xml &gt; openeuler_epol_result_20220707.xml
+
+wget https://download.opensuse.org/distribution/leap/15.1/repo/oss/x86_64/sshpass-1.06-lp151.2.2.x86_64.rpm
+
+#osc r openEuler:Mainline --xml &gt; openeuler_mainline_result_20220707.xml
+#osc r openEuler:Epol --xml &gt; openeuler_epol_result_20220707.xml
 
 rm -rf home:zhouxiaxiang
-osc co home:zhouxiaxiang project_build_result
-cp ./home\:zhouxiaxiang/project_build_result/build_result.py .
+osc co home:zhouxiaxiang failed_log
+cp sshpass-1.06-lp151.2.2.x86_64.rpm ./home\:zhouxiaxiang/failed_log
 
 
-python3 build_result.py -c &quot;build_result_20220707.csv&quot; -l &quot;117.78.1.88:82&quot; -p ${project}
+#python3 build_result.py -c &quot;build_result_20220707.csv&quot; -l &quot;117.78.1.88:82&quot; -p ${project}
 
 
-cp openeuler_mainline_result_20220707.xml ./home\:zhouxiaxiang/project_build_result
-cp openeuler_epol_result_20220707.xml ./home\:zhouxiaxiang/project_build_result
-cp build_result_20220707.csv ./home\:zhouxiaxiang/project_build_result
-cd ./home\:zhouxiaxiang/project_build_result
+#cp openeuler_mainline_result_20220707.xml ./home\:zhouxiaxiang/project_build_result
+#cp openeuler_epol_result_20220707.xml ./home\:zhouxiaxiang/project_build_result
+#cp build_result_20220707.csv ./home\:zhouxiaxiang/project_build_result
+#cd ./home\:zhouxiaxiang/project_build_result
 osc addremove
 osc ci -n
 

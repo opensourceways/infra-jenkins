@@ -171,8 +171,13 @@ sudo mkdir -p $src_path
 # ls -l /usr1/openeuler/gcc/openeuler_gcc_arm64le/aarch64-openeuler-linux-gnu/lib64/*
 # exit 0
 
-# 下载构建脚本
+# 清理上次遗留的构建文件
 build_script=/usr1/scripts
+build_output=/usr1/output
+
+sudo rm -rf ${build_output}
+
+# 下载构建脚本
 if [ ! -d &quot;$build_script&quot; ]; then
     sudo git clone https://gitee.com/openeuler/openeuler-os-build.git -b &quot;master&quot; -v $build_script
 else
@@ -192,6 +197,7 @@ sudo rm -rf $src_path/${repo}
 sudo cp -r $WORKSPACE/${repo} $src_path
 
 # 安装构建环境，下载代码
+git config --global --add safe.directory &quot;${src_path}/*&quot;
 sudo rm -rf ${src_path}/kernel-5.10
 #downloadBranch=${tbranch}
 downloadBranch=&quot;openEuler-22.03-LTS&quot;
