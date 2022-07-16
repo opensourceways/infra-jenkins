@@ -4,6 +4,23 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>hudson.model.Item.Build:gongzt</permission>
+      <permission>hudson.model.Item.Build:jiangpengju</permission>
+      <permission>hudson.model.Item.Configure:gongzt</permission>
+      <permission>hudson.model.Item.Configure:jiangpengju</permission>
+      <permission>hudson.model.Item.Read:gongzt</permission>
+      <permission>hudson.model.Item.Read:jiangpengju</permission>
+      <permission>hudson.model.Item.Workspace:gongzt</permission>
+      <permission>hudson.model.Item.Workspace:jiangpengju</permission>
+      <permission>hudson.model.Run.Delete:gongzt</permission>
+      <permission>hudson.model.Run.Delete:jiangpengju</permission>
+      <permission>hudson.model.Run.Update:gongzt</permission>
+      <permission>hudson.model.Run.Update:jiangpengju</permission>
+      <permission>hudson.scm.SCM.Tag:gongzt</permission>
+      <permission>hudson.scm.SCM.Tag:jiangpengju</permission>
+    </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -123,6 +140,8 @@ repo_owner=&apos;gongzt&apos;
 # 调测可使用以下代码
  shell_path=/home/jenkins/ci_check2
  mkdir -p ${shell_path}
+ pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple click xmltodict 
+ 
  rm -rf ${shell_path}/*
  git clone https://gitee.com/gongzt/ci-tools.git ${shell_path}
 

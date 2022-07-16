@@ -66,6 +66,8 @@
               <string>openEuler:22.03:LTS</string>
               <string>openEuler:22.03:LTS:Epol</string>
               <string>openEuler:22.03:LTS:LoongArch</string>
+              <string>openEuler:22.09</string>
+              <string>openEuler:22.09:Epol</string>
               <string>openEuler:20.03:LTS:SP3:oepkg:openstack:common</string>
               <string>openEuler:20.03:LTS:SP3:oepkg:openstack:queens</string>
               <string>openEuler:20.03:LTS:SP3:oepkg:openstack:rocky</string>
