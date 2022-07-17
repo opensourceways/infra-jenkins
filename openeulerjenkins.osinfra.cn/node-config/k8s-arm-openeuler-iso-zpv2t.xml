@@ -1,9 +1,9 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <org.csanchez.jenkins.plugins.kubernetes.KubernetesSlave plugin="kubernetes@1.30.5">
-  <name>k8s-aarch64-openeuler-gt56d</name>
-  <description>k8s-aarch64-openeuler</description>
+  <name>k8s-arm-openeuler-iso-zpv2t</name>
+  <description>k8s-arm-openeuler-iso</description>
   <numExecutors>1</numExecutors>
-  <mode>EXCLUSIVE</mode>
+  <mode>NORMAL</mode>
   <retentionStrategy class="hudson.slaves.CloudRetentionStrategy">
     <idleMinutes>1</idleMinutes>
   </retentionStrategy>
@@ -16,10 +16,10 @@
     <webSocket>false</webSocket>
     <launched>true</launched>
   </launcher>
-  <label>k8s-aarch64-openeuler</label>
+  <label>k8s-arm-openeuler-iso</label>
   <nodeProperties/>
-  <cloudName>kubernetes-aarch64-openeuler</cloudName>
+  <cloudName>k8s-arm-openeuler-iso</cloudName>
   <namespace>jenkins</namespace>
-  <podTemplateId>k8s-aarch64-openeuler-ab46c71757c8cc7069caf8261015e166</podTemplateId>
+  <podTemplateId>408594a7-4394-4410-85da-3ab94fc0726f</podTemplateId>
   <remoteFS>/home/jenkins/agent</remoteFS>
 </org.csanchez.jenkins.plugins.kubernetes.KubernetesSlave>
