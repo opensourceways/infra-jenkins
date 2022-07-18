@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
   <actions/>
   <description>上报打包结果</description>
   <keepDependencies>false</keepDependencies>
@@ -99,13 +100,14 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-repo_owner='gongzt'
+repo_owner=&apos;gongzt&apos;
 shell_path=/home/jenkins/ci_check
 # 调测可使用以下代码
-# shell_path=/home/jenkins/ci_check2
-# mkdir -p ${shell_path}
-# rm -rf ${shell_path}/*
-# git clone https://gitee.com/xxx/openeuler-jenkins.git ${shell_path}
+ shell_path=/home/jenkins/ci_check2
+ mkdir -p ${shell_path}
+
+ rm -rf ${shell_path}/*
+ git clone -b for_pr1 https://gitee.com/wanghuan158/openeuler-jenkins.git ${shell_path}
 . ${shell_path}/src/lib/comment.sh
 
 set +x
@@ -117,7 +119,7 @@ set -x
   </builders>
   <publishers>
     <com.chikli.hudson.plugin.naginator.NaginatorPublisher plugin="naginator@1.18.1">
-      <regexpForRerun/>
+      <regexpForRerun></regexpForRerun>
       <rerunIfUnstable>true</rerunIfUnstable>
       <rerunMatrixPart>false</rerunMatrixPart>
       <checkRegexp>false</checkRegexp>

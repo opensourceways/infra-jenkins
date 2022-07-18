@@ -198,6 +198,9 @@ sudo cp -r $WORKSPACE/${repo} $src_path
 
 # 安装构建环境，下载代码
 git config --global --add safe.directory &quot;${src_path}/*&quot;
+sudo git config --global --add safe.directory &quot;${src_path}/*&quot;
+sudo chown -R root:root &quot;${src_path}&quot;
+
 sudo rm -rf ${src_path}/kernel-5.10
 #downloadBranch=${tbranch}
 downloadBranch=&quot;openEuler-22.03-LTS&quot;

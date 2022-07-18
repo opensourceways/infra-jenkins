@@ -48,6 +48,7 @@
               <string>openEuler:21.03</string>
               <string>openEuler:21.09</string>
               <string>openEuler-Mainline-copy</string>
+              <string>openEuler:22.09</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -66,6 +67,7 @@
               <string>openEuler:20.03:LTS:SP3:Epol</string>
               <string>openEuler:22.03:LTS:Next:Epol</string>
               <string>openEuler:22.03:LTS:Epol</string>
+              <string>openEuler:22.09:Epol</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -84,6 +86,7 @@
               <string>openEuler:20.03:LTS:SP3:Extras</string>
               <string>openEuler:22.03:LTS:Next:Extras</string>
               <string>openEuler:22.03:LTS:Extras</string>
+              <string>openEuler:22.09:Extras</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>

@@ -44,30 +44,28 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers>
-    <hudson.triggers.TimerTrigger>
-      <spec>0 9 * * 1</spec>
-    </hudson.triggers.TimerTrigger>
-  </triggers>
+  <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>job_name=&quot;function-item/release-manager/update_template_jobs/release-create-tools/check_version&quot;
 
+sudo yum install osc -y
+
 rm -rf release-tools
 git clone https://gitee.com/gitee-cmd/release-tools.git
 
-rm -rf my_update
-git clone https://gitee.com/gitee-cmd/my_update.git
+rm -rf update_packages2
+git clone https://gitee.com/gitee-cmd/update_packages2.git
 
 init_path=`pwd`
-export PYTHONPATH=$init_path/release-tools/release-assistant/:$init_path/my_update/
+export PYTHONPATH=$init_path/release-tools/release-assistant/:$init_path/update_packages2/
 
-cd my_update/src/
+cd update_packages2/src/
 python3 repo_version.py
-
-cd $init_path
-python3 release-tools/release-assistant/javcra/javcra create --token $GiteeToken</command>
+ll
+#cd $init_path
+#python3 release-tools/release-assistant/javcra/javcra create --token $GiteeToken</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
     <EnvInjectBuilder plugin="envinject@2.3.0">

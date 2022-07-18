@@ -36,18 +36,7 @@
           <name>OBS_STANDARD_PROJECT</name>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
-              <string>openEuler:Mainline</string>
-              <string>openEuler:20.03:LTS</string>
-              <string>openEuler:20.03:LTS:Next</string>
-              <string>openEuler:20.03:LTS:SP1</string>
-              <string>openEuler:20.03:LTS:SP2</string>
-              <string>openEuler:20.03:LTS:SP3</string>
-              <string>openEuler:22.03:LTS:Next</string>
-              <string>openEuler:22.03:LTS</string>
-              <string>openEuler:20.09</string>
-              <string>openEuler:21.03</string>
-              <string>openEuler:21.09</string>
-              <string>openEuler-Mainline-copy</string>
+              <string>openeuler-22.03-LTS</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -55,40 +44,13 @@
           <name>OBS_EPOL_PROJECT</name>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
-              <string>openEuler:Epol</string>
-              <string>openEuler:20.03:LTS:Epol</string>
-              <string>openEuler:20.03:LTS:Next:Epol</string>
-              <string>openEuler:20.03:LTS:SP1:Epol</string>
-              <string>openEuler:20.03:LTS:SP2:Epol</string>
-              <string>openEuler:20.03:LTS:SP3:Epol</string>
-              <string>openEuler:22.03:LTS:Next:Epol</string>
-              <string>openEuler:22.03:LTS:Epol</string>
-              <string>openEuler:20.09:Epol</string>
-              <string>openEuler:21.03:Epol</string>
-              <string>openEuler:21.09:Epol</string>
-            </a>
-          </choices>
-        </hudson.model.ChoiceParameterDefinition>
-        <hudson.model.ChoiceParameterDefinition>
-          <name>OBS_EXTRAS_PROJECT</name>
-          <choices class="java.util.Arrays$ArrayList">
-            <a class="string-array">
-              <string>openEuler:Extras</string>
-              <string>openEuler:20.03:LTS:Extras</string>
-              <string>openEuler:20.03:LTS:Next:Extras</string>
-              <string>openEuler:20.03:LTS:SP1:Extras</string>
-              <string>openEuler:20.03:LTS:SP2:Extras</string>
-              <string>openEuler:20.03:LTS:SP3:Extras</string>
-              <string>openEuler:22.03:LTS:Next:Extras</string>
-              <string>openEuler:22.03:LTS:Extras</string>
-              <string>openEuler:20.09:Extras</string>
-              <string>openEuler:21.03:Extras</string>
-              <string>openEuler:21.09:Extras</string>
+              <string>openeuler-22.03-LTS-Epol</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>vm_ip</name>
+          <defaultValue>121.196.199.87</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
@@ -126,8 +88,8 @@ for ((i=1;i&lt;=5;i++));
 do
 	set +e
     if [ ! -d openeuler-os-build ];then
-    	#git clone --depth 1 https://gitee.com/wangchong1995924/openeuler-os-build
-        git clone --depth 1 https://${giteeuser}:${giteepwd}@gitee.com/openeuler/openeuler-os-build
+    	git clone --depth 1 https://gitee.com/wangchong1995924/openeuler-os-build
+        #git clone --depth 1 https://${giteeuser}:${giteepwd}@gitee.com/openeuler/openeuler-os-build
     else
         break
     fi
@@ -137,7 +99,7 @@ cd openeuler-os-build
 export dogshenguser81=${dogshenguser81}
 export dogshengpwd81=${dogshengpwd81}
 bash -x reset_release_server_ip.sh &amp;&amp; \
-python build.py -i ${JOB_NAME##*-} -s ${OBS_STANDARD_PROJECT} -ep ${OBS_EPOL_PROJECT} -ex ${OBS_EXTRAS_PROJECT} -ip ${vm_ip}
+python build.py -i ${JOB_NAME##*-} -s ${OBS_STANDARD_PROJECT} -ep ${OBS_EPOL_PROJECT} -ip ${vm_ip}
 EOF</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>

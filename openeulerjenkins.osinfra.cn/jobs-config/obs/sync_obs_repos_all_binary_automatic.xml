@@ -12,14 +12,6 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>100</daysToKeep>
-        <numToKeep>1500</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -30,6 +22,14 @@
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.ChoiceParameterDefinition>
@@ -189,6 +189,26 @@
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_09</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>openEuler_22_09_Epol</name>
+          <description>1表示归档；0表示不归档</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>1</string>
+              <string>0</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>repo_x86</name>
           <defaultValue>standard_x86_64</defaultValue>
@@ -245,6 +265,24 @@ package1 pacakge2 package3 ...</description>
     <script>pipeline {
     agent none
     stages {
+        stage(&quot;2209&quot;) {
+            steps {
+                parallel(
+                    &quot;22.09_standard_arm&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.09&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_09),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: params.OBS_BACKEND_SERVER_IP)], propagate: false
+                    },
+                    &quot;22.09_standard_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.09&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_09),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: params.OBS_BACKEND_SERVER_IP)], propagate: false
+                    },
+                    &quot;22.09_epol_arm&quot;:{
+				        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.09:Epol&apos;),string(name: &apos;repo&apos;,value: params.repo_aarch64),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_09_Epol),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: params.OBS_BACKEND_SERVER_IP)], propagate: false
+                    },
+                    &quot;22.09_epol_x86_64&quot;:{
+                        build job: &apos;sync_obs_repos_all&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.09:Epol&apos;),string(name: &apos;repo&apos;,value: params.repo_x86),string(name: &apos;pkgs&apos;,value: params.pkgname),string(name: &apos;isbuild&apos;,value: params.openEuler_22_09_Epol),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: params.OBS_BACKEND_SERVER_IP)], propagate: false
+                    }
+                )
+            }
+        }
         stage(&quot;2203-LTS-2203-LTS-Next&quot;) {
             steps {
                 parallel(

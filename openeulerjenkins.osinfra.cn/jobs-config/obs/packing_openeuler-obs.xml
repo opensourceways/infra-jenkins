@@ -83,10 +83,10 @@ EOF
 set -e
 for((i=1;i&lt;=5;i++));
 do
-	#git clone --depth=1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/openeuler/openeuler-obs.git
+	git clone --depth=1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/openeuler/openeuler-obs.git
     #git clone --depth=1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/dongjie110/openeuler-obs.git
     #git clone --depth=1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/wangchong1995924/openeuler-obs
-    git clone --depth=1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/dong-jie_1/openeuler-obs.git
+    #git clone --depth=1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/dong-jie_1/openeuler-obs.git
     #git clone --depth=1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/zhouxiaxiang/openeuler-obs.git
     set -e
     if [ -d openeuler-obs ];then

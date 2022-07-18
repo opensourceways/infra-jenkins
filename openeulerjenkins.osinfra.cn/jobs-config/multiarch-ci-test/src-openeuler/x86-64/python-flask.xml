@@ -8,8 +8,14 @@
       <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
       <permission>hudson.model.Item.Build:gongzt</permission>
       <permission>hudson.model.Item.Build:jiangpengju</permission>
+      <permission>hudson.model.Item.Cancel:gongzt</permission>
+      <permission>hudson.model.Item.Cancel:jiangpengju</permission>
       <permission>hudson.model.Item.Configure:gongzt</permission>
       <permission>hudson.model.Item.Configure:jiangpengju</permission>
+      <permission>hudson.model.Item.Delete:gongzt</permission>
+      <permission>hudson.model.Item.Delete:jiangpengju</permission>
+      <permission>hudson.model.Item.Move:gongzt</permission>
+      <permission>hudson.model.Item.Move:jiangpengju</permission>
       <permission>hudson.model.Item.Read:gongzt</permission>
       <permission>hudson.model.Item.Read:jiangpengju</permission>
       <permission>hudson.model.Item.Workspace:gongzt</permission>

@@ -23,14 +23,6 @@
       <permission>hudson.model.Run.Update:dongjie</permission>
       <permission>hudson.scm.SCM.Tag:dongjie</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>30</daysToKeep>
-        <numToKeep>1500</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -44,6 +36,14 @@
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -83,7 +83,7 @@
       <includeBranchesSpec></includeBranchesSpec>
       <excludeBranchesSpec></excludeBranchesSpec>
       <targetBranchRegex></targetBranchRegex>
-      <secretToken>{AQAAABAAAAAwj6RovjPoGTzE2LOPOuCDbQafXiRgZpaac6e2KxzLiIsPA0HsBiikSsvLjO+26/R4tyKrw0Q6RJeCjXzAZEquaA==}</secretToken>
+      <secretToken>{AQAAABAAAAAwkcDVH6c23yOGMMZQnu+gAS0XFxFc99VwhREiOKne387u4jkGPl6J7HrMlOG/n1wzkyO35WS9A5eTYyKsQiPeyg==}</secretToken>
       <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
       <cancelIncompleteBuildOnSamePullRequest>false</cancelIncompleteBuildOnSamePullRequest>
       <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
@@ -161,11 +161,9 @@ cat ~/.oscrc
 cd $WORKSPACE/obs_meta &amp;&amp; git reset --hard ${giteePullRequestLastCommit} &amp;&amp; cd -
 
 cd $WORKSPACE &amp;&amp; rm -rf openeuler_obs-*
-#wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.3.4-aarch64.tar.gz
-#tar -xvf openeuler_obs-v1.3.4-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v1.3.4-aarch64
 
-wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.4.6-aarch64.tar.gz
-tar -xvf openeuler_obs-v1.4.6-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v1.4.6-aarch64
+wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.4.4-aarch64.tar.gz
+tar -xvf openeuler_obs-v1.4.4-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v1.4.4-aarch64
 
 ./openeuler_obs -r obs_meta -o $WORKSPACE/obs_meta -ip ${OBS_SOURCE_HOST} -suser ${SOURCE_USER} -spwd ${SOURCE_PWD} -guser ${GiteeCloneUserName} -gpwd ${GiteeClonePassword} -cmid ${giteePullRequestLastCommit}
 #./openeuler_obs -r obs_meta -o $WORKSPACE/obs_meta -ip ${OBS_SOURCE_HOST} -suser ${SOURCE_USER} -spwd ${SOURCE_PWD} -guser ${GiteeCloneUserName} -gpwd ${GiteeClonePassword} -cmid ${giteePullRequestLastCommit} --sync_code &quot;&quot;

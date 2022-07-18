@@ -199,8 +199,8 @@ fi
 rm -rf openeuler_obs-v*
 #    wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.4.4-aarch64.tar.gz
 #	tar -xvf openeuler_obs-v1.4.4-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v1.4.4-aarch64/
-wget http://119.3.219.20:88/mkb/openeuler-obs/openeuler_obs-v0629-aarch64.tar.gz
-tar -xvf openeuler_obs-v0629-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v0629-aarch64
+wget http://119.3.219.20:88/mkb/openeuler-obs/openeuler_obs-v0718-aarch64.tar.gz
+tar -xvf openeuler_obs-v0718-aarch64.tar.gz &amp;&amp; cd openeuler_obs-v0718-aarch64
 
 #if [[ ${obs_project_name} == &quot;openEuler-Mainline-copy&quot; ]];then
 #	wget http://172.16.1.95:88/mkb/openeuler-obs/openeuler_obs-v1.4.2-aarch64.tar.gz

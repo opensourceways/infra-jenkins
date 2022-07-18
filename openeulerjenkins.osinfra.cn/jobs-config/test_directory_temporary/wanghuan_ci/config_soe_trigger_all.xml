@@ -209,7 +209,7 @@ shell_path=/home/jenkins/ci_check
  repo_owner=&apos;wanghuan158&apos;
  mkdir -p ${shell_path}
  rm -rf ${shell_path}
- git clone -b for_parted https://gitee.com/wanghuan158/openeuler-jenkins.git ${shell_path}
+ git clone -b for_pr1 https://gitee.com/wanghuan158/openeuler-jenkins.git ${shell_path}
 
 . ${shell_path}/src/lib/trigger.sh &quot;$repo&quot; &quot;$SaveBuildRPM2Repo&quot; &quot;$repo_server&quot; &quot;$giteeRepoName&quot; &quot;$giteeTargetBranch&quot; &quot;$GiteeUserName&quot; &quot;$GiteePassword&quot; &quot;$GiteeToken&quot; &quot;$GiteeUserPassword&quot; &quot;$giteePullRequestIid&quot; &quot;$prCreateTime&quot; &quot;$giteeCommitter&quot; &quot;$commentID&quot; &quot;$comment&quot; &quot;$jobTriggerTime&quot; &quot;$triggerLink&quot; &quot;$jenkins_user&quot; &quot;$jenkins_api_token&quot; &quot;https://jenkins.openeuler.org/&quot;
 

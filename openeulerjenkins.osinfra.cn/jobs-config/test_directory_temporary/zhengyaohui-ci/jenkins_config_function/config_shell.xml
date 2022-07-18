@@ -41,10 +41,10 @@
 #!/bin/bash
 shell_path=/home/jenkins/ci_check
 # 调测可使用以下代码
-# shell_path=/home/jenkins/ci_check2
-# mkdir -p ${shell_path}
-# rm -rf ${shell_path}/*
-# git clone -b use-for-pr1 https://gitee.com/zhengyaohui/openeuler-jenkins.git ${shell_path}
+ shell_path=/home/jenkins/ci_check2
+ mkdir -p ${shell_path}
+ rm -rf ${shell_path}/*
+ git clone -b for_pr1 https://gitee.com/wanghuan158/openeuler-jenkins.git ${shell_path}
 
 . ${shell_path}/src/lib/trigger.sh
 

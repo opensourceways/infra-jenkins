@@ -12,14 +12,6 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>100</daysToKeep>
-        <numToKeep>1500</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -30,6 +22,14 @@
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>1500</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
       <triggers/>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
@@ -40,6 +40,26 @@
     stages(&quot;check all&quot;){
         stage(&quot;Begin&quot;){
                 parallel{
+                    stage(&quot;2209-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.09&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.09:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.09_standard_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2209-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.09&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.09:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.09_standard_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2209-Epol-aarch64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.09:Epol&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.09:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.09_epol_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
+                    stage(&quot;2209-Epol-x86_64&quot;){
+                        steps{
+                            build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.09:Epol&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.09:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.09_epol_x86_64&apos;),string(name: &apos;arch&apos;,value: &apos;x86_64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false
+                        }
+                    }
                     stage(&quot;2203-LTS-aarch64&quot;){
                         steps{
                             build job: &apos;sync_obs_repos_all-check&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS&apos;),string(name: &apos;dep_project&apos;,value: &apos;openEuler:22.03:LTS:selfbuild:BaseOS&apos;),string(name: &apos;repo_name&apos;,value: &apos;openeuler_22.03_lts_standard_aarch64&apos;),string(name: &apos;arch&apos;,value: &apos;aarch64&apos;),string(name: &apos;OBS_BACKEND_SERVER_IP&apos;, value: &apos;172.16.1.95&apos;)], propagate: false

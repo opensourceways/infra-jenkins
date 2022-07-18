@@ -36,6 +36,16 @@
     stages(&quot;check all projects code&quot;){
         stage(&quot;check obs codes&quot;){
             parallel{
+                stage(&quot;22_09&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.09&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-22.09&apos;)], propagate: false
+                    }
+                }
+				stage(&quot;22_09_epol&quot;){
+                    steps{
+						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.09:Epol&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-22.09&apos;)], propagate: false
+                    }
+                }
 			    stage(&quot;22_03_lts&quot;){
                     steps{
 						build job: &apos;check_codes_gitee_and_obs&apos;, parameters: [string(name: &apos;obs_project_name&apos;,value: &apos;openEuler:22.03:LTS&apos;),string(name: &apos;branch&apos;,value: &apos;openEuler-22.03-LTS&apos;)], propagate: false
