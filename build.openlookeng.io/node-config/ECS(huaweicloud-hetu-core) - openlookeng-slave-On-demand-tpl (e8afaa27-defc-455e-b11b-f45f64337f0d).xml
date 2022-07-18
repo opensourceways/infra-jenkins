@@ -5,7 +5,7 @@
   <numExecutors>1</numExecutors>
   <mode>EXCLUSIVE</mode>
   <retentionStrategy class="io.jenkins.plugins.huaweicloud.ECSRetentionStrategy">
-    <nextCheckAfter>1658079047182</nextCheckAfter>
+    <nextCheckAfter>1658165447182</nextCheckAfter>
     <idleTerminationMinutes>30</idleTerminationMinutes>
   </retentionStrategy>
   <launcher class="io.jenkins.plugins.huaweicloud.ECSUnixLauncher"/>
