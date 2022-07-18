@@ -52,7 +52,7 @@
       <includeBranchesSpec/>
       <excludeBranchesSpec/>
       <targetBranchRegex/>
-      <secretToken>{AQAAABAAAAAwGB5zgHblz0zBq6NBqr2W+7IEWgaAAzlX3mW1ueTY3qI83qUl8c9usHo4+2XwT/dfr4JTqhlLvHgqC5uHPpiWGA==}</secretToken>
+      <secretToken>{AQAAABAAAAAw8NweAirC8GQYGveZR2Cq9AGHAumv/DNAQNbHww94DrKN8wqWAqXXEs5+la8FuQ3Sk3kV2VwEXCAdKK+9KJeaug==}</secretToken>
       <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
     </com.gitee.jenkins.trigger.GiteePushTrigger>
   </triggers>
@@ -158,13 +158,13 @@ curl -X POST "https://gitee.com/api/v5/repos/opengauss/CM/pulls/${giteePullReque
       <replaceUnstableNote>false</replaceUnstableNote>
       <successNoteText>| Check Name | Build Result | Build Details |
 | --- | --- | --- |
-|  openGauss_DCF_Main_PR | :white_check_mark: **SUCCESS** | [#${BUILD_ID}](https://jenkins.opengauss.org/job/openGauss_DCF_PR/${BUILD_ID}) |</successNoteText>
+|  openGauss_DCF_Main_PR | :white_check_mark: **SUCCESS** | [#${BUILD_ID}](https://jenkins.opengauss.org/job/openGauss_CM_PR/${BUILD_ID}) |</successNoteText>
       <failureNoteText>| Check Name | Build Result | Build Details |
 | --- | --- | --- |
-|  openGauss_DCF_Main_PR | :x: **FAILED** | [#${BUILD_ID}](https://jenkins.opengauss.org/job/openGauss_DCF_PR/${BUILD_ID}) |</failureNoteText>
+|  openGauss_DCF_Main_PR | :x: **FAILED** | [#${BUILD_ID}](https://jenkins.opengauss.org/job/openGauss_CM_PR/${BUILD_ID}) |</failureNoteText>
       <abortNoteText>| Check Name | Build Result | Build Details |
 | --- | --- | --- |
-|  openGauss_DCF_Main_PR | :heavy_minus_sign: **ABORTED** | [#${BUILD_ID}](https://jenkins.opengauss.org/job/openGauss_DCF_PR/${BUILD_ID}) |</abortNoteText>
+|  openGauss_DCF_Main_PR | :heavy_minus_sign: **ABORTED** | [#${BUILD_ID}](https://jenkins.opengauss.org/job/openGauss_CM_PR/${BUILD_ID}) |</abortNoteText>
       <unstableNoteText/>
     </com.gitee.jenkins.publisher.GiteeMessagePublisher>
   </publishers>
@@ -175,7 +175,7 @@ curl -X POST "https://gitee.com/api/v5/repos/opengauss/CM/pulls/${giteePullReque
       <passwordEntries>
         <EnvInjectPasswordEntry>
           <name>token</name>
-          <value>{AQAAABAAAAAw/WkWgfymuGxivRSOTPuq/vJBO7SzomvEsZ20dxOvnbrsGYrYQXewduDTCjWqEPzN1TDKp+imSN4DaE3CMzXYBQ==}</value>
+          <value>{AQAAABAAAAAwaaKlEvhlCmY9vyH20TdE1E2LJtkXzVSDQuZZWafZpnjuc10lmbw/x9UWh35bSDrdC6FNqyBXltKwzcG25U75ig==}</value>
         </EnvInjectPasswordEntry>
       </passwordEntries>
     </EnvInjectPasswordWrapper>
