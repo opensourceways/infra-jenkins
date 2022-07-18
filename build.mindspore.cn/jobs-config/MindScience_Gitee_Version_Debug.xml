@@ -8,15 +8,14 @@
       <options/>
     </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
   </actions>
-  <description>Gitee平台mindspore门禁流水线&#13;
-</description>
+  <description>Gitee平台mindscience版本流水线</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
     <jenkins.model.BuildDiscarderProperty>
       <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>30</daysToKeep>
-        <numToKeep>2000</numToKeep>
+        <daysToKeep>180</daysToKeep>
+        <numToKeep>500</numToKeep>
         <artifactDaysToKeep>-1</artifactDaysToKeep>
         <artifactNumToKeep>-1</artifactNumToKeep>
       </strategy>
@@ -28,37 +27,67 @@
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>ORGANIZATION_NAME</name>
+          <description>组织名称（mindspore: 开源仓; ms-incubator: 内源仓）</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>mindspore</string>
+              <string>ms-incubator</string>
+              <string>mamba_ni</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>REPOSITORY_NAME</name>
+          <description>代码仓名称</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>mindscience</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>PIPELINE_TYPE</name>
+          <description>流水线类型（daily: 每日构建; version: 版本构建）
+说明：daily与version的编译参数有差异（daily新增参数：-p on）</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>daily</string>
+              <string>developly</string>
+              <string>version</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TARGET_BRANCH</name>
+          <description>版本分支</description>
+          <defaultValue>master</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>NEWEST_FLAG</name>
+          <description>是否为newest版本（true：是；false：否）
+注意：手动出包请选择false</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>false</string>
+              <string>true</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>REMARK</name>
+          <description>仅用于备注</description>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
     
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-      <triggers>
-        <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.2.4">
-          <spec/>
-          <triggerOnPush>false</triggerOnPush>
-          <triggerOnCommitComment>false</triggerOnCommitComment>
-          <triggerOnOpenPullRequest>false</triggerOnOpenPullRequest>
-          <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
-          <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
-          <triggerOnUpdatePullRequest>0</triggerOnUpdatePullRequest>
-          <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
-          <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
-          <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
-          <triggerOnNoteRequest>true</triggerOnNoteRequest>
-          <noteRegex>/retest_science</noteRegex>
-          <buildInstructionFilterType>NONE</buildInstructionFilterType>
-          <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
-          <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
-          <skipLastCommitHasBeenBuild>false</skipLastCommitHasBeenBuild>
-          <setBuildDescription>true</setBuildDescription>
-          <branchFilterType>All</branchFilterType>
-          <includeBranchesSpec>master,r0.5</includeBranchesSpec>
-          <excludeBranchesSpec>r0.3</excludeBranchesSpec>
-          <targetBranchRegex/>
-          <secretToken>{AQAAABAAAAAwbrvZ8oc42DDs64YXfNwP1RX7fmZGFP7gpmGF9ii4h21ekr5g1RLMGIHs9yog+hl9WwkBhoep5njpnLai/Rm99A==}</secretToken>
-          <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
-          <cancelIncompleteBuildOnSamePullRequest>true</cancelIncompleteBuildOnSamePullRequest>
-          <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
-        </com.gitee.jenkins.trigger.GiteePushTrigger>
-      </triggers>
+      <triggers/>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.92">
@@ -96,7 +125,7 @@ def setEnvCI(String sourceBranch) {
         env.CI_PIPELINE_ORGANIZATION_NAME = "${giteeSourceNamespace}"
         env.CI_PIPELINE_BRANCH = "${giteeSourceBranch}"
     } else {
-       env.CI_PIPELINE_ORGANIZATION_NAME = 'zengfy2020'
+        env.CI_PIPELINE_ORGANIZATION_NAME = 'zengfy2020'
         env.CI_PIPELINE_BRANCH = 'req/add_env_for_mindscience'
     }
 }
@@ -1266,62 +1295,30 @@ def setNodeLabel(String nodeTrueName, String envType) {
 
 node('x86-generic-slaves') {
 
-    this.setEnvGate('gitee')
-    
+    this.setEnvVersion('gitee')
+
     try {
-        stage('post-status'){
-            this.postStatusOfPipelineRunning(ORGANIZATION_NAME, REPOSITORY_NAME, GIT_PR_NUMBER, true)
-        }
         stage('download-code') {
             this.downloadCode("Download_Code", "x86-check-ubuntu", 8, "pipeline/bin/code/download_code.sh")
-            PIPELINE_TASK_TYPE = "MS_ALL"
-        }
-        stage('code-check') {
-            def parallelJobsRun = [:]
-
-            parallelJobsRun &lt;&lt; this.codeCheckStage(ORGANIZATION_NAME, REPOSITORY_NAME, PIPELINE_TYPE)
-            parallelJobsRun &lt;&lt; this.getParallelFunc(['Code_Check'], this.&amp;checkCodeCheckResult)
-            parallel parallelJobsRun
         }
         stage('compile') {
+
             def parallelJobsRun = [:]
+            def jobsList = [["Compile_MindSPONE_X86_CentOS_Cuda10", "x86-build-centos", 5, "mindscience_compile.sh " , "-p gpu -t MindSPONGE -c cuda-10.1"],
+                                ["Compile_MindSPONE_X86_CentOS_Cuda11", "x86-build-centos", 5, "mindscience_compile.sh " , "-p gpu -t MindSPONGE -c cuda-11.1"],
+                                ["Compile_MindSPONE_X86_CentOS_Ascend", "arm-build-centos", 5, "mindscience_compile.sh " , "-p ascend -t MindSPONGE -c ascend910"],
+                            ["Compile_MindElec_X86_CentOS", "x86-build-centos", 5, "mindscience_compile.sh -t MindElec"],
+                            ["Compile_MindElec_ARM_CentOS", "arm-build-centos", 5, "mindscience_compile.sh -t MindElec"]]
 
-            // Linux cloud
-            def jobsList = []
-            if (['MS_ALL', 'MS_MindSPONGE'].contains(PIPELINE_TASK_TYPE.toString())) {
-                jobsList += [["Compile_MindSPONE_X86_CentOS_Cuda10", "x86-build-centos", 5, "mindscience_compile.sh " , "-p gpu -t MindSPONGE -c cuda-10.1"],
-                                ["Compile_MindSPONE_X86_CentOS_Cuda11", "x86-build-centos", 5, "mindscience_compile.sh " , "-p gpu -t MindSPONGE -c cuda-11.1 "],
-                                ["Compile_MindSPONE_ARM_CentOS_Ascend", "arm-build-centos", 5, "mindscience_compile.sh " , "-p ascend -t MindSPONGE -c ascend910"],
-                                        ]
-            }
-
-            if (['MS_ALL', 'MS_MindElec'].contains(PIPELINE_TASK_TYPE.toString())) {
-                jobsList += [["Compile_MindElec_X86_CentOS", "x86-build-centos", 5, "mindscience_compile.sh -t MindElec"],
-                             ["Compile_MindElec_ARM_CentOS", "arm-build-centos", 5, "mindscience_compile.sh -t MindElec"]]
-            }
-            parallelJobsRun = this.getParallelJobs(jobsList, this.&amp;commonLinux, "pipeline/mindspore/${REPOSITORY_NAME}/scripts/")
-            parallelJobsRun &lt;&lt; this.getParallelFunc(['Code_Check'], this.&amp;checkCodeCheckResult)
+            parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux, "pipeline/mindspore/${REPOSITORY_NAME}/scripts/")
             parallel parallelJobsRun
+
         }
-        stage('ut-test') {
+        stage('llt-test &amp; code-check') {
             def parallelJobsRun = [:]
 
-            // UT
-            def jobsList = []
-            if ( 'MS_ALL' == PIPELINE_TASK_TYPE.toString() ) {
-                jobsList += [["UT_Test", "x86-build-ubuntu", 15, "ut_test.sh"]]
-            }else if ( 'MS_MindSPONGE' == PIPELINE_TASK_TYPE.toString() ) {
-                jobsList += [["UT_Test", "x86-build-ubuntu", 15, "ut_test.sh", "-c mindsponge"]]
-            }else if ( 'MS_MindElec' == PIPELINE_TASK_TYPE.toString() ) {
-                jobsList += [["UT_Test", "x86-build-ubuntu", 15, "ut_test.sh", "-c mindelec"]]
-            }
-            // Run jobs
-            parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux, "pipeline/bin/llt/ut/")
-            parallelJobsRun &lt;&lt; this.getParallelFunc(['Code_Check'], this.&amp;checkCodeCheckResult)
-            parallel parallelJobsRun
-        }
-        stage('smoke-test') {
-            def parallelJobsRun = [:]
+            // LLT
+            def jobsList = [["UT_Test", "x86-build-ubuntu", 15, "ut_test.sh"]]
 
             // Support multiple label
             def smokeNodeLabelGpu = this.getSmokeNodeLabel(ORGANIZATION_NAME, REPOSITORY_NAME, GIT_TARGET_BRANCH, 'gpu')
@@ -1329,21 +1326,14 @@ node('x86-generic-slaves') {
             smokeNodeLabelGpu = "${smokeNodeLabelGpu} || gpu-mc${BUILD_ID}"
             smokeNodeLabelAscend910 = "${smokeNodeLabelAscend910} || ascend910-mc${BUILD_ID}"
 
-            // Linux cloud
-            def jobsList = []
-            if (['MS_ALL', 'MS_MindSPONGE'].contains(PIPELINE_TASK_TYPE.toString())) {
-                jobsList += [["Smoke_GPU_Cuda11", smokeNodeLabelGpu, 60, "smoke_test.sh", "-p gpu -c cuda-11.1"],
-                                    ["Smoke_GPU_Cuda10", smokeNodeLabelGpu, 60, "smoke_test.sh", "-p gpu -c cuda-10.1"]]
-            }
-            if (['MS_ALL', 'MS_MindElec'].contains(PIPELINE_TASK_TYPE.toString())) {
-                jobsList += [["Smoke_Ascend", smokeNodeLabelAscend910, 60, "smoke_test.sh", "-p ascend"]]
-            }
+            def jobsList2 = [["Smoke_GPU_Cuda11", smokeNodeLabelGpu, 60, "smoke_test.sh", "-p gpu -c cuda-11.1"],
+                                    ["Smoke_GPU_Cuda10", smokeNodeLabelGpu, 60, "smoke_test.sh", "-p gpu -c cuda-10.1"],
+                             ["Smoke_Ascend", smokeNodeLabelAscend910, 60, "smoke_test.sh", "-p ascend"]]
 
-            // Run jobs
-            parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;smokeTest2_NPU, "pipeline/bin/llt/st/")
-            parallelJobsRun &lt;&lt; this.getParallelFunc(['Code_Check'], this.&amp;checkCodeCheckResult)
-            parallelJobsRun &lt;&lt; this.releasePackageOfPipeline(PIPELINE_TYPE)
-            parallelJobsRun.failFast = true
+            parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux, "pipeline/bin/llt/ut/")
+            parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList2, this.&amp;smokeTest2_NPU, "pipeline/bin/llt/st/")
+            parallelJobsRun &lt;&lt; this.releasePackageOfPipeline(PIPELINE_TYPE, NEWEST_FLAG)
+            parallelJobsRun &lt;&lt; this.codeCheckStage(ORGANIZATION_NAME, REPOSITORY_NAME, PIPELINE_TYPE)
             parallel parallelJobsRun
         }
         currentBuild.result = 'SUCCESS'
@@ -1351,7 +1341,7 @@ node('x86-generic-slaves') {
         println("[ERROR] ${ex}")
         currentBuild.result = 'FAILURE'
     } finally {
-        this.postResultOfPipelineGate(ORGANIZATION_NAME, REPOSITORY_NAME, GIT_PR_NUMBER, currentBuild.result, CODE_PATH, 'GATE', true)
+        this.postResultOfPipelineVersion(currentBuild.result, CODE_PATH)
     }
 }
 </script>
