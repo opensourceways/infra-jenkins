@@ -8,6 +8,7 @@
     <comparator class="hudson.util.CaseInsensitiveComparator"/>
     <string>GoldenStick_Gitee_Version_Debug</string>
     <string>MindInsight_Gitee_Gate_Test</string>
+    <string>Mindquantum_Gitee_Version_Debug</string>
     <string>MindScience_Gitee_Gate_Test</string>
     <string>MindScience_Gitee_Version_Debug</string>
     <string>MindSpore_AKG_Gitee_Scanoss_Test</string>
@@ -22,7 +23,6 @@
     <string>MindSpore_Gitee_Version2</string>
     <string>MindSpore_Mindquan_Gitee_Scanoss_Test</string>
     <string>MindSpore_MindScience_Gitee_Scanoss_Test</string>
-    <string>Qinling-Flyspeech_Gitee_Gate2</string>
   </jobNames>
   <jobFilters/>
   <columns>

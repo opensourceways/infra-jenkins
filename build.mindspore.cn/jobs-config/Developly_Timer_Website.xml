@@ -168,6 +168,16 @@
           </choices>
         </hudson.model.ChoiceParameterDefinition>
         <hudson.model.ChoiceParameterDefinition>
+          <name>FEDERATED_TARGET_BRANCH</name>
+          <description>federated版本分支</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>none</string>
+              <string>master</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
           <name>NEWEST_FLAG</name>
           <description>是否为newest版本（true：是；false：否）</description>
           <choices class="java.util.Arrays$ArrayList">

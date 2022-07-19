@@ -1,7 +1,7 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <slave>
   <name>x86-windows-slaves-25</name>
-  <description></description>
+  <description>x86 x86-build-windows-ut x86-build-windows</description>
   <remoteFS>D:\jenkins\agent-working-dir</remoteFS>
   <numExecutors>1</numExecutors>
   <mode>EXCLUSIVE</mode>
@@ -15,6 +15,6 @@
     </workDirSettings>
     <webSocket>false</webSocket>
   </launcher>
-  <label>x86 x86-build-windows-ut x86-build-windows</label>
+  <label></label>
   <nodeProperties/>
 </slave>

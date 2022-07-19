@@ -8,14 +8,14 @@
       <options/>
     </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
   </actions>
-  <description>Gitee平台qinling-speech门禁流水线</description>
+  <description>Gitee平台mindquantum版本debug</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.3"/>
     <jenkins.model.BuildDiscarderProperty>
       <strategy class="hudson.tasks.LogRotator">
         <daysToKeep>30</daysToKeep>
-        <numToKeep>1000</numToKeep>
+        <numToKeep>500</numToKeep>
         <artifactDaysToKeep>-1</artifactDaysToKeep>
         <artifactNumToKeep>-1</artifactNumToKeep>
       </strategy>
@@ -27,37 +27,56 @@
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>ORGANIZATION_NAME</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>mindspore</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>REPOSITORY_NAME</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>mindquantum</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>PIPELINE_TYPE</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>developly</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>TARGET_BRANCH</name>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>master</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>NEWEST_FLAG</name>
+          <description>是否为newest版本（true：是；false：否）
+注意：手动出包请选择false</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>false</string>
+              <string>true</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
     
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-      <triggers>
-        <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.2.4">
-          <spec/>
-          <triggerOnPush>false</triggerOnPush>
-          <triggerOnCommitComment>false</triggerOnCommitComment>
-          <triggerOnOpenPullRequest>false</triggerOnOpenPullRequest>
-          <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
-          <triggerOnAcceptedPullRequest>false</triggerOnAcceptedPullRequest>
-          <triggerOnUpdatePullRequest>0</triggerOnUpdatePullRequest>
-          <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
-          <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
-          <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
-          <triggerOnNoteRequest>true</triggerOnNoteRequest>
-          <noteRegex>/retest2</noteRegex>
-          <buildInstructionFilterType>NONE</buildInstructionFilterType>
-          <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
-          <ciSkipFroTestNotRequired>false</ciSkipFroTestNotRequired>
-          <skipLastCommitHasBeenBuild>false</skipLastCommitHasBeenBuild>
-          <setBuildDescription>true</setBuildDescription>
-          <branchFilterType>All</branchFilterType>
-          <includeBranchesSpec>master,r0.5</includeBranchesSpec>
-          <excludeBranchesSpec>r0.3</excludeBranchesSpec>
-          <targetBranchRegex/>
-          <secretToken>{AQAAABAAAAAwdSEzKvKKq5uzzxWhiPoTImI8qn5ea4emuT/BbGN2KU9qAHnDrpwedfRpuOe8qxDpAbZQptoWm2scM/WHx2VHcw==}</secretToken>
-          <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
-          <cancelIncompleteBuildOnSamePullRequest>true</cancelIncompleteBuildOnSamePullRequest>
-          <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
-        </com.gitee.jenkins.trigger.GiteePushTrigger>
-      </triggers>
+      <triggers/>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.92">
@@ -79,7 +98,7 @@ def setEnvCI(String sourceBranch) {
         env.CI_PIPELINE_BRANCH = "${giteeSourceBranch}"
     } else {
         env.CI_PIPELINE_ORGANIZATION_NAME = 'lllrt'
-        env.CI_PIPELINE_BRANCH = 'dev'
+        env.CI_PIPELINE_BRANCH = 'debug'
     }
 }
 
@@ -1232,32 +1251,45 @@ def setNodeLabel(String nodeTrueName, String envType) {
 
 
 node('x86-generic-slaves') {
-    this.setEnvGate('gitee')
+    this.setEnvVersion('gitee')
     try {
-        stage('post-status'){
-            this.postStatusOfPipelineRunning(ORGANIZATION_NAME, REPOSITORY_NAME, GIT_PR_NUMBER, true)
-        }
         stage('download-code') {
             this.downloadCode("Download_Code", "x86-check-ubuntu", 8, "pipeline/bin/code/download_code.sh")
         }
-        stage('code-check') {
-            env.PIPELINE_TYPE = 'developy'
+        stage('compile') {
             def parallelJobsRun = [:]
-            parallelJobsRun &lt;&lt; this.codeCheckStage(ORGANIZATION_NAME, REPOSITORY_NAME, PIPELINE_TYPE)
-            parallelJobsRun &lt;&lt; this.getParallelFunc(['Code_Check'], this.&amp;checkCodeCheckResult)
+            def jobsList = [["Compile_X86_CentOS", "x86-build-centos", 10, "mindquantum_compile.sh", "-t centos_x86"]]
+            parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux, "pipeline/mindspore/${REPOSITORY_NAME}/scripts/")
             parallel parallelJobsRun
-            env.PIPELINE_TYPE = 'gate'
+        }
+        stage('llt-test &amp; code-check') {
+            def parallelJobsRun = [:]
+            
+            // LLT
+            def jobsList = [["Smoke_CPU_Ubuntu", "x86-build-ubuntu", 15, "pipeline/bin/llt/st/smoke_cpu2.sh"]]
+            parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux)
+            parallel parallelJobsRun
+        }
+        stage('compile2'){
+            def parallelJobsRun = [:]
+            def jobsList = [["Compile_X86_CentOS_PY38", "x86-build-centos", 10, "mindquantum_compile.sh", "-t centos_x86 -v python38"],
+                            ["Compile_X86_CentOS_PY39", "x86-build-centos", 10, "mindquantum_compile.sh", "-t centos_x86 -v python39"]]
+            parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux, "pipeline/mindspore/${REPOSITORY_NAME}/scripts/")
+            parallel parallelJobsRun
+        }
+        stage('ftp_release'){
+            parallel this.releasePackageOfPipeline(PIPELINE_TYPE, NEWEST_FLAG)
         }
         currentBuild.result = 'SUCCESS'
     } catch(Exception ex) {
         println("[ERROR] ${ex}")
         currentBuild.result = 'FAILURE'
     } finally {
-        this.postResultOfPipelineGate(ORGANIZATION_NAME, REPOSITORY_NAME, GIT_PR_NUMBER, currentBuild.result, CODE_PATH, 'GATE', true)
+        this.postResultOfPipelineVersion(currentBuild.result, CODE_PATH)
     }
 }</script>
     <sandbox>true</sandbox>
   </definition>
   <triggers/>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
 </flow-definition>
