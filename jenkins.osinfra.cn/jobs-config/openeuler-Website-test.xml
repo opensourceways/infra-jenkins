@@ -15,7 +15,7 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>https://gitee.com/openeuler/website-v2.git</url>
+        <url>https://gitee.com/haml/website-v2.git</url>
         <credentialsId>95032b54-6787-45c5-9058-48977d8e9249</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>

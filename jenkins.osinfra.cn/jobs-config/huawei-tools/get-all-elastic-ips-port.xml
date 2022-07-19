@@ -1,0 +1,104 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>获取社区所有公网ip地址的高危端口；&#xd;
+存放位置：openeuler账号 obs://obs-for-openeuler-developer/elastic-ips-port/；&#xd;
+当前使用zhaochunjiang账号aksk，若账号失效后，请使用新账号aksk替换当前aksk；&#xd;
+文件以xlsx格式输出；</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
+      <giteeConnection>gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.PasswordParameterDefinition>
+          <name>AK</name>
+          <description>AK value</description>
+          <defaultValue>{AQAAABAAAAAgP2ZpHsmE7gCbjqgFTZ5XM/G+K514nQkGSqOmH7ySpKzkdtpMnmox0vByEqwCb97k}</defaultValue>
+        </hudson.model.PasswordParameterDefinition>
+        <hudson.model.PasswordParameterDefinition>
+          <name>SK</name>
+          <description>SK value</description>
+          <defaultValue>{AQAAABAAAAAw63vYCQArKFKfEThUP2akMCa2zFoEoilBLifmryqW9dSFWu54EOnC6FrENJRyfwV7b/bEVXb5hHsiVZbWJMinyg==}</defaultValue>
+        </hudson.model.PasswordParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>EP</name>
+          <description>北京4 endpoint</description>
+          <defaultValue>obs.cn-north-4.myhuaweicloud.com</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>docker-x86-openeuler-slaves</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+echo `id`
+date_str=`date +%Y%m%d`
+if ! hash obsutil 2&gt;/dev/null;then
+	wget https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz
+	tar -xzvf obsutil_linux_amd64.tar.gz &amp;&amp; chmod 755 ./obsutil_linux_amd64_5.3.4/obsutil &amp;&amp; mv ./obsutil_linux_amd64_5.3.4/obsutil /usr/bin/obsutil
+    rm -rf ./obsutil*
+fi
+
+if ! hash nmap 2&gt;/dev/null;then
+	apt install nmap -y
+fi
+
+
+while :
+do
+	if [ ! -e scan_port.py ];then
+		wget https://github.com/Open-Infra-Ops/huaweicloud-tools/raw/main/scan_port/scan_port.py
+    else
+    	break
+    fi
+done
+
+# download secret file from OBS bucket
+obsutil cp obs://obs-for-openeuler-developer/secret-files/collect_elastic_public_ip.yaml ./scan_port.yaml -i=${AK} -k=${SK} -e=${EP}
+ls ./ -al
+
+# build
+python3 scan_port.py
+mv 公网IP端口扫描统计表.xlsx elastic-ips-port-${date_str}.xlsx
+
+# upload xlsx file to OBS bucket
+obsutil cp ./elastic-ips-port-${date_str}.xlsx obs://obs-for-openeuler-developer/elastic-ips-port/elastic-ips-port-${date_str}.xlsx  -i=${AK} -k=${SK} -e=${EP}
+
+
+ </command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.ws__cleanup.WsCleanup plugin="ws-cleanup@0.39">
+      <patterns class="empty-list"/>
+      <deleteDirs>false</deleteDirs>
+      <skipWhenFailed>false</skipWhenFailed>
+      <cleanWhenSuccess>true</cleanWhenSuccess>
+      <cleanWhenUnstable>true</cleanWhenUnstable>
+      <cleanWhenFailure>true</cleanWhenFailure>
+      <cleanWhenNotBuilt>true</cleanWhenNotBuilt>
+      <cleanWhenAborted>true</cleanWhenAborted>
+      <notFailBuild>false</notFailBuild>
+      <cleanupMatrixParent>false</cleanupMatrixParent>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.WsCleanup>
+  </publishers>
+  <buildWrappers/>
+</project>

@@ -11,6 +11,7 @@
     <string>gotty-test</string>
     <string>huawei-tools</string>
     <string>huawei-tools/get-all-elastic-ips</string>
+    <string>huawei-tools/update-website-dns</string>
     <string>omni-frontend-image-build-for-kylin</string>
     <string>omni-frontend-test</string>
     <string>omni-insight-test</string>
@@ -24,7 +25,6 @@
     <string>openlookeng-website-test</string>
     <string>radia-test</string>
     <string>sbom-server-test</string>
-    <string>update-website-dns</string>
   </jobNames>
   <jobFilters/>
   <columns>
