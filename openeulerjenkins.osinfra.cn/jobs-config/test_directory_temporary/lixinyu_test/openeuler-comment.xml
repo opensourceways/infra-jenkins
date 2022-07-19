@@ -112,10 +112,10 @@ export PYTHONPATH=${shell_path}
 
 fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
 
-aarch64_qemu_image_standard=&quot;aarch64_\(qemu-image-standard\)&quot;
-aarch64_qemu_image_tiny=&quot;aarch64_\(qemu-image-tiny\)&quot;
-arm_qemu_image_standard=&quot;arm_\(qemu-image-standard\)&quot;
-arm_qemu_image_tiny=&quot;arm_\(qemu-image-tiny\)&quot;
+aarch64_qemu_image_standard=&quot;aarch64_~qemu-image-standard~&quot;
+aarch64_qemu_image_tiny=&quot;aarch64_~qemu-image-tiny~&quot;
+arm_qemu_image_standard=&quot;arm_~qemu-image-standard~&quot;
+arm_qemu_image_tiny=&quot;arm_~qemu-image-tiny~&quot;
 comment_aarch64_qemu_image_standard_file=${repo}_${prid}_${aarch64_qemu_image_standard}_test_comment
 comment_aarch64_qemu_image_tiny_file=${repo}_${prid}_${aarch64_qemu_image_tiny}_test_comment
 comment_arm_qemu_image_standard_file=${repo}_${prid}_${arm_qemu_image_standard}_test_comment

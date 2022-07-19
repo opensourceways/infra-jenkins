@@ -1,0 +1,21 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<slave>
+  <name>openQA-ci-x86</name>
+  <description>172.16.5.6</description>
+  <remoteFS>/home/jenkins/agent-working-dir</remoteFS>
+  <numExecutors>4</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.31.5">
+    <host>172.16.5.6</host>
+    <port>22</port>
+    <credentialsId>3d53c6bd-25b4-4d3c-900a-cf9932b07560</credentialsId>
+    <launchTimeoutSeconds>60</launchTimeoutSeconds>
+    <maxNumRetries>10</maxNumRetries>
+    <retryWaitTime>15</retryWaitTime>
+    <sshHostKeyVerificationStrategy class="hudson.plugins.sshslaves.verifiers.NonVerifyingKeyVerificationStrategy"/>
+    <tcpNoDelay>true</tcpNoDelay>
+  </launcher>
+  <label>openQA-x86-ci</label>
+  <nodeProperties/>
+</slave>

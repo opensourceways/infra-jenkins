@@ -87,8 +87,8 @@
           <description>1表示构建；0表示不构建</description>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
-              <string>0</string>
               <string>1</string>
+              <string>0</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -289,5 +289,5 @@ pipeline {
     <sandbox>true</sandbox>
   </definition>
   <triggers/>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
 </flow-definition>

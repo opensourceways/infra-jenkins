@@ -89,7 +89,7 @@
         <hudson.model.StringParameterDefinition>
           <name>is_debug</name>
           <description>调试信息</description>
-          <defaultValue>0</defaultValue>
+          <defaultValue>1</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
@@ -137,7 +137,7 @@
       <command>if [ $is_debug = 1 ];then
     # 将结果写入远程文件
     exitCode=0
-    arch=&quot;aarch64_(qemu-image-tiny)&quot;
+    arch=&quot;aarch64_~qemu-image-tiny~&quot;
     fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
     comment_file=${repo}_${prid}_${arch}_test_comment
     if [ $exitCode = 0 ]; then
@@ -281,7 +281,7 @@ else
         sh ${run_test_dir}/sdk/toolchain.sh &lt;&lt;EOF
     ${SDK_INSTALL_PATH}
     Y
-    EOF
+EOF
     
         environment_script=$(find ${SDK_INSTALL_PATH} -name &quot;environment-setup-*-openeuler-*&quot;)
         for one_env_script in ${environment_script[@]}; do
@@ -428,7 +428,7 @@ else
     done
     
     # 将结果写入远程文件
-    arch=&quot;aarch64_(qemu-image-tiny)&quot;
+    arch=&quot;aarch64_~qemu-image-tiny~&quot;
     fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
     comment_file=${repo}_${prid}_${arch}_test_comment
     

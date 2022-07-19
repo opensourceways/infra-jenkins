@@ -88,7 +88,8 @@
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>is_debug</name>
-          <defaultValue>0</defaultValue>
+          <description>是否进入调试模式</description>
+          <defaultValue>1</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
@@ -134,32 +135,29 @@
   <builders>
     <hudson.tasks.Shell>
       <command>if [ $is_debug = 1 ];then
-  # 将结果写入远程文件
-  arch=&quot;arm_(qemu-image-standard)&quot;
-  fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
-  comment_file=${repo}_${prid}_${arch}_test_comment
-  exitCode=0
-  if [ $exitCode = 0 ]; then
-      echo &quot;[{&apos;name&apos;: &apos;check_test&apos;, &apos;result&apos;: 0}]&quot; &gt; ${comment_file}
-  else
-      echo &quot;[{&apos;name&apos;: &apos;check_test&apos;, &apos;result&apos;: 2}]&quot; &gt; ${comment_file}
-  fi
-  if [[ -f ${comment_file} ]]; then
-      scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR ${comment_file} root@${repo_server}:$fileserver_tmpfile_path
-      echo &quot;upload success&quot;
-  fi
+    # 将结果写入远程文件
+    exitCode=0
+    arch=&quot;aarch64_~qemu-image-standard~&quot;
+    fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
+    comment_file=${repo}_${prid}_${arch}_test_comment
+    if [ $exitCode = 0 ]; then
+        echo &quot;[{&apos;name&apos;: &apos;check_test&apos;, &apos;result&apos;: 0}]&quot; &gt; ${comment_file}
+    else
+        echo &quot;[{&apos;name&apos;: &apos;check_test&apos;, &apos;result&apos;: 2}]&quot; &gt; ${comment_file}
+    fi
+    if [[ -f ${comment_file} ]]; then
+        scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR ${comment_file} root@${repo_server}:$fileserver_tmpfile_path
+        echo &quot;upload success&quot;
+    fi
 fi</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command>if [ $is_debug = 1 ];then
-	exit 1
+	exit 0
 else
-    ls ${repo}
+  	ls ${repo}
     pwd &amp;&amp; ls /home/jenkins
-    
-    # 临时删除src，增量下载代码存在问题
-    sudo rm -rf /usr1/openeuler/src
     
     # 创建构建目录
     #sudo mkdir -p /home/jenkins/yocto-poky
@@ -169,12 +167,14 @@ else
     src_path=/usr1/openeuler/src
     sudo mkdir -p $src_path
     
-    
+    # echo &quot;log++++++++++++++++++++++&quot;
+    # ls -l /usr1/openeuler/gcc/openeuler_gcc_arm64le/aarch64-openeuler-linux-gnu/lib64/*
+    # exit 0
     
     # 下载构建脚本
     build_script=/usr1/scripts
     if [ ! -d &quot;$build_script&quot; ]; then
-        sudo git clone https://gitee.com/openeuler/openeuler-os-build.git -b master -v $build_script
+        sudo git clone https://gitee.com/openeuler/openeuler-os-build.git -b &quot;master&quot; -v $build_script
     else
         pushd $build_script
         git config --global --add safe.directory /usr1/scripts
@@ -193,34 +193,37 @@ else
     
     # 安装构建环境，下载代码
     sudo rm -rf ${src_path}/kernel-5.10
+    #downloadBranch=${tbranch}
     downloadBranch=&quot;openEuler-22.03-LTS&quot;
     if [[ ${tbranch} == &quot;yocto_refactor&quot; || ${tbranch} == &quot;gitee_pages&quot; ]]; then
         downloadBranch=&quot;openEuler-22.03-LTS&quot;
     fi
     sudo sh ${src_path}/${repo}/scripts/download_code.sh &quot;&quot; ${downloadBranch}
     
-    
     # 执行构建脚本
-    sudo sh $build_script/script/embedded/compile/build.sh &quot;arm-std&quot; &quot;yes&quot; &quot;no&quot;
+    sudo sh $build_script/script/embedded/compile/build.sh &quot;aarch64-std&quot; &quot;yes&quot; &quot;no&quot;
     
     # 删除修改过的代码
     sudo rm -rf $src_path/${repo}
+    
+    # 加测试代码
+    # 将测试项结果汇总到acl文件
 fi</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command>if [ $is_debug = 1 ];then
-	exit 1
+	exit 0
 else
-    BUILD_ARCH=&quot;arm&quot;
-    #BUILD_ARCH=&quot;aarch64&quot;
+    #BUILD_ARCH=&quot;arm&quot;
+    BUILD_ARCH=&quot;aarch64&quot;
     
     # 目前只有aarch64有tiny镜像，设置时需要注意
     IMAGE_TYPE=&quot;std&quot;
     #IMAGE_TYPE=&quot;tiny&quot;
     
     BUILD_BRANCH=${tbranch}
-    #BUILD_BRANCH=&quot;master&quot;
+    #BUILD_BRANCH=&quot;openEuler-22.03-LTS&quot;
     if [[ ${tbranch} == &quot;yocto_refactor&quot; || ${tbranch} == &quot;gitee_pages&quot; ]]; then
         BUILD_BRANCH=&quot;openEuler-22.03-LTS&quot;
     fi
@@ -275,7 +278,7 @@ else
         sh ${run_test_dir}/sdk/toolchain.sh &lt;&lt;EOF
     ${SDK_INSTALL_PATH}
     Y
-    EOF
+EOF
     
         environment_script=$(find ${SDK_INSTALL_PATH} -name &quot;environment-setup-*-openeuler-*&quot;)
         for one_env_script in ${environment_script[@]}; do
@@ -422,7 +425,7 @@ else
     done
     
     # 将结果写入远程文件
-    arch=&quot;arm_(qemu-image-standard)&quot;
+    arch=&quot;aarch64_(qemu-image-standard)&quot;
     fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
     comment_file=${repo}_${prid}_${arch}_test_comment
     

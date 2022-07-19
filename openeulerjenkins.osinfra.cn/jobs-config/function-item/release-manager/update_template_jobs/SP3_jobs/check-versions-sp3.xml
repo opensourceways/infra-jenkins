@@ -154,11 +154,21 @@ init_path=`pwd`
 export PYTHONPATH=$init_path/release-tools/release-assistant/:$init_path/update_packages2/
 
 cd $init_path
-python3 release-tools/release-assistant/javcra/javcra check $issue_id --giteeid $username --token 8168849e021a98b992fd9aefacc952b4 --type $check_type --ak $AK --sk $SK --jenkinsuser $jenkins_user --jenkinskey $jenkins_api_token
-ll
+python3 release-tools/release-assistant/javcra/javcra check $issue_id --giteeid $username --token 204fb5c9f8319689a8f8545de32449ca --type $check_type --ak $AK --sk $SK --jenkinsuser $jenkins_user --jenkinskey $jenkins_api_token
+
+if [ -f ./update_packages.txt ];then
+	cp update_packages.txt update_packages2/src/
+fi
 
 cd update_packages2/src/
-python3 repo_version.py
+python3 repo_version.py &gt;&gt; /dev/null 2&gt;&amp;1
+
+ls
+
+for line in `cat update_pkgs_repo.csv`;do
+	echo $line
+done
+
 
 #python3 release-tools/release-assistant/javcra/javcra check $issue_id --giteeid $username --token $GiteeToken --type $check_type --ak $AK --sk $SK --jenkinsuser $jenkins_user --jenkinskey $jenkins_api_token
 

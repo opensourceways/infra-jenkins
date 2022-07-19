@@ -109,11 +109,13 @@ ARG user=jenkins
 
 RUN cd /home/\${user} \
     &amp;&amp; git config --global http.postBuffer 1048576000 \
+    &amp;&amp; echo &quot;----------------&quot; \
     &amp;&amp; git clone -b ${tag} --depth 1 https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/openeuler/openeuler-jenkins.git ci_check \
+   	&amp;&amp; sudo yum install -y https://repo.openeuler.org/openEuler-22.03-LTS/update/x86_64/Packages/kernel-headers-5.10.0-60.43.0.72.oe2203.x86_64.rpm \
     &amp;&amp; sudo yum install -y gcc python3-devel perl-XML-Parser \
     &amp;&amp; pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple dumb-init \
     &amp;&amp; pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple -r ci_check/src/requirements \
-    &amp;&amp; sudo yum install -y make diffutils libxml2-devel python-tqdm python3-beautifulsoup4 \ 
+    &amp;&amp; sudo yum install -y make diffutils libxml2-devel python-tqdm python3-beautifulsoup4 \    
 	&amp;&amp; sudo yum install -y https://repo.openeuler.org/openEuler-22.03-LTS/EPOL/main/aarch64/Packages/python3-magic-0.4.24-1.oe2203.noarch.rpm \
 	&amp;&amp; sudo yum install -y https://repo.openeuler.org/openEuler-22.03-LTS/everything/x86_64/Packages/libabigail-1.6-4.oe2203.x86_64.rpm \
 	&amp;&amp; sudo yum install -y https://repo.openeuler.org/openEuler-22.03-LTS/everything/x86_64/Packages/libabigail-devel-1.6-4.oe2203.x86_64.rpm \
@@ -121,6 +123,7 @@ RUN cd /home/\${user} \
     &amp;&amp; sudo yum install -y https://repo.openeuler.org/openEuler-22.03-LTS/everything/x86_64/Packages/perl-XML-Structured-1.3-3.oe2203.x86_64.rpm \	
     &amp;&amp; sudo yum install -y https://repo.openeuler.org/openEuler-22.03-LTS/everything/x86_64/Packages/perl-XML-Structured-help-1.3-3.oe2203.x86_64.rpm \	
     &amp;&amp; sudo yum install -y https://repo.openeuler.org/openEuler-22.03-LTS/everything/x86_64/Packages/python3-chardet-4.0.0-1.oe2203.noarch.rpm \
+    &amp;&amp; sudo yum install -y https://repo.openeuler.org/openEuler-22.03-LTS/everything/x86_64/Packages/unzip-6.0-48.oe2203.x86_64.rpm \
     &amp;&amp; pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple defusedxml \
     &amp;&amp; pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple openpyxl \
     &amp;&amp; pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple python-rpm-spec \
@@ -132,8 +135,8 @@ RUN cd /home/\${user} \
     &amp;&amp; pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple sqlalchemy-utils \
     &amp;&amp; git clone https://gitee.com/zhengyaohui/japi-compliance-checker.git japi-compliance-checker \
     &amp;&amp; cd japi-compliance-checker &amp;&amp; sudo make install prefix=/usr &amp;&amp; cd .. \
-    &amp;&amp; git clone -b br_symbol https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/openeuler-customization/oecp.git oecp
-
+    &amp;&amp; git clone -b br_symbol https://$GiteeCloneUserName:$GiteeClonePassword@gitee.com/openeuler-customization/oecp.git oecp \
+	
 # time zone UTC +8
 RUN sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 

@@ -27,19 +27,24 @@
     </jenkins.model.BuildDiscarderProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>project</name>
+          <description>obs工程</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>openEuler:22.09	</string>
+              <string>openEuler:22.09:Epol</string>
+              <string>openEuler:Mainline</string>
+              <string>openEuler:Epol</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>OBS_BACKEND_SERVER_IP</name>
-          <defaultValue>172.16.1.124</defaultValue>
+          <name>failed_log_ip_port</name>
+          <description>失败日志保存的ip和端口，为空则csv文件中不打印失败链接列</description>
+          <defaultValue>117.78.1.88:82</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.TextParameterDefinition>
-          <name>project</name>
-          <description>工程名，请参照如下格式（备注：分隔符支持换行）：
-project1
-project2
-...</description>
-          <trim>false</trim>
-        </hudson.model.TextParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
@@ -80,58 +85,40 @@ EOF
 #rm -rf openeuler_obs-*
 
 
-if [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.95&quot; ];then
-    OBS_BACKEND_USR=${OBS_BACKEND_USR_main}
-    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_main}
-    echo &quot;95&quot;
-elif [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.124&quot; ];then
-    OBS_BACKEND_USR=${OBS_BACKEND_USR_other}
-    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_other}
-    echo &quot;124&quot;
-elif [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.155&quot; ];then
-    OBS_BACKEND_USR=${OBS_BACKEND_USR_002}
-    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_002}
-    echo &quot;155&quot;
-elif [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.32&quot; ];then
-    OBS_BACKEND_USR=${OBS_BACKEND_USR_003}
-    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_003}
-    echo &quot;32&quot;
-elif [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.234&quot; ];then
-    OBS_BACKEND_USR=${OBS_BACKEND_USR_004}
-    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_004}
-    echo &quot;234&quot;
-fi
-
-
 # http://117.78.1.88:82/obs_build_log/
 # https://gitee.com/openeuler/pkgship
 # https://pkgmanage.openeuler.org/Packagemanagement
 
-osc r openEuler:Mainline --xml &gt; openeuler_mainline_result_20220712.xml
-osc r openEuler:Epol --xml &gt; openeuler_epol_result_20220712.xml
+#osc r openEuler:Mainline --xml &gt; openeuler_mainline_result_20220712.xml
+#osc r openEuler:Epol --xml &gt; openeuler_epol_result_20220712.xml
+
+#osc r openEuler:22.09 --xml &gt; openeuler_2209_result_20220719.xml
+#osc r openEuler:22.09:Epol --xml &gt; openeuler_2209_epol_result_20220719.xml
 
 rm -rf home:zhouxiaxiang
 osc co home:zhouxiaxiang project_build_result
 cp ./home\:zhouxiaxiang/project_build_result/build_result.py .
 
 
-python3 build_result.py -c &quot;build_result_20220712.csv&quot; -l &quot;117.78.1.88:82&quot; -p ${project}
+if [ -z $failed_log_ip_port ];then
+	python3 build_result.py -p ${project}
+else
+	python3 build_result.py -p ${project} -l ${failed_log_ip_port}
+fi
 
-
-cp openeuler_mainline_result_20220712.xml ./home\:zhouxiaxiang/project_build_result
-cp openeuler_epol_result_20220712.xml ./home\:zhouxiaxiang/project_build_result
-cp build_result_20220712.csv ./home\:zhouxiaxiang/project_build_result
+#cp openeuler_2209_result_20220719.xml ./home\:zhouxiaxiang/project_build_result
+#cp openeuler_2209_epol_result_20220719.xml ./home\:zhouxiaxiang/project_build_result
+#cp build_result_20220719.csv ./home\:zhouxiaxiang/project_build_result
+ls -l
+cp *.xml ./home\:zhouxiaxiang/project_build_result
+cp *.csv ./home\:zhouxiaxiang/project_build_result
 cd ./home\:zhouxiaxiang/project_build_result
 osc addremove
 osc ci -n
 
 echo &quot;finish&quot;
 
-#cp ./home\:zhouxiaxiang/testing2/ssh_cmd.py .
 
-#set -e
-#echo ${cmd}
-#python3 ssh_cmd.py -ip ${OBS_BACKEND_SERVER_IP} -bu ${OBS_BACKEND_USR} -bp ${OBS_BACKEND_PWD} -c &quot;${cmd}&quot;
 </command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>

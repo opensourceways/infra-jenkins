@@ -19,7 +19,8 @@
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <canRoam>true</canRoam>
+  <assignedNode>k8s-x86-rtos-openeuler-test</assignedNode>
+  <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
@@ -27,17 +28,31 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>sleep 20s
-
-echo build_res=&quot;[{&apos;name&apos;: &apos;build&apos;, &apos;result&apos;: &apos;SUCCESS&apos;}, {&apos;name&apos;: &apos;test&apos;, &apos;result&apos;: &apos;FAULD&apos;}]&quot; &gt; log_${BUILD_ID}</command>
+      <command>repo_server=121.36.53.23
+fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
+aarch64_qemu_image_standard=&quot;aarch64_\(qemu-image-standard\)&quot;
+#aarch64_qemu_image_tiny=&quot;aarch64_\(qemu-image-tiny\)&quot;
+#arm_qemu_image_standard=&quot;arm_\(qemu-image-standard\)&quot;
+#arm_qemu_image_tiny=&quot;arm_(qemu-image-tiny)&quot;
+comment_aarch64_qemu_image_standard_file=yocto-meta-openeuler_372_${aarch64_qemu_image_standard}_comment
+#comment_aarch64_qemu_image_tiny_file=${repo}_${prid}_${aarch64_qemu_image_tiny}_comment
+#comment_arm_qemu_image_standard_file=${repo}_${prid}_${arm_qemu_image_standard}_comment
+#comment_aarch64_qemu_image_standard_file=
+scp -r -i ${SaveBuildRPM2Repo} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${repo_server}:${fileserver_tmpfile_path}/${comment_aarch64_qemu_image_standard_file} . || echo &quot;file ${comment_aarch64_qemu_image_standard_file} not exist&quot;
+file_name=`ls`
+cat $file_name</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
-    <EnvInjectBuilder plugin="envinject@2.3.0">
-      <info>
-        <propertiesFilePath>log_${BUILD_ID}</propertiesFilePath>
-      </info>
-    </EnvInjectBuilder>
   </builders>
   <publishers/>
-  <buildWrappers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+          <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
+          <variable>SaveBuildRPM2Repo</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
 </project>
