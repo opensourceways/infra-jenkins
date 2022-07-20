@@ -27,8 +27,9 @@
     <string>openeuler-sbom-service</string>
     <string>openeuler-website-debug</string>
     <string>openeuler-website-docs-publish</string>
+    <string>openeuler-website-portal</string>
+    <string>openeuler-website-portal/openeuler-Website-test</string>
     <string>openEuler-Website-Publish-new</string>
-    <string>openeuler-Website-test</string>
     <string>openEuler_APPs</string>
     <string>sync_bot_ci</string>
     <string>tanggula-ci</string>

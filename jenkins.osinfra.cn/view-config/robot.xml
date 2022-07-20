@@ -8,6 +8,8 @@
     <comparator class="hudson.util.CaseInsensitiveComparator"/>
     <string>dockerfile-init-deployment-for-a-gitee-robot</string>
     <string>dockerfile-update-image-for-a-gitee-robot</string>
+    <string>dockerfile-update-image-for-a-gitlab-robot</string>
+    <string>init-deployment-for-a-gitlab-robot</string>
     <string>init-deployment-for-a-robot</string>
     <string>robot-gitee-init-deployment</string>
     <string>robot-gitee-update-image</string>

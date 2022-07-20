@@ -1,7 +1,8 @@
 <?xml version='1.1' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>This project used to publish openeuler website test image publish 【2022-01-10 created】;</description>
+  <description>This project used to publish openeuler website test image publish 【2022-01-10 created】;&#xd;
+https://openeuler.test.osinfra.cn</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.14">
@@ -15,7 +16,7 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>https://gitee.com/haml/website-v2.git</url>
+        <url>https://gitee.com/openeuler/openEuler-portal.git</url>
         <credentialsId>95032b54-6787-45c5-9058-48977d8e9249</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
@@ -56,23 +57,14 @@ else
     exit
 fi
 
-#cd     $WORKSPACE
-#ls 
-#sed -i &quot;s|https://www.openeuler.org/api-cve/|https://cvesa.test.osinfra.cn/|&quot; ./web-ui/docs/.vuepress/config.js
-#sed -i &quot;114a location /api-cve/ { &quot; ./web-ui/deploy/nginx/nginx.conf
-#sed -i &quot;115a proxy_pass https://cvesa.test.osinfra.cn/;&quot; ./web-ui/deploy/nginx/nginx.conf
-#sed -i &quot;116a }&quot; ./web-ui/deploy/nginx/nginx.conf
-#echo &quot;display nginx.conf&quot;
-cat ./web-ui/deploy/nginx/nginx.conf
+#cat ./web-ui/deploy/nginx/nginx.conf
 #source $WORKSPACE/script/docs-builder.sh
-#cd     $WORKSPACE/web-ui
 
-source $WORKSPACE/script/docs-builder.sh
+echo &quot;building frontend website&quot;
+cd $WORKSPACE
+#sed -i &quot;s|npm install|npm install --registry==https://registry.npm.taobao.org|&quot; ./Dockerfile
 
-echo &quot;building frontend server&quot;
-cd $WORKSPACE/web-ui
-
-sed -i &quot;s|npm install|npm install --registry==https://registry.npm.taobao.org|&quot; ./Dockerfile
+cat ./Dockerfile
 
 docker build -t swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler-website-test:$IMAGE_VERSION .
 docker push     swr.cn-north-4.myhuaweicloud.com/opensourceway/openeuler-website-test:$IMAGE_VERSION
