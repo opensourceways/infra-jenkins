@@ -141,33 +141,16 @@ repo_owner=&apos;gongzt&apos;
 # 调测可使用以下代码
  shell_path=/home/jenkins/ci_check2
  mkdir -p ${shell_path}
+ pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple click xmltodict 
+ 
  rm -rf ${shell_path}/*
- 
- cat &gt; hotfix.py &lt;&lt; EOF
-#!/usr/bin/python3
-import pymysql
-# 创建连接
-conn = pymysql.connect(host=&apos;114.116.251.180&apos;,port=30250,user=&apos;root&apos;,password=&apos;SrcOpeneuler2022!&apos;,charset=&apos;utf8mb4&apos;, database=&apos;citools&apos;)
-# 创建游标
-cursor = conn.cursor()
-  
-# 执行创建数据库的sql
-cursor.execute(&apos;SELECT * FROM link_pull;&apos;)
-result = cursor.fetchall()
-print(result)
-EOF
+ git clone https://gitee.com/gongzt/ci-tools.git ${shell_path}
 
-
-export PYTHONPATH=/home/jenkins/ci_check2
-python3 hotfix.py
- 
-# git clone https://gitee.com/gongzt/ci-tools.git ${shell_path}
-
-#. ${shell_path}/check_in/run.sh
+. ${shell_path}/check_in/run.sh
 
 set +x
 set -e
-#main
+main
 set +e
 set -x</command>
       <configuredLocalRules/>

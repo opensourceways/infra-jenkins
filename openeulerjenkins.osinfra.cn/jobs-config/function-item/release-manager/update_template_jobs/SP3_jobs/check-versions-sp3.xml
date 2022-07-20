@@ -164,7 +164,7 @@ cd update_packages2/src/
 python3 repo_version.py &gt;&gt; /dev/null 2&gt;&amp;1
 
 ls
-
+LFS=&apos;\n&apos;
 for line in `cat update_pkgs_repo.csv`;do
 	echo $line
 done

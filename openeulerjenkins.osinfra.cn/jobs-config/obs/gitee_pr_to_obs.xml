@@ -19,14 +19,6 @@
       <permission>hudson.model.Run.Update:dongjie</permission>
       <permission>hudson.scm.SCM.Tag:dongjie</permission>
     </hudson.security.AuthorizationMatrixProperty>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>100</daysToKeep>
-        <numToKeep>3000</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -40,6 +32,14 @@
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>100</daysToKeep>
+        <numToKeep>3000</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -79,7 +79,7 @@
       <includeBranchesSpec></includeBranchesSpec>
       <excludeBranchesSpec></excludeBranchesSpec>
       <targetBranchRegex></targetBranchRegex>
-      <secretToken>{AQAAABAAAAAwe1CqDQwe8Uki8rh7Tll4IDnRPT/wGVW7ZytJGnn3oGW1P2+wWMhkcOfDoabBHPOfLZVx+qUyZPom8tjMUoT3TQ==}</secretToken>
+      <secretToken>{AQAAABAAAAAwwPup/l27pOy1nB0ZgIlCGs/wZwrSEFVbQs7Z0fq5nOcsKI9Wuqrz5/k2igPdcNvzjhodone8lxt1QSZMQKrIGw==}</secretToken>
       <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
       <cancelIncompleteBuildOnSamePullRequest>false</cancelIncompleteBuildOnSamePullRequest>
       <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
@@ -89,6 +89,9 @@
   <builders>
     <hudson.tasks.Shell>
       <command>if [[ ${giteeTargetBranch} == &quot;openEuler-20.03-LTS-Next&quot; ]];then
+    exit 0
+fi
+if [[ ${giteeTargetBranch} == &quot;openEuler-22.09&quot; ]];then
     exit 0
 fi
 #if [[ ${giteeTargetBranch} == &quot;openEuler-22.03-LTS-Next&quot; ]];then

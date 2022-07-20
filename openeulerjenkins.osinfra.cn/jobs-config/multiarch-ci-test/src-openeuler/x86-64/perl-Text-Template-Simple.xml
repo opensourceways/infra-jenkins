@@ -1,8 +1,46 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
   <actions/>
-  <description/>
+  <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <hudson.security.AuthorizationMatrixProperty>
+      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:anonymous</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:authenticated</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:anonymous</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:authenticated</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:anonymous</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:authenticated</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:anonymous</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:authenticated</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:anonymous</permission>
+      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:authenticated</permission>
+      <permission>hudson.model.Item.Build:anonymous</permission>
+      <permission>hudson.model.Item.Build:authenticated</permission>
+      <permission>hudson.model.Item.Cancel:anonymous</permission>
+      <permission>hudson.model.Item.Cancel:authenticated</permission>
+      <permission>hudson.model.Item.Configure:anonymous</permission>
+      <permission>hudson.model.Item.Configure:authenticated</permission>
+      <permission>hudson.model.Item.Delete:anonymous</permission>
+      <permission>hudson.model.Item.Delete:authenticated</permission>
+      <permission>hudson.model.Item.Discover:anonymous</permission>
+      <permission>hudson.model.Item.Discover:authenticated</permission>
+      <permission>hudson.model.Item.Move:anonymous</permission>
+      <permission>hudson.model.Item.Move:authenticated</permission>
+      <permission>hudson.model.Item.Read:anonymous</permission>
+      <permission>hudson.model.Item.Read:authenticated</permission>
+      <permission>hudson.model.Item.Workspace:anonymous</permission>
+      <permission>hudson.model.Item.Workspace:authenticated</permission>
+      <permission>hudson.model.Run.Delete:anonymous</permission>
+      <permission>hudson.model.Run.Delete:authenticated</permission>
+      <permission>hudson.model.Run.Replay:anonymous</permission>
+      <permission>hudson.model.Run.Replay:authenticated</permission>
+      <permission>hudson.model.Run.Update:anonymous</permission>
+      <permission>hudson.model.Run.Update:authenticated</permission>
+      <permission>hudson.scm.SCM.Tag:anonymous</permission>
+      <permission>hudson.scm.SCM.Tag:authenticated</permission>
+    </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -21,7 +59,7 @@
         <hudson.model.StringParameterDefinition>
           <name>repo</name>
           <description>码云中仓库名称</description>
-          <defaultValue>elixir</defaultValue>
+          <defaultValue>perl-Text-Template-Simple</defaultValue>
           <trim>true</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -58,13 +96,13 @@
         <hudson.model.StringParameterDefinition>
           <name>package</name>
           <description>所属obs包</description>
-          <defaultValue>elixir</defaultValue>
+          <defaultValue>perl-Text-Template-Simple</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>buddy</name>
           <description>兄弟repo</description>
-          <defaultValue>elixir</defaultValue>
+          <defaultValue>perl-Text-Template-Simple</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -117,7 +155,7 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-repo_owner='MementoMoriCheng'
+repo_owner=&apos;jiangpengjuj&apos;
 shell_path=/home/jenkins/ci_check
 # 调测可使用以下代码
 # shell_path=/home/jenkins/ci_check2

@@ -293,7 +293,7 @@ commentid=${commentID}</properties>
               <textParamValueOnNewLine>false</textParamValueOnNewLine>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>test_directory_temporary/lixinyu_test/aarch64/yocto-meta-openeuler(qemu-image-standard),test_directory_temporary/lixinyu_test/aarch64/yocto-meta-openeuler(qemu-image-tiny),test_directory_temporary/lixinyu_test/arm/yocto-meta-openeuler(qemu-image-standard),test_directory_temporary/lixinyu_test/arm/yocto-meta-openeuler(qemu-image-tiny)</projects>
+          <projects>test_directory_temporary/lixinyu_test/aarch64/yocto-meta-openeuler_qemu-image-standard,test_directory_temporary/lixinyu_test/aarch64/yocto-meta-openeuler_qemu-image-tiny,test_directory_temporary/lixinyu_test/arm/yocto-meta-openeuler_qemu-image-standard,test_directory_temporary/lixinyu_test/arm/yocto-meta-openeuler_qemu-image-tiny</projects>
           <condition>FAILED_OR_BETTER</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
           <triggerFromChildProjects>false</triggerFromChildProjects>

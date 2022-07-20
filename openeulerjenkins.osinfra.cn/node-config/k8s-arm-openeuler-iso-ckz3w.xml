@@ -1,0 +1,25 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<org.csanchez.jenkins.plugins.kubernetes.KubernetesSlave plugin="kubernetes@1.30.5">
+  <name>k8s-arm-openeuler-iso-ckz3w</name>
+  <description>k8s-arm-openeuler-iso</description>
+  <numExecutors>1</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.CloudRetentionStrategy">
+    <idleMinutes>1</idleMinutes>
+  </retentionStrategy>
+  <launcher class="org.csanchez.jenkins.plugins.kubernetes.KubernetesLauncher">
+    <workDirSettings>
+      <disabled>false</disabled>
+      <internalDir>remoting</internalDir>
+      <failIfWorkDirIsMissing>false</failIfWorkDirIsMissing>
+    </workDirSettings>
+    <webSocket>false</webSocket>
+    <launched>true</launched>
+  </launcher>
+  <label>k8s-arm-openeuler-iso</label>
+  <nodeProperties/>
+  <cloudName>k8s-arm-openeuler-iso</cloudName>
+  <namespace>jenkins</namespace>
+  <podTemplateId>408594a7-4394-4410-85da-3ab94fc0726f</podTemplateId>
+  <remoteFS>/home/jenkins/agent</remoteFS>
+</org.csanchez.jenkins.plugins.kubernetes.KubernetesSlave>

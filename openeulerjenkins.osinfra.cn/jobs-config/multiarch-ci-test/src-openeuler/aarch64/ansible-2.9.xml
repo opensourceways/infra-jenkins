@@ -1,7 +1,6 @@
-<?xml version='1.1' encoding='UTF-8'?>
-<project>
+<?xml version="1.0" encoding="UTF-8"?><project>
   <actions/>
-  <description></description>
+  <description/>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
@@ -25,7 +24,7 @@
         <hudson.model.StringParameterDefinition>
           <name>repo</name>
           <description>码云中仓库名称</description>
-          <defaultValue>alsa-tools</defaultValue>
+          <defaultValue>ansible-2.9</defaultValue>
           <trim>true</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -62,13 +61,13 @@
         <hudson.model.StringParameterDefinition>
           <name>package</name>
           <description>所属包，支持多个，用“,”分割</description>
-          <defaultValue>alsa-tools</defaultValue>
+          <defaultValue>ansible-2.9</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>buddy</name>
           <description>兄弟repo，支持多个，用“,”分割</description>
-          <defaultValue>alsa-tools</defaultValue>
+          <defaultValue>ansible-2.9</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -86,20 +85,32 @@
         <hudson.model.StringParameterDefinition>
           <name>obs_rpm_host</name>
           <description>obs 归档地址</description>
-          <defaultValue>http://119.3.219.20:82</defaultValue>
+          <defaultValue>119.3.219.20:82</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>obs_webui_host</name>
           <description>obs webui地址</description>
-          <defaultValue>http://117.78.1.88/</defaultValue>
+          <defaultValue>117.78.1.88/</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MysqldbHost</name>
+          <description>oecp连接mysql数据库host</description>
+          <defaultValue>114.116.251.180</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MysqldbPort</name>
+          <description>oecp连接mysql数据库端口号</description>
+          <defaultValue>30250</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>k8s-aarch64-soe-zhengyaohui</assignedNode>
+  <assignedNode>k8s-aarch64-soe</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -109,20 +120,15 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-#shell_path=/home/jenkins/ci_check
+repo_owner='MementoMoriCheng'
+shell_path=/home/jenkins/ci_check
 # 调测可使用以下代码
 # shell_path=/home/jenkins/ci_check2
 # mkdir -p ${shell_path}
 # rm -rf ${shell_path}/*
 # git clone https://gitee.com/xxx/openeuler-jenkins.git ${shell_path}
- shell_path=/home/jenkins/ci_check2
- mkdir -p ${shell_path}
- rm -rf ${shell_path}
- git clone -b for_test https://gitee.com/MementoMoriCheng/openeuler-jenkins.git ${shell_path}
- repo_owner=&quot;MementoMoriCheng&quot;
 
-. ${shell_path}/src/lib/main_process.sh &quot;$OBSUserName&quot; &quot;$OBSPassword&quot; &quot;$GiteeUserName&quot; &quot;$GiteePassword&quot; &quot;$GiteeToken&quot; &quot;$GiteeUserPassword&quot; &quot;$PkgShipUserName&quot; &quot;$PkgShipPassword&quot; &quot;$buddy&quot; &quot;$repo&quot; &quot;$tbranch&quot; &quot;$arch&quot; &quot;$package&quot; &quot;$branch&quot; &quot;$prid&quot; &quot;$WORKSPACE&quot; &quot;$committer&quot; &quot;$commentid&quot; &quot;$SaveBuildRPM2Repo&quot; &quot;$repo_server&quot; &quot;$pkgship_notify_url&quot; &quot;$pkgship_notify_token&quot;
-
+. ${shell_path}/src/lib/main_process.sh 
 
 set +x
 set -e
@@ -167,6 +173,10 @@ set -x</command>
           <credentialsId>openeuler-ci-bot</credentialsId>
           <variable>GiteeToken</variable>
         </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+          <credentialsId>68ddb94f-871e-4cc7-9611-c1c507b9bf53</credentialsId>
+          <variable>MysqlUserPasswd</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
       </bindings>
     </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
     <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">

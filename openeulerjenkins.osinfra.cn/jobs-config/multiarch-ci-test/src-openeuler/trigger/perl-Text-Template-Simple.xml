@@ -141,7 +141,7 @@
         </org.jenkinsci.plugins.gwt.GenericVariable>
       </genericVariables>
       <regexpFilterText>$giteeTargetNamespace $giteeRepoName $commentAction $commentEOF</regexpFilterText>
-      <regexpFilterExpression>MementoMoriCheng ansible-2.9 comment ([\s]*Hi[\s\S]*|/retest)EOF</regexpFilterExpression>
+      <regexpFilterExpression>jiangpengjuj perl-Text-Template-Simple comment ([\s]*Hi[\s\S]*|/retest)EOF</regexpFilterExpression>
       <printPostContent>false</printPostContent>
       <printContributedVariables>false</printContributedVariables>
       <causeString>"$giteeRepoName" trigger by pull request $giteePullRequestIid  [$giteeSourceNamespace:$giteeSourceBranch -&gt; $giteeTargetNamespace:$giteeTargetBranch]</causeString>
@@ -154,7 +154,7 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-repo_owner='MementoMoriCheng'
+repo_owner='jiangpengjuj'
 shell_path=/home/jenkins/ci_check
 # 调测可使用以下代码
 # shell_path=/home/jenkins/ci_check2
@@ -193,7 +193,7 @@ commentid=${commentID}</properties>
               <textParamValueOnNewLine>false</textParamValueOnNewLine>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>multiarch-ci-test/src-openeuler/x86-64/ansible-2.9,multiarch-ci-test/src-openeuler/aarch64/ansible-2.9</projects>
+          <projects>multiarch-ci-test/src-openeuler/x86-64/perl-Text-Template-Simple,multiarch-ci-test/src-openeuler/aarch64/perl-Text-Template-Simple</projects>
           <condition>FAILED_OR_BETTER</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
           <triggerFromChildProjects>false</triggerFromChildProjects>
@@ -223,7 +223,7 @@ ACL=${ACL}</properties>
                   <textParamValueOnNewLine>false</textParamValueOnNewLine>
                 </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               </configs>
-              <projects>multiarch-ci-test/src-openeuler/comment/ansible-2.9</projects>
+              <projects>multiarch-ci-test/src-openeuler/comment/perl-Text-Template-Simple</projects>
               <condition>ALWAYS</condition>
               <triggerWithNoParameters>false</triggerWithNoParameters>
               <triggerFromChildProjects>false</triggerFromChildProjects>

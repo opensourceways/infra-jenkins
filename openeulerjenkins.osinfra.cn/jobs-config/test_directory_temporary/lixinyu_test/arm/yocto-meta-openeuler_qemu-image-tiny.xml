@@ -93,9 +93,10 @@
   <builders>
     <hudson.tasks.Shell>
       <command># 将结果写入远程文件
-arch=&quot;arm_~qemu-image-tiny~&quot;
+arch=&quot;arm_qemu-image-tiny&quot;
 fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
-comment_file=${repo}_${prid}_${arch}_test_comment
+comment_file=test_comment_${repo}_${prid}_${arch}
+exitCode=0
 if [ $exitCode = 0 ]; then
 	echo &quot;[{&apos;name&apos;: &apos;check_test&apos;, &apos;result&apos;: 0}]&quot; &gt; ${comment_file}
 else

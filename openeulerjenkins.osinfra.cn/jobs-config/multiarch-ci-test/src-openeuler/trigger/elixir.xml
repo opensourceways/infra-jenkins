@@ -25,7 +25,7 @@
     </hudson.model.ParametersDefinitionProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>k8s-x86-soe-zhengyaohui</assignedNode>
+  <assignedNode>k8s-x86-soe</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -141,7 +141,7 @@
         </org.jenkinsci.plugins.gwt.GenericVariable>
       </genericVariables>
       <regexpFilterText>$giteeTargetNamespace $giteeRepoName $commentAction $commentEOF</regexpFilterText>
-      <regexpFilterExpression>(zhengyaohui|wanghuan158|liuqi469227928|MementoMoriCheng) elixir comment ([\s]*Hi[\s\S]*|/retest)EOF</regexpFilterExpression>
+      <regexpFilterExpression>MementoMoriCheng elixir comment ([\s]*Hi[\s\S]*|/retest)EOF</regexpFilterExpression>
       <printPostContent>false</printPostContent>
       <printContributedVariables>false</printContributedVariables>
       <causeString>"$giteeRepoName" trigger by pull request $giteePullRequestIid  [$giteeSourceNamespace:$giteeSourceBranch -&gt; $giteeTargetNamespace:$giteeTargetBranch]</causeString>
@@ -154,18 +154,21 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
+repo_owner='MementoMoriCheng'
 shell_path=/home/jenkins/ci_check
 # 调测可使用以下代码
- shell_path=/home/jenkins/ci_check2
- mkdir -p ${shell_path}
- rm -rf ${shell_path}
- git clone -b for_test https://gitee.com/MementoMoriCheng/openeuler-jenkins.git ${shell_path}
+# shell_path=/home/jenkins/ci_check2
+# mkdir -p ${shell_path}
+# rm -rf ${shell_path}/*
+# git clone -b use-for-pr1 https://gitee.com/zhengyaohui/openeuler-jenkins.git ${shell_path}
 
-. ${shell_path}/src/lib/trigger.sh "$repo" "$SaveBuildRPM2Repo" "$repo_server" "$giteeRepoName" "$giteeTargetBranch" "$GiteeUserName" "$GiteePassword" "$GiteeToken" "$GiteeUserPassword" "$giteePullRequestIid" "$prCreateTime" "$giteeCommitter" "$commentID" "$comment" "$jobTriggerTime" "$triggerLink" "$jenkins_user" "$jenkins_api_token" "https://jenkins.openeuler.org/"
+. ${shell_path}/src/lib/trigger.sh
 
 set +x
 main
 set -x
+
+
 </command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>

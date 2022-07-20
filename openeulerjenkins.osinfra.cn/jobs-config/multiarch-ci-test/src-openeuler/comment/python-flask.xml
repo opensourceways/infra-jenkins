@@ -101,6 +101,8 @@
     <hudson.tasks.Shell>
       <command>#!/bin/bash
 repo_owner=&apos;gongzt&apos;
+#repo_owner=&apos;src-openeuler&apos;
+
 shell_path=/home/jenkins/ci_check
 # 调测可使用以下代码
  shell_path=/home/jenkins/ci_check2

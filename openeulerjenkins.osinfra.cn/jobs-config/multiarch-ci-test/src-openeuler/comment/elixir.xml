@@ -99,19 +99,19 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
+repo_owner='MementoMoriCheng'
 shell_path=/home/jenkins/ci_check
 # 调测可使用以下代码
 # shell_path=/home/jenkins/ci_check2
 # mkdir -p ${shell_path}
 # rm -rf ${shell_path}/*
 # git clone https://gitee.com/xxx/openeuler-jenkins.git ${shell_path}
-. ${shell_path}/src/lib/comment.sh "$repo" "$prid" "$committer" "$giteetoken" "$jenkins_user" "$jenkins_api_token" "$WORKSPACE" "$SaveBuildRPM2Repo" "$repo_server" "$compare_result" "$commentid" "https://jenkins.openeuler.org/"
+. ${shell_path}/src/lib/comment.sh
 
 set +x
-set -e
 main
 set -x
-set +e</command>
+</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>

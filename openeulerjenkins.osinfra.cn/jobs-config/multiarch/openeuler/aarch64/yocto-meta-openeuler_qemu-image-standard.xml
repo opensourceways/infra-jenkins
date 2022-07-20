@@ -132,14 +132,16 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>is_debug=0
+      <command># 测试时打开
+
+is_debug=0
 
 if [ $is_debug = 1 ];then
     # 将结果写入远程文件
     exitCode=0
-    arch=&quot;aarch64_(qemu-image-tiny)&quot;
+    arch=&quot;aarch64_qemu-image-standard&quot;
     fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
-    comment_file=${repo}_${prid}_${arch}_comment
+    comment_file=comment_${repo}_${prid}_${arch}
     if [ $exitCode = 0 ]; then
         echo &quot;[{&apos;name&apos;: &apos;check_test&apos;, &apos;result&apos;: 0}]&quot; &gt; ${comment_file}
     else
@@ -190,7 +192,6 @@ else
     popd
 fi
 
-
 # 使用当前pr的代码替换本地源码
 sudo rm -rf $src_path/${repo}
 sudo cp -r $WORKSPACE/${repo} $src_path
@@ -208,9 +209,8 @@ if [[ ${tbranch} == &quot;yocto_refactor&quot; || ${tbranch} == &quot;gitee_page
 fi
 sudo sh ${src_path}/${repo}/scripts/download_code.sh &quot;&quot; ${downloadBranch}
 
-
 # 执行构建脚本
-sudo sh $build_script/script/embedded/compile/build.sh &quot;aarch64-std&quot; &quot;yes&quot; &quot;no&quot; &quot;no&quot; &quot;openeuler-image-tiny&quot;
+sudo sh $build_script/script/embedded/compile/build.sh &quot;aarch64-std&quot; &quot;yes&quot; &quot;no&quot;
 
 # 删除修改过的代码
 sudo rm -rf $src_path/${repo}
@@ -225,11 +225,11 @@ sudo rm -rf $src_path/${repo}
 BUILD_ARCH=&quot;aarch64&quot;
 
 # 目前只有aarch64有tiny镜像，设置时需要注意
-#IMAGE_TYPE=&quot;std&quot;
-IMAGE_TYPE=&quot;tiny&quot;
+IMAGE_TYPE=&quot;std&quot;
+#IMAGE_TYPE=&quot;tiny&quot;
 
 BUILD_BRANCH=${tbranch}
-#BUILD_BRANCH=&quot;master&quot;
+#BUILD_BRANCH=&quot;openEuler-22.03-LTS&quot;
 if [[ ${tbranch} == &quot;yocto_refactor&quot; || ${tbranch} == &quot;gitee_pages&quot; ]]; then
 	BUILD_BRANCH=&quot;openEuler-22.03-LTS&quot;
 fi
@@ -433,9 +433,9 @@ for one_suite in ${run_suitecase[@]}; do
 done
 
 # 将结果写入远程文件
-arch=&quot;aarch64_(qemu-image-tiny)&quot;
+arch=&quot;aarch64_qemu-image-standard&quot;
 fileserver_tmpfile_path=&quot;/repo/soe/check_item&quot;
-comment_file=${repo}_${prid}_${arch}_comment
+comment_file=comment_${repo}_${prid}_${arch}
 
 if [ $exitCode = 0 ]; then
 	echo &quot;[{&apos;name&apos;: &apos;check_test&apos;, &apos;result&apos;: 0}]&quot; &gt; ${comment_file}

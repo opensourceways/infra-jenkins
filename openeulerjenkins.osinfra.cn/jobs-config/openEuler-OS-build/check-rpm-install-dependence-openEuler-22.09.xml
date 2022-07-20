@@ -53,53 +53,59 @@
         <artifactNumToKeep>-1</artifactNumToKeep>
       </strategy>
     </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_standard_prj</name>
+          <defaultValue>openEuler:22.09</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_epol_prj</name>
+          <defaultValue>openEuler:22.09:Epol</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>obs_server_ip</name>
+          <defaultValue>172.16.1.95</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-      <triggers>
-        <hudson.triggers.TimerTrigger>
-          <spec>H 6,22 * * *</spec>
-        </hudson.triggers.TimerTrigger>
-      </triggers>
+      <triggers/>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.94">
     <script>pipeline {
     agent none
-    stages {
-        stage(&apos;22.09&apos;) {
-            steps {
-                build job: &apos;check-rpm-install-dependence-openEuler-22.09&apos;, propagate: false
-            }
-        }
-        stage(&apos;22.03-lts&apos;) {
-            steps {
-                build job: &apos;check-rpm-install-dependence-openEuler-22.03-LTS&apos;, propagate: false
-            }
-        }
-        stage(&apos;20.03-lts-sp1&apos;) {
-            steps {
-                build job: &apos;check-rpm-install-dependence-openEuler-20.03-LTS-SP1&apos;, propagate: false
-            }
-        }
-        stage(&apos;20.03-lts-sp3&apos;) {
-            steps {
-                build job: &apos;check-rpm-install-dependence-openEuler-20.03-LTS-SP3&apos;, propagate: false
-            }
-        }
-        stage(&apos;mainline&apos;) {
-            steps {
-                build job: &apos;check-rpm-install-dependence-openEuler-Mainline&apos;, propagate: false
-            }
-        }
-        stage(&apos;22.03-lts-next&apos;) {
-            steps {
-                build job: &apos;check-rpm-install-dependence-openEuler-22.03-LTS-Next&apos;, propagate: false
-            }
-        }
+    stages(&quot;begin&quot;) {
+		stage(&quot;check install&quot;) {
+                parallel{
+                    stage(&quot;2209_aarch64&quot;){
+                        steps{
+                            build job: &apos;check_rpm_install_dependence_standard_aarch64&apos;, parameters: [string(name: &apos;OBS_STANDARD_PROJECT&apos;,value: params.obs_standard_prj), string(name: &apos;OBS_SERVER_IP&apos;,value: params.obs_server_ip)], propagate: false
+                        }
+                    }
+                    stage(&quot;2209_epol_aarch64&quot;){
+                        steps{
+                            build job: &apos;check_rpm_install_dependence_epol_aarch64&apos;, parameters: [string(name: &apos;OBS_STANDARD_PROJECT&apos;,value: params.obs_epol_prj), string(name: &apos;OBS_SERVER_IP&apos;,value: params.obs_server_ip)], propagate: false
+                        }
+                    }
+                    stage(&quot;2209_x86_64&quot;){
+                        steps{
+                            build job: &apos;check_rpm_install_dependence_standard_x86_64&apos;, parameters: [string(name: &apos;OBS_STANDARD_PROJECT&apos;,value: params.obs_standard_prj), string(name: &apos;OBS_SERVER_IP&apos;,value: params.obs_server_ip)], propagate: false
+                        }
+                    }   
+                    stage(&quot;2209_epol_x86_64&quot;){
+                        steps{
+                            build job: &apos;check_rpm_install_dependence_epol_x86_64&apos;, parameters: [string(name: &apos;OBS_STANDARD_PROJECT&apos;,value: params.obs_epol_prj), string(name: &apos;OBS_SERVER_IP&apos;,value: params.obs_server_ip)], propagate: false
+                        }
+                    }
+                }
+		}
     }
-}
-
-
-</script>
+}</script>
     <sandbox>true</sandbox>
   </definition>
   <triggers/>
