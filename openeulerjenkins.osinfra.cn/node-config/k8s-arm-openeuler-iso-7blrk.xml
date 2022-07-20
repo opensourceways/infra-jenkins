@@ -1,6 +1,6 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <org.csanchez.jenkins.plugins.kubernetes.KubernetesSlave plugin="kubernetes@1.30.5">
-  <name>k8s-arm-openeuler-iso-gnmsv</name>
+  <name>k8s-arm-openeuler-iso-7blrk</name>
   <description>k8s-arm-openeuler-iso</description>
   <numExecutors>1</numExecutors>
   <mode>NORMAL</mode>
