@@ -1272,8 +1272,8 @@ node('x86-generic-slaves') {
         }
         stage('compile2'){
             def parallelJobsRun = [:]
-            def jobsList = [["Compile_X86_CentOS_PY38", "x86-build-centos", 10, "mindquantum_compile.sh", "-t centos_x86 -v python38"],
-                            ["Compile_X86_CentOS_PY39", "x86-build-centos", 10, "mindquantum_compile.sh", "-t centos_x86 -v python39"]]
+            def jobsList = [["abcba", "x86-build-centos", 10, "mindquantum_compile.sh", "-t centos_x86 -v python38"],
+                            ["cbabc", "x86-build-centos", 10, "mindquantum_compile.sh", "-t centos_x86 -v python39"]]
             parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux, "pipeline/mindspore/${REPOSITORY_NAME}/scripts/")
             parallel parallelJobsRun
         }
