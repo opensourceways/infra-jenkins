@@ -94,7 +94,7 @@
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>XAI_URL</name>
-          <description>xai版本路径（例如：https://repo.mindspore.cn/mindspore/xai/version/202103/20210327/r0.1_20210327152033_1ac8f79efb792970aa566255d539722387cd9815/）
+          <description>xai版本路径（例如：https://repo.mindspore.cn/mindspore/golden-stick/version/202207/20220715/r0.1_20220715163940_7e5df2fb001c04900528d07e4ac1661fff2df0d1/）
 说明：URL最后要加上'/'</description>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>

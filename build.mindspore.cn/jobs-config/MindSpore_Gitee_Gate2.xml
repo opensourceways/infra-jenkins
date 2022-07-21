@@ -52,7 +52,7 @@
           <includeBranchesSpec>master,r0.5</includeBranchesSpec>
           <excludeBranchesSpec>r0.3</excludeBranchesSpec>
           <targetBranchRegex/>
-          <secretToken>{AQAAABAAAAAwlaYESCOy3BsHl+LAl9/YpTJWl49jYyW8KckKv120MnIDLgrp/wxPSK2XlJXZkieQek0k6uipdVMDLIxPqucJVw==}</secretToken>
+          <secretToken>{AQAAABAAAAAwBzh4O/i8Udi11fJN7AlfyN2gb4+N0mbkzyAFEMErb3oFSYEstiRGISePU0ShPk6wm8OVuYeyqr1mJezLGuuxTA==}</secretToken>
           <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
           <cancelIncompleteBuildOnSamePullRequest>true</cancelIncompleteBuildOnSamePullRequest>
           <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
