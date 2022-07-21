@@ -1,0 +1,310 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>x86-slave-2</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <customWorkspace>/usr1/gauss_jenkins/jenkins/workspace/</customWorkspace>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+
+#userPasswd YatUser_12#$
+#dbPasswd   YatDb_12#$
+#https://opengauss.obs.cn-south-1.myhuaweicloud.com/3.0.0/x86/openGauss-3.0.0-CentOS-64bit.tar.bz2
+#readonly IS_FUSION=true
+readonly DB_RELEASE_VERSION="3.0.0"
+readonly WORKSPACE_DIR="/data/yat_jenkins/workspace/openGaussInstall"
+readonly COMMON_DIR="/data/yat_jenkins/common/single_database_for_yatCI"
+
+umask 002
+
+function getParam
+{
+    # node param
+    hostIp="192.168.0.204"
+    hostName="x86-slave-2"
+    hostPort="12721"
+
+    # user param
+    dbInitUser="yat_jenkins"
+    dbInitGroup="yat_group"
+
+    # db param
+    dbName="yat"
+    dbUser="yat_user"
+
+    # path param
+    homePath="/home/$dbInitUser"
+    installPath="$WORKSPACE_DIR/dbinstall"
+    pkgPath="$WORKSPACE_DIR/pkg"
+    envPath="$homePath/gauss_env"
+    xmlPath="$homePath/openGaussXml.xml"
+    dnPath="$installPath/cluster/dn1"
+
+    systemArch=`uname -p`
+    systemName=`cat /etc/os-release | grep '^ID=".*' | grep -o -E '(openEuler|centos)' | sed 's/centos/CentOS/'`
+    echo "systemArch: $systemArch"
+    echo "systemName: $systemName"
+}
+
+function clearEnv
+{
+    print_log "Start clear env."
+
+    checkFileExists $envPath
+    if [ $? -eq 0 ]
+    then
+        su - $dbInitUser &lt;&lt; EOF
+        source $envPath
+        gs_uninstall --delete-data
+EOF
+    fi
+
+    echo "rm -rf $installPath &amp;&amp; mkdir $installPath"
+    echo "rm -rf $envPath $xmlPath"
+    rm -rf $installPath &amp;&amp; mkdir $installPath
+    rm -rf $envPath $xmlPath
+
+    return 0
+}
+
+function print_log
+{
+    local message=$1
+    echo `date + '%Y-%m-%d %H:%M:%S'` ": $message"
+}
+
+function checkFileExists
+{
+    if [ ! -e $1 ]
+    then
+        return 1
+    else
+        return 0
+    fi
+}
+
+function getOpenGaussPkg()
+{
+    rm -rf $pkgPath &amp;&amp; mkdir $pkgPath
+    chown -R $dbInitUser:$dbInitGroup $pkgPath
+    
+    pkgPathRoot="/data/ftp/packages"
+
+    if [ "$systemName" == "openEuler" ] &amp;&amp; [ "$systemArch" == "aarch64" ]
+    then
+        pkgDir="openEuler_arm"
+    elif [ "$systemName" == "openEuler" ] &amp;&amp; [ "$systemArch" == "x86_64" ]
+    then
+        pkgDir="openEuler_x86"
+    elif [ "$systemName" == "CentOS" ] &amp;&amp; [ "$systemArch" == "x86_64" ]
+    then
+        pkgDir="Centos_x86"
+    else
+        print_log "Only support CentOS+x86, openEuler+x86 and openEuler+arm yet."
+        return 1
+    fi
+    
+    dateDir=`date "+%Y/%m/%d" -d "1 days ago"`
+    echo "scp -r root@$pkghostip:$pkgPathRoot/$dateDir/master/$pkgDir/* $pkgPath"
+    scp -r root@$pkghostip:$pkgPathRoot/$dateDir/master/$pkgDir/* $pkgPath
+    if [ $? -ne 0 ]
+    then
+        print_log "Download package failed."
+        return 1
+    else
+        print_log "Download package success."
+    fi
+
+    echo "tar -zxf '$pkgPath/openGauss-${DB_RELEASE_VERSION}-${systemName}-64bit-all.tar.gz' -C $pkgPath"
+    echo "tar -zxf '$pkgPath/openGauss-${DB_RELEASE_VERSION}-${systemName}-64bit-om.tar.gz' -C $pkgPath"
+    tar -zxf "$pkgPath/openGauss-${DB_RELEASE_VERSION}-${systemName}-64bit-all.tar.gz" -C $pkgPath
+    tar -zxf "$pkgPath/openGauss-${DB_RELEASE_VERSION}-${systemName}-64bit-om.tar.gz" -C $pkgPath
+
+    return 0
+}
+
+function generateXmlFile()
+{
+    echo "$dbInitUser $hostPort '${hostIp[*]}' '${hostName[*]}' $installPath $xmlPath"
+    su - $dbInitUser -c "sh $COMMON_DIR/autoXml.sh $dbInitUser $hostPort '${hostIp[*]}' '${hostName[*]}' $installPath $xmlPath"
+
+    if [ $? -ne 0 ]
+    then
+        return 1
+    fi
+
+    return 0
+}
+
+function installOpenGauss()
+{
+    print_log "Start install openGauss."
+
+    mkdir -p $installPath
+    chmod -R 755 $installPath
+    chown -R $dbInitUser:$dbInitGroup $installPath
+
+    scriptPath="$pkgPath/script"
+
+    export LD_LIBRARY_PATH=$scriptPath/gspylib/clib:$LD_LIBRARY_PATH
+
+    if [ ${#hostName[*]} -gt 1 ];
+    then
+        $COMMON_DIR/autoPreInstallScript $dbInitUser $dbInitGroup $xmlPath $envPath $scriptPath
+    else
+        $scriptPath/gs_preinstall -U $dbInitUser -G $dbInitGroup -X $xmlPath --sep-env-file=$envPath -L
+    fi
+
+    if [ $? -ne 0 ]
+    then
+        print_log "Preinstall openGauss failed."
+        return 1
+    else
+        print_log "Preinstall openGauss success."
+    fi
+
+    su - $dbInitUser &lt;&lt; EOF
+    source $envPath
+    $COMMON_DIR/autoInstallScript $userPasswd $xmlPath
+EOF
+
+    if [ $? -ne 0 ]
+    then
+        return 1
+    fi
+
+    return 0
+
+}
+
+function configOpenGauss()
+{
+    su - $dbInitUser &lt;&lt; EOF
+    source $envPath
+
+    gsql -d postgres -p $hostPort -r -c "
+    create database $dbName;
+    create user $dbUser identified by '$dbPasswd';
+    grant all privileges to $dbUser;"
+
+    sed -i "92i host all all $hostIp/32 sha256" $dnPath/pg_hba.conf
+
+    gs_om -t stop &amp;&amp; gs_om -t start
+EOF
+
+    if [ $? -ne 0 ]
+    then
+        return 1
+    fi
+
+    return 0
+}
+
+function main()
+{
+    # get install param
+    getParam
+
+    # uninstall db and clear env
+    clearEnv
+    if [ $? -ne 0 ]
+    then
+        print_log "Clear env failed."
+        return 1
+    else
+        print_log "Clear env success."
+    fi
+
+    getOpenGaussPkg
+    if [ $? -ne 0 ]
+    then
+        print_log "Get pkg failed."
+        return 1
+    else
+        print_log "Get pkg success."
+    fi
+
+    generateXmlFile
+    if [ $? -ne 0 ]
+    then
+        print_log "Generate xml failed."
+        return 1
+    else
+        print_log "Generate xml success."
+    fi
+
+    installOpenGauss
+    if [ $? -ne 0 ]
+    then
+        print_log "Install openGauss failed."
+        return 1
+    else
+        print_log "Install openGauss success."
+    fi
+
+    configOpenGauss
+    if [ $? -ne 0 ]
+    then
+        print_log "Config openGauss failed."
+        return 1
+    else
+        print_log "Config openGauss success."
+    fi
+
+    return 0
+}
+
+main $@
+exit $?</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <EnvInjectPasswordWrapper plugin="envinject@2.3.0">
+      <injectGlobalPasswords>false</injectGlobalPasswords>
+      <maskPasswordParameters>false</maskPasswordParameters>
+      <passwordEntries>
+        <EnvInjectPasswordEntry>
+          <name>userPasswd</name>
+          <value>{AQAAABAAAAAQNS5A/1R14mRhvj5sndc54HAQq+rSPz1sGk6kGo64zNE=}</value>
+        </EnvInjectPasswordEntry>
+        <EnvInjectPasswordEntry>
+          <name>dbPasswd</name>
+          <value>{AQAAABAAAAAQceFJ3cI+kXO5kJB/y+JHjLF7pWlLc4Y2eoxwzatoLmg=}</value>
+        </EnvInjectPasswordEntry>
+      </passwordEntries>
+    </EnvInjectPasswordWrapper>
+  </buildWrappers>
+</project>
