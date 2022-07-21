@@ -38,7 +38,7 @@
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>x86isula-ci</assignedNode>
+  <assignedNode>openQA-x86-ci</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>

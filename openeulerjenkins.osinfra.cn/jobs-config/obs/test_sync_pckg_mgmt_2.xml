@@ -65,7 +65,35 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers/>
+  <triggers>
+    <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.2.7">
+      <spec></spec>
+      <triggerOnPush>true</triggerOnPush>
+      <triggerOnCommitComment>false</triggerOnCommitComment>
+      <triggerOnOpenPullRequest>false</triggerOnOpenPullRequest>
+      <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+      <triggerOnAcceptedPullRequest>true</triggerOnAcceptedPullRequest>
+      <triggerOnUpdatePullRequest>2</triggerOnUpdatePullRequest>
+      <triggerOnClosedPullRequest>false</triggerOnClosedPullRequest>
+      <triggerOnApprovedPullRequest>false</triggerOnApprovedPullRequest>
+      <triggerOnTestedPullRequest>false</triggerOnTestedPullRequest>
+      <triggerOnNoteRequest>true</triggerOnNoteRequest>
+      <noteRegex>/retest</noteRegex>
+      <buildInstructionFilterType>NONE</buildInstructionFilterType>
+      <skipWorkInProgressPullRequest>false</skipWorkInProgressPullRequest>
+      <ciSkipFroTestNotRequired>true</ciSkipFroTestNotRequired>
+      <skipLastCommitHasBeenBuild>true</skipLastCommitHasBeenBuild>
+      <setBuildDescription>true</setBuildDescription>
+      <branchFilterType>All</branchFilterType>
+      <includeBranchesSpec></includeBranchesSpec>
+      <excludeBranchesSpec></excludeBranchesSpec>
+      <targetBranchRegex></targetBranchRegex>
+      <secretToken>{AQAAABAAAAAwLuE300L1quWK4xrvDQZBMOylkG25zF67dw9wVjQVwrJpOHWSk9nzq1LS9AOGUCtvvOwriX0fmlQ8OoQw7rQuUA==}</secretToken>
+      <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
+      <cancelIncompleteBuildOnSamePullRequest>false</cancelIncompleteBuildOnSamePullRequest>
+      <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
+    </com.gitee.jenkins.trigger.GiteePushTrigger>
+  </triggers>
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>

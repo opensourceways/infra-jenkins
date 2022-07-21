@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
   <actions/>
-  <description/>
+  <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
@@ -112,7 +113,7 @@
   <scm class="hudson.scm.NullSCM"/>
   <assignedNode>k8s-aarch64-soe</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers/>
@@ -120,7 +121,7 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-repo_owner='MementoMoriCheng'
+repo_owner=&apos;MementoMoriCheng&apos;
 shell_path=/home/jenkins/ci_check
 # 调测可使用以下代码
 # shell_path=/home/jenkins/ci_check2

@@ -1,12 +1,8 @@
-<?xml version='1.1' encoding='UTF-8'?>
-<project>
+<?xml version="1.0" encoding="UTF-8"?><project>
   <actions/>
-  <description></description>
+  <description>上报打包结果</description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.security.AuthorizationMatrixProperty>
-      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
-    </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -24,96 +20,78 @@
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>repo</name>
-          <description>码云中仓库名称</description>
-          <defaultValue>elixir</defaultValue>
-          <trim>true</trim>
+          <description>仓库名</description>
+          <defaultValue>python-requests</defaultValue>
+          <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>branch</name>
-          <description>pr 源分支</description>
-          <trim>true</trim>
+          <description>pr源分支</description>
+          <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>tbranch</name>
-          <description>pr 目标分支</description>
+          <description>pr目标分支</description>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>prid</name>
           <description>pull request id</description>
-          <trim>true</trim>
+          <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>committer</name>
-          <description>提交者</description>
+          <description>提交人</description>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>commentid</name>
-          <description>唯一的评论id</description>
+          <description>唯一的评论编号</description>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>arch</name>
-          <description>cpu框架</description>
-          <defaultValue>aarch64</defaultValue>
-          <trim>true</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>package</name>
-          <description>所属包，支持多个，用“,”分割</description>
-          <defaultValue>elixir</defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>buddy</name>
-          <description>兄弟repo，支持多个，用“,”分割</description>
-          <defaultValue>elixir</defaultValue>
+          <name>ACL</name>
+          <defaultValue>[]</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>repo_server</name>
-          <description>结果保存地址</description>
+          <description>保存结果地址</description>
           <defaultValue>121.36.53.23</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>pkgship_notify_url</name>
-          <description>notify pkgship url</description>
-          <defaultValue>https://jenkins.osinfra.cn/job/openEuler_APPs/build-package-manage-image/build</defaultValue>
+          <name>prtitle</name>
+          <description>pull request title</description>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>obs_rpm_host</name>
-          <description>obs 归档地址</description>
-          <defaultValue>119.3.219.20:82</defaultValue>
+          <name>jobtriggertime</name>
+          <description>trigger工程触发时间</description>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>obs_webui_host</name>
-          <description>obs webui地址</description>
-          <defaultValue>117.78.1.88/</defaultValue>
+          <name>prcreatetime</name>
+          <description>pr创建时间</description>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>MysqldbHost</name>
-          <description>oecp连接mysql数据库host</description>
-          <defaultValue>114.116.251.180</defaultValue>
+          <name>prurl</name>
+          <description>pr url</description>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>MysqldbPort</name>
-          <description>oecp连接mysql数据库端口号</description>
-          <defaultValue>30250</defaultValue>
+          <name>triggerbuildid</name>
+          <description>trigger的构建号</description>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>k8s-aarch64-soe</assignedNode>
+  <assignedNode>k8s-x86-soe</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers/>
@@ -121,63 +99,51 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-repo_owner=&apos;MementoMoriCheng&apos;
+repo_owner='jiangpengjuj'
 shell_path=/home/jenkins/ci_check
 # 调测可使用以下代码
 # shell_path=/home/jenkins/ci_check2
 # mkdir -p ${shell_path}
 # rm -rf ${shell_path}/*
 # git clone https://gitee.com/xxx/openeuler-jenkins.git ${shell_path}
-
-. ${shell_path}/src/lib/main_process.sh 
+. ${shell_path}/src/lib/comment.sh
 
 set +x
-set -e
 main
-set +e
-set -x</command>
+set -x
+</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <com.chikli.hudson.plugin.naginator.NaginatorPublisher plugin="naginator@1.18.1">
+      <regexpForRerun/>
+      <rerunIfUnstable>true</rerunIfUnstable>
+      <rerunMatrixPart>false</rerunMatrixPart>
+      <checkRegexp>false</checkRegexp>
+      <regexpForMatrixStrategy>TestParent</regexpForMatrixStrategy>
+      <delay class="com.chikli.hudson.plugin.naginator.FixedDelay">
+        <delay>60</delay>
+      </delay>
+      <maxSchedule>3</maxSchedule>
+    </com.chikli.hudson.plugin.naginator.NaginatorPublisher>
+  </publishers>
   <buildWrappers>
     <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
       <bindings>
         <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
-          <credentialsId>obs_ci_bot</credentialsId>
-          <usernameVariable>OBSUserName</usernameVariable>
-          <passwordVariable>OBSPassword</passwordVariable>
+          <credentialsId>be1d7d09-4ab8-44da-ad52-82b3dcc795b0</credentialsId>
+          <usernameVariable>jenkins_user</usernameVariable>
+          <passwordVariable>jenkins_api_token</passwordVariable>
         </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
-        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
-          <credentialsId>openeuler_ci_bot</credentialsId>
-          <usernameVariable>GiteeUserName</usernameVariable>
-          <passwordVariable>GiteePassword</passwordVariable>
-        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>openeuler-ci-bot</credentialsId>
+          <variable>giteetoken</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
         <org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
           <credentialsId>11608799-cfc7-42c1-8b38-462a4cbdcdee</credentialsId>
           <variable>SaveBuildRPM2Repo</variable>
         </org.jenkinsci.plugins.credentialsbinding.impl.FileBinding>
-        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
-          <credentialsId>93245f7d-4603-405d-b056-4c1d6316c05f</credentialsId>
-          <usernameVariable>PkgShipUserName</usernameVariable>
-          <passwordVariable>PkgShipPassword</passwordVariable>
-        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
-        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
-          <credentialsId>openeuler_ci_bot</credentialsId>
-          <variable>GiteeUserPassword</variable>
-        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
-        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
-          <credentialsId>pkgship-notify-token</credentialsId>
-          <variable>pkgship_notify_token</variable>
-        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
-        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
-          <credentialsId>openeuler-ci-bot</credentialsId>
-          <variable>GiteeToken</variable>
-        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
-        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
-          <credentialsId>68ddb94f-871e-4cc7-9611-c1c507b9bf53</credentialsId>
-          <variable>MysqlUserPasswd</variable>
-        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
       </bindings>
     </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
     <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.7.1">

@@ -157,6 +157,7 @@ git am ${prid}.patch
 
 make openeuler_defconfig
 make -j30
+
 ../../src-kernel/kernel/check-kabi -k ../../src-kernel/kernel/Module.kabi_${arch} -s ./Module.symvers</command>
       <configuredLocalRules/>
     </hudson.tasks.Shell>

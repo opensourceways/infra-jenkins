@@ -4,6 +4,14 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>45</daysToKeep>
+        <numToKeep>150</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -17,14 +25,6 @@
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>45</daysToKeep>
-        <numToKeep>150</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -47,6 +47,7 @@
               <string>openEuler:20.09</string>
               <string>openEuler:21.03</string>
               <string>openEuler:21.09</string>
+              <string>openEuler:22.09</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -65,6 +66,7 @@
               <string>openEuler:20.09:Epol</string>
               <string>openEuler:21.03:Epol</string>
               <string>openEuler:21.09:Epol</string>
+              <string>openEuler:22.09:Epol</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -83,6 +85,7 @@
               <string>openEuler:20.09:Extras</string>
               <string>openEuler:21.03:Extras</string>
               <string>openEuler:21.09:Extras</string>
+              <string>openEuler:22.09:Extras</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>

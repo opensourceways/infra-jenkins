@@ -33,7 +33,7 @@
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>UPDATE_TIME</name>
-          <defaultValue>20220713</defaultValue>
+          <defaultValue>20220719</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -43,7 +43,7 @@
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>PKG_NAME</name>
-          <defaultValue>uboot-tools,vim</defaultValue>
+          <defaultValue>nodejs,mc,saxon,nodejs-jsonpointer</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>

@@ -1,7 +1,7 @@
 <?xml version='1.1' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description></description>
+  <description>更新PXE服务器上22.09版本repo文件</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.security.AuthorizationMatrixProperty>
@@ -20,6 +20,7 @@
       <permission>hudson.model.Item.Read:liujingjing</permission>
       <permission>hudson.model.Item.Workspace:liujingjing</permission>
       <permission>hudson.model.Run.Delete:liujingjing</permission>
+      <permission>hudson.model.Run.Replay:liujingjing</permission>
       <permission>hudson.model.Run.Update:liujingjing</permission>
       <permission>hudson.scm.SCM.Tag:liujingjing</permission>
     </hudson.security.AuthorizationMatrixProperty>
@@ -46,7 +47,7 @@
   <triggers>
     <jenkins.triggers.ReverseBuildTrigger>
       <spec></spec>
-      <upstreamProjects>../openEuler-OS-build/Main-openEuler-Mainline-build</upstreamProjects>
+      <upstreamProjects>../openEuler-OS-build/Main-openEuler-22.09-build</upstreamProjects>
       <threshold>
         <name>SUCCESS</name>
         <ordinal>0</ordinal>
@@ -100,19 +101,15 @@ EOF1
     echo &quot;retcode of sshcmd is ${retcode}&quot;
     return ${retcode}
 }
-sshcmd &quot;sh /etc/jekins_openqa.sh openEuler-Mainline-aarch64-dvd check_release&quot; || fail_flag=1
+sshcmd &quot;sh /etc/jekins_openqa.sh openEuler-22.09-aarch64-dvd check_release&quot; || fail_flag=1
 if [ $fail_flag -ne 0 ];then
     exit $fail_flag
 fi
-sshcmd &quot;sh /etc/jekins_openqa.sh openEuler-Mainline-aarch64-dvd wget_iso&quot; || fail_flag=1
+sshcmd &quot;sh /etc/jekins_openqa.sh openEuler-22.09-aarch64-dvd wget_iso&quot; || fail_flag=1
 if [ $fail_flag -ne 0 ];then
     exit $fail_flag
 fi
-sshcmd &quot;sh /etc/jekins_openqa.sh openEuler-Mainline-aarch64-dvd check_docker&quot; || fail_flag=1
-if [ $fail_flag -ne 0 ];then
-    exit $fail_flag
-fi
-cmd=&quot;sh /etc/jekins_openqa.sh openEuler-Mainline-aarch64-dvd check_iso&quot;
+cmd=&quot;sh /etc/jekins_openqa.sh openEuler-22.09-aarch64-dvd check_iso&quot;
 for ((i = 0; i &lt; 60; i++)); do
 	fail_flag=0
     sshcmd &quot;${cmd}&quot; || fail_flag=1
@@ -124,12 +121,12 @@ done
 if [ $fail_flag -ne 0 ];then
     exit $fail_flag
 fi
-cmd=&quot;sh /etc/jekins_openqa.sh openEuler-Mainline-aarch64-dvd pxe_path&quot;
+cmd=&quot;sh /etc/jekins_openqa.sh openEuler-22.09-aarch64-dvd pxe_path&quot;
 sshcmd &quot;${cmd}&quot; || fail_flag=2
 if [ $fail_flag -ne 0 ];then
     exit $fail_flag
 fi
-sshcmd &quot;bash /etc/run_openeuler_at.sh openEuler-Mainline-aarch64-dvd&quot; || fail_flag=3
+sshcmd &quot;bash /etc/run_openeuler_at.sh openEuler-22.09-aarch64-dvd&quot; || fail_flag=3
 if [ $fail_flag -ne 0 ];then
     exit $fail_flag
 fi

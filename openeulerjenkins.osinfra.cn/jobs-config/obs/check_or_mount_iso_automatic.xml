@@ -57,7 +57,7 @@
           <includeBranchesSpec></includeBranchesSpec>
           <excludeBranchesSpec></excludeBranchesSpec>
           <targetBranchRegex></targetBranchRegex>
-          <secretToken>{AQAAABAAAAAQXSK5Wv18uhPKr1/gbIODYFRRYoNARTU930usZz3pPOY=}</secretToken>
+          <secretToken>{AQAAABAAAAAQKsQVfmNzVj55hQVzWCuYUclKMPQ5dRqHmxbwL/JSrsE=}</secretToken>
           <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
           <cancelIncompleteBuildOnSamePullRequest>false</cancelIncompleteBuildOnSamePullRequest>
           <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
@@ -72,6 +72,9 @@
         stage(&quot;check_or_mount_iso&quot;) {
             steps {
                 parallel(
+                    &quot;22.09&quot;: {
+                        build job: &apos;check_or_mount_iso&apos;, parameters: [string(name: &apos;release_version&apos;,value: &apos;openEuler-22.09&apos;)], propagate: false
+                    },
                     &quot;22.03_lts&quot;: {
                         build job: &apos;check_or_mount_iso&apos;, parameters: [string(name: &apos;release_version&apos;,value: &apos;openEuler-22.03-LTS&apos;)], propagate: false
                     },

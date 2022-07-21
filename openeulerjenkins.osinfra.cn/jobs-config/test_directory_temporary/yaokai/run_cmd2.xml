@@ -80,42 +80,22 @@ EOF
 #rm -rf openeuler_obs-*
 
 
-if [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.95&quot; ];then
-    OBS_BACKEND_USR=${OBS_BACKEND_USR_main}
-    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_main}
-    echo &quot;95&quot;
-elif [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.124&quot; ];then
-    OBS_BACKEND_USR=${OBS_BACKEND_USR_other}
-    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_other}
-    echo &quot;124&quot;
-elif [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.155&quot; ];then
-    OBS_BACKEND_USR=${OBS_BACKEND_USR_002}
-    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_002}
-    echo &quot;155&quot;
-elif [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.32&quot; ];then
-    OBS_BACKEND_USR=${OBS_BACKEND_USR_003}
-    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_003}
-    echo &quot;32&quot;
-elif [ &quot;${OBS_BACKEND_SERVER_IP}&quot; == &quot;172.16.1.234&quot; ];then
-    OBS_BACKEND_USR=${OBS_BACKEND_USR_004}
-    OBS_BACKEND_PWD=${OBS_BACKEND_PWD_004}
-    echo &quot;234&quot;
-fi
-
 
 # http://117.78.1.88:82/obs_build_log/
 # https://gitee.com/openeuler/pkgship
 # https://pkgmanage.openeuler.org/Packagemanagement
 
 
-wget https://download.opensuse.org/distribution/leap/15.1/repo/oss/x86_64/sshpass-1.06-lp151.2.2.x86_64.rpm
+#wget https://download.opensuse.org/distribution/leap/15.1/repo/oss/x86_64/sshpass-1.06-lp151.2.2.x86_64.rpm
 
 #osc r openEuler:Mainline --xml &gt; openeuler_mainline_result_20220707.xml
 #osc r openEuler:Epol --xml &gt; openeuler_epol_result_20220707.xml
 
+echo &quot;${project}&quot; &gt; 0721.list
+
 rm -rf home:zhouxiaxiang
 osc co home:zhouxiaxiang failed_log
-cp sshpass-1.06-lp151.2.2.x86_64.rpm ./home\:zhouxiaxiang/failed_log
+cp 0721.list ./home\:zhouxiaxiang/failed_log
 
 
 #python3 build_result.py -c &quot;build_result_20220707.csv&quot; -l &quot;117.78.1.88:82&quot; -p ${project}
@@ -124,7 +104,8 @@ cp sshpass-1.06-lp151.2.2.x86_64.rpm ./home\:zhouxiaxiang/failed_log
 #cp openeuler_mainline_result_20220707.xml ./home\:zhouxiaxiang/project_build_result
 #cp openeuler_epol_result_20220707.xml ./home\:zhouxiaxiang/project_build_result
 #cp build_result_20220707.csv ./home\:zhouxiaxiang/project_build_result
-#cd ./home\:zhouxiaxiang/project_build_result
+
+cd ./home\:zhouxiaxiang/failed_log
 osc addremove
 osc ci -n
 

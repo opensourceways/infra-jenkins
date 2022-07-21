@@ -107,7 +107,7 @@
         <hudson.model.StringParameterDefinition>
           <name>obs_webui_host</name>
           <description>obs webui地址</description>
-          <defaultValue>117.78.1.88/</defaultValue>
+          <defaultValue>http://117.78.1.88/</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
