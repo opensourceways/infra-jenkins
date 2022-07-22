@@ -15,7 +15,7 @@
     <jenkins.model.BuildDiscarderProperty>
       <strategy class="hudson.tasks.LogRotator">
         <daysToKeep>30</daysToKeep>
-        <numToKeep>500</numToKeep>
+        <numToKeep>1000</numToKeep>
         <artifactDaysToKeep>-1</artifactDaysToKeep>
         <artifactNumToKeep>-1</artifactNumToKeep>
       </strategy>
@@ -98,7 +98,7 @@ def setEnvCI(String sourceBranch) {
         env.CI_PIPELINE_BRANCH = "${giteeSourceBranch}"
     } else {
         env.CI_PIPELINE_ORGANIZATION_NAME = 'lllrt'
-        env.CI_PIPELINE_BRANCH = 'debug'
+        env.CI_PIPELINE_BRANCH = 'master'
     }
 }
 
@@ -1266,19 +1266,11 @@ node('x86-generic-slaves') {
             def parallelJobsRun = [:]
             
             // LLT
-            def jobsList = [["Smoke_CPU_Ubuntu", "x86-build-ubuntu", 15, "pipeline/bin/llt/st/smoke_cpu2.sh"]]
+            def jobsList = [["UT_Test", "x86-build-ubuntu", 15, "pipeline/bin/llt/ut/ut_test.sh"],
+                            ["Smoke_CPU_Ubuntu", "x86-build-ubuntu", 15, "pipeline/bin/llt/st/smoke_cpu2.sh"]]
             parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux)
+            parallelJobsRun &lt;&lt; this.codeCheckStage(ORGANIZATION_NAME, REPOSITORY_NAME, PIPELINE_TYPE)
             parallel parallelJobsRun
-        }
-        stage('compile2'){
-            def parallelJobsRun = [:]
-            def jobsList = [["abcba", "x86-build-centos", 10, "mindquantum_compile.sh", "-t centos_x86 -v python38"],
-                            ["cbabc", "x86-build-centos", 10, "mindquantum_compile.sh", "-t centos_x86 -v python39"]]
-            parallelJobsRun &lt;&lt; this.getParallelJobs(jobsList, this.&amp;commonLinux, "pipeline/mindspore/${REPOSITORY_NAME}/scripts/")
-            parallel parallelJobsRun
-        }
-        stage('ftp_release'){
-            parallel this.releasePackageOfPipeline(PIPELINE_TYPE, NEWEST_FLAG)
         }
         currentBuild.result = 'SUCCESS'
     } catch(Exception ex) {
