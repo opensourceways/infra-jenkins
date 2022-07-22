@@ -62,7 +62,7 @@ fi
 
 echo &quot;building frontend website&quot;
 cd $WORKSPACE
-#sed -i &quot;s|npm install|npm install --registry==https://registry.npm.taobao.org|&quot; ./Dockerfile
+sed -i &quot;s|RUN pnpm install|RUN pnpm install --registry==https://registry.npm.taobao.org|&quot; ./Dockerfile
 
 cat ./Dockerfile
 
@@ -109,20 +109,9 @@ fi</command>
   <publishers>
     <hudson.tasks.Mailer plugin="mailer@408.vd726a_1130320">
       <recipients>zhaochunjiang1@huawei.com</recipients>
-      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
-      <sendToIndividuals>true</sendToIndividuals>
+      <dontNotifyEveryUnstableBuild>true</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
     </hudson.tasks.Mailer>
-    <com.chikli.hudson.plugin.naginator.NaginatorPublisher plugin="naginator@1.18.1">
-      <regexpForRerun></regexpForRerun>
-      <rerunIfUnstable>true</rerunIfUnstable>
-      <rerunMatrixPart>false</rerunMatrixPart>
-      <checkRegexp>false</checkRegexp>
-      <regexpForMatrixStrategy>TestParent</regexpForMatrixStrategy>
-      <delay class="com.chikli.hudson.plugin.naginator.FixedDelay">
-        <delay>10</delay>
-      </delay>
-      <maxSchedule>3</maxSchedule>
-    </com.chikli.hudson.plugin.naginator.NaginatorPublisher>
   </publishers>
   <buildWrappers>
     <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.27">
