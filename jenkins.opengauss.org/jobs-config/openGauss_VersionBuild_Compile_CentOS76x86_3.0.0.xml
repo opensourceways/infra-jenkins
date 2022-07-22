@@ -419,7 +419,7 @@ add_patch() {
     echo "patch delete_lse_avx.patch success..."
 }
 
-add_patch
+#add_patch
 
 # 开始打包
 #cd ${WORKSPACE}/openGauss_CI/scripts/versionBuild/compile

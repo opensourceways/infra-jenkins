@@ -31,7 +31,11 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers/>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H 05 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
   <concurrentBuild>false</concurrentBuild>
   <customWorkspace>/usr1/gauss_jenkins/jenkins/workspace/</customWorkspace>
   <builders>
@@ -298,11 +302,11 @@ exit $?</command>
       <passwordEntries>
         <EnvInjectPasswordEntry>
           <name>userPasswd</name>
-          <value>{AQAAABAAAAAQNS5A/1R14mRhvj5sndc54HAQq+rSPz1sGk6kGo64zNE=}</value>
+          <value>{AQAAABAAAAAQHxpZUtlF88rU8x4JGH67RcQWz/nSBfY+USFpoMVIEsE=}</value>
         </EnvInjectPasswordEntry>
         <EnvInjectPasswordEntry>
           <name>dbPasswd</name>
-          <value>{AQAAABAAAAAQceFJ3cI+kXO5kJB/y+JHjLF7pWlLc4Y2eoxwzatoLmg=}</value>
+          <value>{AQAAABAAAAAQR1LyNfuihr/H2jBoaF1jvWp6VensZGoqT+V+AXKMH9g=}</value>
         </EnvInjectPasswordEntry>
       </passwordEntries>
     </EnvInjectPasswordWrapper>

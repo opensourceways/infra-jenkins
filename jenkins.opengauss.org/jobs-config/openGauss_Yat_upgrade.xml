@@ -1,0 +1,132 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><project>
+  <actions/>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.1.1"/>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.plugins.disk__usage.DiskUsageProperty plugin="disk-usage@0.28"/>
+    <com.gitee.jenkins.connection.GiteeConnectionProperty plugin="gitee@1.1.15">
+      <giteeConnection>Gitee</giteeConnection>
+    </com.gitee.jenkins.connection.GiteeConnectionProperty>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.18.1">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>x86-slave-2</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <customWorkspace>/usr1/gauss_jenkins/jenkins/workspace/</customWorkspace>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>echo "giteePullRequestIid: ${giteePullRequestIid}"
+echo "giteeAfterCommitSha: ${giteeAfterCommitSha}"
+echo "giteeRef: ${giteeRef}"
+git config --global core.compression 0
+
+openGaussYat_Http_Repo_Url="https://gitee.com/opengauss/Yat.git"
+
+a=0
+flag=0
+while [ $a -lt 10 ]
+do
+   echo $a
+   rm -rf ${WORKSPACE}/Yat_upgrade
+   timeout 60 git clone -b ${giteeTargetBranch} "${openGaussYat_Http_Repo_Url}" "${WORKSPACE}/Yat_upgrade"
+   if [[ $? == 0 ]] ; then
+      flag=1
+      break
+   fi
+   a=`expr $a + 1`
+done
+
+if [[ $flag == 0 ]] ; then
+      echo "clone code failed!"
+      exit 1
+fi
+
+
+cd ${WORKSPACE}/Yat_upgrade
+git rev-parse --is-inside-work-tree
+git config remote.origin.url ${openGaussYat_Http_Repo_Url}
+git fetch --tags --force --progress origin ${giteeRef}:${giteeRef}
+git checkout -b ${giteeRef} ${giteeRef}
+
+echo "start check yat upgrade"
+
+#sh /home/OM/remote_clean.sh
+
+#if [ -e /home/OM/ssh/known_hosts ]
+#then
+    #rm -rf ~/.ssh/*
+    #cp /home/OM/ssh/* ~/.ssh/
+#fi
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.postbuildtask.PostbuildTask plugin="postbuild-task@1.9">
+      <tasks>
+        <hudson.plugins.postbuildtask.TaskProperties>
+          <logTexts>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>fatal</logText>
+              <operator>OR</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>EOF</logText>
+              <operator>OR</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>build as failure</logText>
+              <operator>OR</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+          </logTexts>
+          <EscalateStatus>false</EscalateStatus>
+          <RunIfJobSuccessful>false</RunIfJobSuccessful>
+          <script>function delete_labels() {&#13;
+  echo "Delete labels"&#13;
+  curl -X DELETE "https://gitee.com/api/v5/repos/opengauss/Yat/pulls/$1/labels/$3" -H "Authorization: Bearer $2" -H 'Content-Type: application/json' &gt; /dev/null&#13;
+}&#13;
+&#13;
+delete_labels ${giteePullRequestIid} ${token} ci-pipeline-running&#13;
+&#13;
+curl -X POST "https://gitee.com/api/v5/repos/opengauss/Yat/pulls/${giteePullRequestIid}/labels" \&#13;
+-H "Authorization: Bearer ${token}" \&#13;
+-H "Content-Type: application/json;charset=UTF-8" \&#13;
+-d '["ci-pipeline-failed"]' &gt; /dev/null</script>
+        </hudson.plugins.postbuildtask.TaskProperties>
+      </tasks>
+    </hudson.plugins.postbuildtask.PostbuildTask>
+  </publishers>
+  <buildWrappers>
+    <EnvInjectPasswordWrapper plugin="envinject@2.3.0">
+      <injectGlobalPasswords>true</injectGlobalPasswords>
+      <maskPasswordParameters>false</maskPasswordParameters>
+      <passwordEntries>
+        <EnvInjectPasswordEntry>
+          <name>token</name>
+          <value>{AQAAABAAAAAwpZTtTULVwwPFZPX+xvj8Syq8HgMyEXgvTkNsGhQ31cWwMODWBzCXlzGfF6zY/SZ4T99czNpX33aLh7D/6e4GzQ==}</value>
+        </EnvInjectPasswordEntry>
+      </passwordEntries>
+    </EnvInjectPasswordWrapper>
+  </buildWrappers>
+</project>
