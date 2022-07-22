@@ -4,43 +4,6 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.security.AuthorizationMatrixProperty>
-      <inheritanceStrategy class="org.jenkinsci.plugins.matrixauth.inheritance.InheritParentStrategy"/>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:gongzt</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Create:jiangpengju</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:gongzt</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Delete:jiangpengju</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:gongzt</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains:jiangpengju</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:gongzt</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.Update:jiangpengju</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:gongzt</permission>
-      <permission>com.cloudbees.plugins.credentials.CredentialsProvider.View:jiangpengju</permission>
-      <permission>hudson.model.Item.Build:gongzt</permission>
-      <permission>hudson.model.Item.Build:jiangpengju</permission>
-      <permission>hudson.model.Item.Cancel:gongzt</permission>
-      <permission>hudson.model.Item.Cancel:jiangpengju</permission>
-      <permission>hudson.model.Item.Configure:gongzt</permission>
-      <permission>hudson.model.Item.Configure:jiangpengju</permission>
-      <permission>hudson.model.Item.Delete:gongzt</permission>
-      <permission>hudson.model.Item.Delete:jiangpengju</permission>
-      <permission>hudson.model.Item.Discover:gongzt</permission>
-      <permission>hudson.model.Item.Discover:jiangpengju</permission>
-      <permission>hudson.model.Item.Move:gongzt</permission>
-      <permission>hudson.model.Item.Move:jiangpengju</permission>
-      <permission>hudson.model.Item.Read:gongzt</permission>
-      <permission>hudson.model.Item.Read:jiangpengju</permission>
-      <permission>hudson.model.Item.Workspace:gongzt</permission>
-      <permission>hudson.model.Item.Workspace:jiangpengju</permission>
-      <permission>hudson.model.Run.Delete:gongzt</permission>
-      <permission>hudson.model.Run.Delete:jiangpengju</permission>
-      <permission>hudson.model.Run.Replay:gongzt</permission>
-      <permission>hudson.model.Run.Replay:jiangpengju</permission>
-      <permission>hudson.model.Run.Update:gongzt</permission>
-      <permission>hudson.model.Run.Update:jiangpengju</permission>
-      <permission>hudson.scm.SCM.Tag:gongzt</permission>
-      <permission>hudson.scm.SCM.Tag:jiangpengju</permission>
-    </hudson.security.AuthorizationMatrixProperty>
     <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
       <doNotScan>false</doNotScan>
     </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
@@ -59,7 +22,7 @@
         <hudson.model.StringParameterDefinition>
           <name>repo</name>
           <description>码云中仓库名称</description>
-          <defaultValue>python-flask</defaultValue>
+          <defaultValue>mc</defaultValue>
           <trim>true</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -90,24 +53,24 @@
         <hudson.model.StringParameterDefinition>
           <name>arch</name>
           <description>cpu框架</description>
-          <defaultValue>aarch64</defaultValue>
+          <defaultValue>x86_64</defaultValue>
           <trim>true</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>package</name>
-          <description>所属包，支持多个，用“,”分割</description>
-          <defaultValue>python-flask</defaultValue>
+          <description>所属obs包</description>
+          <defaultValue>mc</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>buddy</name>
-          <description>兄弟repo，支持多个，用“,”分割</description>
-          <defaultValue>python-flask</defaultValue>
+          <description>兄弟repo</description>
+          <defaultValue>mc</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>repo_server</name>
-          <description>结果保存地址</description>
+          <description>保存结果地址</description>
           <defaultValue>121.36.53.23</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
@@ -145,7 +108,7 @@
     </hudson.model.ParametersDefinitionProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>k8s-aarch64-soe</assignedNode>
+  <assignedNode>k8s-x86-soe</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -155,20 +118,26 @@
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-repo_owner=&apos;gongzt&apos;
-shell_pathoe=/home/jenkins/ci_check1
+repo_owner=&apos;MementoMoriCheng&apos;
+shell_path=/home/jenkins/ci_check
 # 调测可使用以下代码
- shell_path=/home/jenkins/ci_check2
- mkdir -p ${shell_path}
- mkdir -p ${shell_pathoe}
- pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple click xmltodict 
- 
- rm -rf ${shell_path}/*
- git clone https://gitee.com/gongzt/ci-tools.git ${shell_path}
- git clone https://gitee.com/openeuler/openeuler-jenkins.git ${shell_pathoe}
- 
+# shell_path=/home/jenkins/ci_check2
+# mkdir -p ${shell_path}
+# rm -rf ${shell_path}/*
+# git clone https://gitee.com/xxx/openeuler-jenkins.git ${shell_path}
 
-. ${shell_path}/check_in/run.sh
+JENKINS_HOME=/home/jenkins
+OECP_HOME=${JENKINS_HOME}/oecp
+sed -i &quot;21 aimport logging&quot; ${OECP_HOME}/oecp/result/json_result.py
+sed -i &quot;22 alogger = logging.getLogger(\&quot;oecp\&quot;)&quot; ${OECP_HOME}/oecp/result/json_result.py
+
+sed -i &quot;76 a \    logger.info(rows)&quot; ${OECP_HOME}/oecp/result/json_result.py
+sed -i &quot;82 a \    logger.info(rows)&quot; ${OECP_HOME}/oecp/result/json_result.py
+sed -i &quot;103 a \    logger.info(f\&quot;1 {side_a} 2 {side_b} 3 {pkg_name}\&quot;)&quot; ${OECP_HOME}/oecp/result/json_result.py
+sed -i &quot;104 a \    if not rows or not rows.get(pkg_name):&quot; ${OECP_HOME}/oecp/result/json_result.py
+sed -i &quot;105 a \        return None&quot; ${OECP_HOME}/oecp/result/json_result.py
+
+. ${shell_path}/src/lib/main_process.sh
 
 set +x
 set -e

@@ -1,0 +1,25 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<org.csanchez.jenkins.plugins.kubernetes.KubernetesSlave plugin="kubernetes@1.30.5">
+  <name>k8s-aarch64-soe-tjnhg</name>
+  <description>k8s-aarch64-soe</description>
+  <numExecutors>1</numExecutors>
+  <mode>EXCLUSIVE</mode>
+  <retentionStrategy class="hudson.slaves.CloudRetentionStrategy">
+    <idleMinutes>1</idleMinutes>
+  </retentionStrategy>
+  <launcher class="org.csanchez.jenkins.plugins.kubernetes.KubernetesLauncher">
+    <workDirSettings>
+      <disabled>false</disabled>
+      <internalDir>remoting</internalDir>
+      <failIfWorkDirIsMissing>false</failIfWorkDirIsMissing>
+    </workDirSettings>
+    <webSocket>false</webSocket>
+    <launched>true</launched>
+  </launcher>
+  <label>k8s-aarch64-soe</label>
+  <nodeProperties/>
+  <cloudName>kubernetes-aarch64-soe</cloudName>
+  <namespace>jenkins</namespace>
+  <podTemplateId>k8s-aarch64-obs-sc-ae37a7082e2e9b9ee64ef25eab612fa7</podTemplateId>
+  <remoteFS>/home/jenkins/agent</remoteFS>
+</org.csanchez.jenkins.plugins.kubernetes.KubernetesSlave>

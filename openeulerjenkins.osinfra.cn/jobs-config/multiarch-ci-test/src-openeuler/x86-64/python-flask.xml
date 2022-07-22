@@ -142,14 +142,17 @@
     <hudson.tasks.Shell>
       <command>#!/bin/bash
 repo_owner=&apos;gongzt&apos;
-#shell_path=/home/jenkins/ci_check
+shell_pathoe=/home/jenkins/ci_check1
 # 调测可使用以下代码
  shell_path=/home/jenkins/ci_check2
  mkdir -p ${shell_path}
+ mkdir -p ${shell_pathoe}
  pip3 install -i https://repo.huaweicloud.com/repository/pypi/simple click xmltodict 
  
  rm -rf ${shell_path}/*
  git clone https://gitee.com/gongzt/ci-tools.git ${shell_path}
+ git clone https://gitee.com/openeuler/openeuler-jenkins.git ${shell_pathoe}
+ 
 
 . ${shell_path}/check_in/run.sh
 

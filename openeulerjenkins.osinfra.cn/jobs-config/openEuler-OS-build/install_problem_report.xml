@@ -40,6 +40,7 @@
               <string>openEuler-20.03-LTS-SP3</string>
               <string>openEuler-22.03-LTS</string>
               <string>openEuler-22.03-LTS-Next</string>
+              <string>openEuler-22.09</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -47,7 +48,7 @@
           <name>to_addr</name>
           <description>收件人邮箱地址
 a,b,c......</description>
-          <defaultValue>wangyiru1@huawei.com,caodongxia@h-partners.com,xiasenlin1@huawei.com,pengchenghan@huawei.com,yangmingtai@huawei.com,zhengzengkai@huawei.com,xingchaochao@huawei.com,yezengruan@huawei.com,hewenliang4@huawei.com,yanan@huawei.com,yangmingtai@huawei.com,liuzhiqiang26@huawei.com,lixiang172@huawei.com,dingxiaoxiong@huawei.com,kong.kongxinwei@hisilicon.com,wangchong56@huawei.com,liyanan32@h-partners.com</defaultValue>
+          <defaultValue>wangyiru1@huawei.com,caodongxia@h-partners.com,xiasenlin1@huawei.com,pengchenghan@huawei.com,yangmingtai@huawei.com,zhengzengkai@huawei.com,xingchaochao@huawei.com,yezengruan@huawei.com,hewenliang4@huawei.com,yanan@huawei.com,yangmingtai@huawei.com,liuzhiqiang26@huawei.com,lixiang172@huawei.com,dingxiaoxiong@huawei.com,kong.kongxinwei@hisilicon.com,wangchong56@huawei.com,liyanan32@h-partners.com,zhouxiaxiang2@h-partners.com</defaultValue>
           <trim>true</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -153,6 +154,19 @@ name=epol
 baseurl=http://119.3.219.20:82/openEuler:/Epol/standard_aarch64/
 enabled=1
 gpgcheck=0
+
+[2209]
+name=2209
+baseurl=http://119.3.219.20:82/openEuler:/22.09/standard_aarch64/
+enabled=1
+gpgcheck=0
+
+[2209-epol]
+name=2209-epol
+baseurl=http://119.3.219.20:82/openEuler:/22.09:/Epol/standard_aarch64/
+enabled=1
+gpgcheck=0
+
 EOF2
 ) &gt; /etc/yum.repos.d/openEuler.repo
 

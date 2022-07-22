@@ -27,9 +27,9 @@
   <triggers>
     <com.gitee.jenkins.trigger.GiteePushTrigger plugin="gitee@1.2.7">
       <spec></spec>
-      <triggerOnPush>true</triggerOnPush>
+      <triggerOnPush>false</triggerOnPush>
       <triggerOnCommitComment>false</triggerOnCommitComment>
-      <triggerOnOpenPullRequest>true</triggerOnOpenPullRequest>
+      <triggerOnOpenPullRequest>false</triggerOnOpenPullRequest>
       <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
       <triggerOnAcceptedPullRequest>true</triggerOnAcceptedPullRequest>
       <triggerOnUpdatePullRequest>0</triggerOnUpdatePullRequest>
@@ -47,7 +47,7 @@
       <includeBranchesSpec></includeBranchesSpec>
       <excludeBranchesSpec></excludeBranchesSpec>
       <targetBranchRegex></targetBranchRegex>
-      <secretToken>{AQAAABAAAAAwDQo4KO89tINjAHB6bi4Yf1L2JKmjP5JxxxEi7ys3H3qp0l2Ds/v+PinaHZZX2wCTTAlAQSDKwDgtjgbI9bFPIg==}</secretToken>
+      <secretToken>{AQAAABAAAAAwOHUhfd7lO0uHzkz2YvnEjmQ5FWuHRr2tVnf7aX7gjPW715HLr55cHod1aY6IVdttoAUxcyBdcFwWNg9gMYqv3w==}</secretToken>
       <cancelPendingBuildsOnUpdate>false</cancelPendingBuildsOnUpdate>
       <cancelIncompleteBuildOnSamePullRequest>false</cancelIncompleteBuildOnSamePullRequest>
       <ignorePullRequestConflicts>false</ignorePullRequestConflicts>
@@ -58,14 +58,12 @@
     <hudson.tasks.Shell>
       <command>#!/bin/bash
 
-rm --rf openeuler-os-build
 test -f create_translation_issue2.py &amp;&amp; rm create_translation_issue2.py
 test -f translation2.yaml &amp;&amp; rm translation2.yaml
-#wget https://gitee.com/openeuler/infrastructure/raw/master/ci/tools/translation/create_translation_issue.py
-#wget https://gitee.com/openeuler/infrastructure/raw/master/ci/tools/translation/translation.yaml
+
 wget https://gitee.com/new-op/k1/raw/master/ci/tools/translation/create_translation_issue2.py
 wget https://gitee.com/new-op/k1/raw/master/ci/tools/translation/translation2.yaml
-ls
+
 if [ &quot;$giteeTargetNamespace&quot; == &quot;openeuler&quot; ];then
 token=$OPENEULER_GITEE_TOKEN
 fi
